@@ -1,0 +1,10 @@
+pragma language_version >= 0.16 && <= 0.25;
+import CompactStandardLibrary;
+
+// public state (公開台帳に保存される状態)
+export ledger round: Counter;
+
+// transition function changing public state (公開状態を変更する関数)
+export circuit increment(): [] {
+    round.increment(1);
+}

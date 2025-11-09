@@ -1,0 +1,6 @@
+node_modules
+dist
+reports
+logs
+midnight-level-db
+.env
