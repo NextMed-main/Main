@@ -164,16 +164,41 @@ export async function connectWallet(
  */
 export async function getAddress(api: Cip30WalletApi): Promise<string> {
 	try {
-		const addresses = await api.getUsedAddresses();
-
-		if (!addresses || addresses.length === 0) {
-			throw new WalletError(
-				"CONNECTION_FAILED",
-				"No addresses found in wallet",
-			);
+		// 方法1: 使用済みアドレスを取得
+		try {
+			const usedAddresses = await api.getUsedAddresses();
+			if (usedAddresses && usedAddresses.length > 0) {
+				return usedAddresses[0];
+			}
+		} catch (error) {
+			console.warn("getUsedAddresses failed, trying alternative methods:", error);
 		}
 
-		return addresses[0];
+		// 方法2: 未使用アドレスを取得
+		try {
+			const unusedAddresses = await api.getUnusedAddresses();
+			if (unusedAddresses && unusedAddresses.length > 0) {
+				return unusedAddresses[0];
+			}
+		} catch (error) {
+			console.warn("getUnusedAddresses failed, trying change address:", error);
+		}
+
+		// 方法3: お釣りアドレスを取得
+		try {
+			const changeAddress = await api.getChangeAddress();
+			if (changeAddress) {
+				return changeAddress;
+			}
+		} catch (error) {
+			console.warn("getChangeAddress failed:", error);
+		}
+
+		// すべての方法が失敗した場合
+		throw new WalletError(
+			"CONNECTION_FAILED",
+			"No addresses found in wallet. Please ensure your wallet has at least one address.",
+		);
 	} catch (error) {
 		if (error instanceof WalletError) {
 			throw error;

@@ -13,6 +13,12 @@
   - エラー型（`WalletError`, `WalletErrorCode`）を定義
   - _Requirements: 1, 3_
 
+- [x] 1.1.1 CIP-30 API型定義の拡張
+  - `getUnusedAddresses()`メソッドを追加
+  - `getChangeAddress()`メソッドを追加
+  - CIP-30標準の完全なサポートを実現
+  - _Requirements: 3_
+
 - [x] 1.2 ウォレットプロバイダー設定
   - `pkgs/frontend/lib/wallet/providers.ts`を作成
   - 4つのウォレット（Lace, Nami, Eternl, Flint）の設定を定義
@@ -26,6 +32,13 @@
   - `getAddress()`関数を実装（プライマリアドレス取得）
   - エラーハンドリングを実装
   - _Requirements: 3, 6, 8_
+
+- [x] 1.3.1 アドレス取得のフォールバック実装
+  - `getAddress()`に複数の取得方法を実装
+  - `getUsedAddresses()` → `getUnusedAddresses()` → `getChangeAddress()`の順で試行
+  - 各メソッドの失敗時に警告ログを出力
+  - すべて失敗時にユーザーフレンドリーなエラーメッセージを表示
+  - _Requirements: 3, 6_
 
 - [x] 1.4 localStorage管理
   - `pkgs/frontend/lib/wallet/wallet-storage.ts`を作成

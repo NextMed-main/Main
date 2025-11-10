@@ -28,6 +28,18 @@ export interface Cip30WalletApi {
 	getUsedAddresses: () => Promise<string[]>;
 
 	/**
+	 * 未使用アドレスのリストを取得
+	 * @returns Bech32m形式のアドレス配列
+	 */
+	getUnusedAddresses: () => Promise<string[]>;
+
+	/**
+	 * お釣りアドレスを取得
+	 * @returns Bech32m形式のアドレス
+	 */
+	getChangeAddress: () => Promise<string>;
+
+	/**
 	 * ウォレットの残高を取得
 	 * @returns 残高（文字列形式）
 	 */
