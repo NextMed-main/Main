@@ -1,0 +1,3 @@
+[submodule "references/helixchain"]
+	path = references/helixchain
+	url = https://github.com/jasonyi33/helixchain.git
