@@ -2,25 +2,41 @@
   "mcpServers": {
     "context7": {
       "command": "npx",
-      "args": ["--yes", "@upstash/context7-mcp"],
+      "args": [
+        "--yes",
+        "@upstash/context7-mcp"
+      ],
       "disabled": false
     },
     "sequential-thinking": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
       "disabled": false
     },
     "serena": {
-			"command": "uvx",
-			"args": [
-				"--from",
-				"git+https://github.com/oraios/serena",
-				"serena",
-				"start-mcp-server",
-				"--context",
-				"ide-assistant"
-			],
-      "disabled": false
-		}
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--context",
+        "ide-assistant"
+      ],
+      "disabled": false,
+      "autoApprove": [
+        "initial_instructions",
+        "activate_project",
+        "check_onboarding_performed",
+        "list_dir",
+        "list_dir",
+        "get_symbols_overview",
+        "read_memory",
+        "read_memory"
+      ]
+    }
   }
 }
