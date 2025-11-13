@@ -11,6 +11,7 @@ Main/
 │   │   └── structure.md      # プロジェクト構造（このファイル）
 │   └── settings/             # IDE設定
 ├── .serena/                   # Serenaエージェント設定
+├── references/helixchain     # 2025年9月にmidnightのハッカソンで受賞したチームのコードが格納されています。実装例として参考にしてください。
 ├── pkgs/                      # モノレポパッケージ
 │   ├── contract/             # Midnightスマートコントラクト
 │   │   ├── src/

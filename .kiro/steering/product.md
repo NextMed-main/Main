@@ -104,3 +104,27 @@
 1. 年齢
 2. 性別
 3. 症例
+
+## 7. 取り扱う医療データのサンプルフォーマット
+
+本プロジェクトで取り扱おうと考えているデータのサンプルフォーマットを提示します。
+
+実装時に参考してください。
+
+患者からはこれらのデータが登録される想定です。
+
+```csv
+Full Name,Age,Gender,Region,Address,Symptoms,Medication History,Past Visits,Phone Number,Insurance ID
+Linda Brown,69,Female,"Texas, USA","592 High St, Austin, TX","Depression, Type 2 Diabetes",Amoxicillin,[2025-06-05: Type 2 Diabetes],+1-437-555-8543,90227541970
+Yuko Kobayashi,61,Female,"Hokkaido, Japan",6-19 Hakodate-shi,Type 2 Diabetes,Atorvastatin,"[2024-05-16: Influenza A], [2024-04-02: Influenza A], [2023-11-06: Gastroenteritis]",+81-70-8831-5929,40510500365
+Mary Johnson,62,Female,"Wales, UK","5481 High St, Swansea",Depression,None,[2025-07-07: Common Cold],+44-7633-603739,5335944364
+Makoto Nakamura,6,Male,"Hokkaido, Japan","9-6 Chuo-ku, Sapporo",Bronchial Asthma,None,"[2024-10-06: Fever], [2024-08-16: Allergic Rhinitis], [2024-01-28: Dermatitis], [2024-01-24: Lower Back Pain], [2024-01-04: Influenza A]",+81-80-6927-0066,48416632358
+Hiroshi Suzuki,92,Male,"Chubu, Japan","8-23 Kanazawa-shi, Ishikawa",Rheumatoid Arthritis,Amlodipine,[2025-04-15: Acute Bronchitis],+81-70-6948-4803,53727056181
+Mika Yamamoto,91,Female,"Kansai, Japan","1-21 Chuo-ku, Kobe","Insomnia, Chronic Kidney Disease",None,"[2024-09-17: Allergic Rhinitis], [2024-08-31: Lower Back Pain]",+81-70-8266-5410,66138863580
+Yuta Ito,83,Male,"Kanto, Japan","5-2 Shinjuku-ku, Tokyo",Bronchial Asthma,Lisinopril,"[2025-05-21: Acute Bronchitis], [2024-11-21: Lower Back Pain], [2024-03-30: Bronchial Asthma], [2024-03-16: Fever], [2024-02-28: Acute Bronchitis]",+81-80-8903-5253,38065447495
+Hina Ito,19,Female,"Tohoku, Japan","2-16 Morioka-shi, Iwate",None,None,"[2025-08-08: Headache], [2025-04-16: Fever]",+81-90-6783-6779,90507825745
+Yoko Ito,71,Female,"Kansai, Japan","1-17 Nakagyo-ku, Kyoto",Osteoporosis,Sertraline,"[2024-08-12: Dermatitis], [2024-05-17: Dermatitis], [2024-05-03: Allergic Rhinitis]",+81-80-5322-1680,62272684114
+Misaki Ito,53,Female,"Kyushu, Japan",1-7 Kumamoto-shi,"Depression, Dyslipidemia",Amlodipine,"[2025-07-21: COVID-19], [2025-02-04: Headache], [2024-10-29: Common Cold]",+81-70-8003-6137,8633192726
+Sakura Watanabe,31,Female,"Kyushu, Japan",1-1 Kumamoto-shi,"Migraine, GERD",Atorvastatin,"[2025-01-30: Influenza A], [2024-10-15: Gastroenteritis]",+81-70-7716-9412,24559426050
+Sakura Ito,84,Female,"Tohoku, Japan","2-3 Aoba-ku, Sendai","Dyslipidemia, Chronic Kidney Disease",Furosemide,"[2025-10-10: Dyslipidemia], [2025-08-26: Headache], [2025-04-16: Lower Back Pain]",+81-90-7993-0275,56499446286
+```

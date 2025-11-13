@@ -114,20 +114,18 @@ graph TD
         L1 -->|9. 確認| U1
     end
     
-    subgraph "データ取得フロー"
+    subgraph "データクエリフロー"
         U2[研究者] -->|1. クエリ| F2[検索フォーム]
-        F2 -->|2. 同意確認| C2[checkConsent回路]
-        C2 -->|3. 同意あり| C3[getPatientData回路]
-        C3 -->|4. データ取得| L2[(Public Ledger)]
-        L2 -->|5. 返却| C3
-        C3 -->|6. 記録| C4[recordQuery回路]
-        C4 -->|7. 表示| U2
+        F2 -->|2. 集計リクエスト| C2[getAggregatedStats回路]
+        C2 -->|3. 全データ集計| L2[(Public Ledger)]
+        L2 -->|4. 統計データ返却| C2
+        C2 -->|5. 記録| C3[recordQuery回路]
+        C3 -->|6. 統計表示| U2
     end
     
     style C1 fill:#e1f5ff
     style C2 fill:#e1f5ff
     style C3 fill:#e1f5ff
-    style C4 fill:#e1f5ff
     style L1 fill:#ffe1e1
     style L2 fill:#ffe1e1
 ```
@@ -173,56 +171,7 @@ sequenceDiagram
     Note over Witness: 秘密鍵は公開されない（ZK証明のみ）
 ```
 
-### 同意管理シーケンス
 
-```mermaid
-sequenceDiagram
-    actor Patient as 患者
-    actor Researcher as 研究者
-    participant FE as Frontend
-    participant Wallet as Lace Wallet
-    participant Contract as Smart Contract
-    participant Ledger as Public Ledger
-    
-    rect rgb(200, 220, 255)
-        Note over Patient,Ledger: 同意付与フロー
-        Patient->>FE: 1. 研究者IDを指定して同意付与
-        FE->>Wallet: 2. grantConsent(patientId, researcherId)
-        Wallet->>Patient: 3. 署名確認
-        Patient->>Wallet: 4. 署名承認
-        
-        Wallet->>Contract: 5. grantConsent実行
-        Contract->>Ledger: 6. 患者ID存在確認
-        Ledger-->>Contract: 7. 存在確認OK
-        Contract->>Contract: 8. consentKey = makeConsentKey(patientId, researcherId)
-        Contract->>Ledger: 9. consents.insert(consentKey, true)
-        Contract->>Ledger: 10. consentTimestamps.insert(consentKey, timestamp)
-        
-        Contract-->>Wallet: 11. 完了
-        Wallet-->>FE: 12. トランザクション完了
-        FE-->>Patient: 13. 同意付与完了
-    end
-    
-    rect rgb(255, 220, 200)
-        Note over Researcher,Ledger: 同意確認フロー
-        Researcher->>FE: 14. データアクセス要求
-        FE->>Contract: 15. checkConsent(patientId, researcherId)
-        Contract->>Ledger: 16. consents.lookup(consentKey)
-        Ledger-->>Contract: 17. true（同意あり）
-        Contract-->>FE: 18. 同意確認OK
-        FE-->>Researcher: 19. データアクセス許可
-    end
-    
-    rect rgb(255, 200, 200)
-        Note over Patient,Ledger: 同意取り消しフロー
-        Patient->>FE: 20. 同意取り消し要求
-        FE->>Wallet: 21. revokeConsent(patientId, researcherId)
-        Wallet->>Contract: 22. revokeConsent実行
-        Contract->>Ledger: 23. consents.insert(consentKey, false)
-        Contract-->>FE: 24. 取り消し完了
-        FE-->>Patient: 25. 同意取り消し完了
-    end
-```
 
 ### データクエリシーケンス
 
@@ -238,31 +187,26 @@ sequenceDiagram
     Researcher->>FE: 1. データ検索条件入力
     FE->>API: 2. GET /api/researchers/datasets?conditions=...
     
-    API->>Contract: 3. checkConsent(patientId, researcherId)
-    Contract->>Ledger: 4. consents.lookup(consentKey)
-    Ledger-->>Contract: 5. true（同意あり）
-    Contract-->>API: 6. 同意確認OK
+    API->>Contract: 3. getAggregatedStats(queryType)
+    Contract->>Ledger: 4. patientAges全体を集計
+    Contract->>Ledger: 5. patientGenders全体を集計
+    Contract->>Ledger: 6. patientConditions全体を集計
+    Ledger-->>Contract: 7. 集計統計データ
+    Contract-->>API: 8. 集計結果（個別データは含まない）
     
-    API->>Contract: 7. getPatientData(patientId)
-    Contract->>Ledger: 8. patientAges.lookup(patientId)
-    Contract->>Ledger: 9. patientGenders.lookup(patientId)
-    Contract->>Ledger: 10. patientConditions.lookup(patientId)
-    Ledger-->>Contract: 11. [age, gender, conditionHash]
-    Contract-->>API: 12. 患者データ
+    API->>Contract: 9. recordQuery(researcherId, queryType)
+    Contract->>Ledger: 10. queryCount.increment(1)
     
-    API->>Contract: 13. recordQuery(researcherId)
-    Contract->>Ledger: 14. queryCount.increment(1)
+    API->>Indexer: 11. クエリ履歴取得
+    Indexer->>Ledger: 12. トランザクション履歴読み取り
+    Ledger-->>Indexer: 13. 履歴データ
+    Indexer-->>API: 14. 整形済み履歴
     
-    API->>Indexer: 15. クエリ履歴取得
-    Indexer->>Ledger: 16. トランザクション履歴読み取り
-    Ledger-->>Indexer: 17. 履歴データ
-    Indexer-->>API: 18. 整形済み履歴
+    API-->>FE: 15. JSON Response（集計データのみ）
+    FE-->>Researcher: 16. 統計データ表示
     
-    API-->>FE: 19. JSON Response
-    FE-->>Researcher: 20. データ表示
-    
-    Note over Contract,Ledger: プライバシー保護：<br/>症例データはハッシュのみ公開
-    Note over API,Indexer: 監査ログ：<br/>すべてのアクセスを記録
+    Note over Contract,Ledger: プライバシー保護：<br/>個別患者データは決して露出しない<br/>集計統計のみ提供
+    Note over API,Indexer: 監査ログ：<br/>すべてのクエリアクセスを記録
 ```
 
 ### ウォレット接続シーケンス
@@ -385,263 +329,501 @@ sequenceDiagram
     Note over Ledger: スタンドアロン環境<br/>（Docker）
 ```
 
+## データフォーマット設計
+
+### 実際の医療データフォーマット
+
+本プロジェクトでは以下のリッチな医療データフォーマットを扱います：
+
+```typescript
+interface PatientMedicalRecord {
+  // 基本情報（機密）
+  fullName: string;           // 氏名 - 完全に秘匿
+  phoneNumber: string;        // 電話番号 - 完全に秘匿
+  insuranceId: string;        // 保険ID - 完全に秘匿
+  address: string;            // 住所 - 完全に秘匿
+  
+  // 統計用データ（スマートコントラクトに登録）
+  age: number;                // 年齢 (0-150)
+  gender: 'Male' | 'Female' | 'Other';  // 性別
+  region: string;             // 地域（都道府県レベル）
+  
+  // 医療データ（ハッシュ化してスマートコントラクトに登録）
+  symptoms: string[];         // 症状リスト
+  medicationHistory: string[]; // 薬歴
+  pastVisits: VisitRecord[];  // 受診歴
+}
+
+interface VisitRecord {
+  date: string;               // 受診日
+  diagnosis: string;          // 診断名
+}
+```
+
+### データ処理フロー
+
+```mermaid
+graph TD
+    subgraph "フロントエンド層"
+        A[患者入力フォーム] --> B[リッチデータ収集]
+        B --> C[データ分離処理]
+    end
+    
+    subgraph "データ分離"
+        C --> D[機密データ<br/>氏名・住所・電話・保険ID]
+        C --> E[統計データ<br/>年齢・性別・地域]
+        C --> F[医療データ<br/>症状・薬歴・受診歴]
+    end
+    
+    subgraph "プライバシー処理"
+        D --> G[完全秘匿<br/>ローカル保存のみ]
+        E --> H[スマートコントラクト登録<br/>disclose()でラップ]
+        F --> I[ハッシュ化<br/>persistentHash()]
+    end
+    
+    subgraph "スマートコントラクト"
+        H --> J[年齢・性別をMap保存]
+        I --> K[症状・薬歴ハッシュを保存]
+    end
+    
+    style D fill:#ff9999
+    style G fill:#ff9999
+    style H fill:#99ff99
+    style I fill:#ffff99
+    style J fill:#99ccff
+    style K fill:#99ccff
+```
+
 ## スマートコントラクトの詳細設計
 
 ### 設計方針
 
-**Compact言語の制約を踏まえた設計原則**:
+**リッチデータ対応の設計原則**:
 
-1. **シンプルなデータ構造**: 複雑なネストは避け、フラットな`Map`構造を優先
-2. **型の明示性**: すべての型を明示的に宣言し、型推論に頼らない
-3. **witness関数の活用**: プライベートデータはwitness関数経由で取得
-4. **disclose()の適切な使用**: 公開台帳に保存するデータは明示的にdisclose()でラップ
-5. **テスト駆動開発**: すべての回路に対して単体テストを先に書く
+1. **データ分離**: 機密データ、統計データ、医療データを明確に分離
+2. **選択的登録**: スマートコントラクトには年齢、性別、症例ハッシュのみ登録
+3. **プライバシー階層**: 完全秘匿 > ハッシュ化 > 統計データの3段階
+4. **witness関数の活用**: プライベートデータはwitness関数経由で取得
+5. **disclose()の適切な使用**: 公開台帳に保存するデータは明示的にdisclose()でラップ
+6. **テスト駆動開発**: すべての回路に対して単体テストを先に書く
 
-### Ledger状態の設計
+### Ledger状態の設計（HelixChain参考改善版）
 
 ```compact
-pragma language_version >= 0.16 && <= 0.25;
+pragma language_version 0.17.0;
 import CompactStandardLibrary;
 
-// 患者の年齢管理（患者ID → 年齢）
-// Uint<0..150>で年齢の範囲を型レベルで制約
-export ledger patientAges: Map<Bytes<32>, Uint<0..150>>;
+// HelixChainを参考にした構造体定義
+struct PatientRecord {
+  patientAddress: Bytes<32>;     // 患者のウォレットアドレス
+  age: Uint<8>;                  // 年齢（0-255）
+  gender: Uint<8>;               // 性別（0: 未指定, 1: 男性, 2: 女性）
+  regionCode: Uint<8>;           // 地域コード（0-47: 都道府県）
+  dataHash: Bytes<32>;           // 医療データのハッシュ
+  timestamp: Uint<64>;           // 登録タイムスタンプ
+  isActive: Boolean;             // アクティブ状態
+}
 
-// 患者の性別管理（患者ID → 性別）
-// 0: 未指定, 1: 男性, 2: 女性
-export ledger patientGenders: Map<Bytes<32>, Uint<0..2>>;
+struct AnalysisResult {
+  patientAddress: Bytes<32>;     // 患者アドレス
+  researcherAddress: Bytes<32>;  // 研究者アドレス
+  analysisType: Uint<8>;         // 分析タイプ（1: 統計, 2: AI分析）
+  resultHash: Bytes<32>;         // 結果のハッシュ
+  timestamp: Uint<64>;           // 分析実行時刻
+  isVerified: Boolean;           // 検証済みフラグ
+}
 
-// 患者の症例管理（患者ID → 症例ハッシュ）
-// 症例データはハッシュ化して保存（プライバシー保護）
-export ledger patientConditions: Map<Bytes<32>, Bytes<32>>;
+// HelixChainスタイルのシンプルなLedger設計
+export ledger patientRecords: Map<Bytes<32>, PatientRecord>;
+export ledger analysisResults: Map<Bytes<32>, AnalysisResult>;
+export ledger authorizedResearchers: Map<Bytes<32>, Boolean>;
+export ledger verificationCount: Counter;
 
-// 同意管理（患者ID_研究者IDの複合キー → 同意状態）
-// 複合キーは"patientId:researcherId"の形式でBytes<64>として保存
-export ledger consents: Map<Bytes<64>, Boolean>;
-
-// 同意付与日時（患者ID_研究者IDの複合キー → タイムスタンプ）
-export ledger consentTimestamps: Map<Bytes<64>, Uint<64>>;
-
-// 患者登録カウンター（統計用）
-export ledger patientCount: Counter;
-
-// クエリ実行カウンター（統計用）
-export ledger queryCount: Counter;
+// コントラクト管理者（HelixChainパターン）
+export ledger contractOwner: Bytes<32>;
+export ledger paused: Boolean;
 ```
 
 **設計の根拠**:
 - **Mapの使用**: Compact言語で最も安定して動作するLedger型
-- **複合キーの採用**: ネストしたMapの代わりに、複合キーで関係性を表現
+- **シンプルなキー構造**: 複雑な複合キーを避け、単純なBytes<32>キーを使用
 - **Counterの活用**: 統計情報の効率的な管理
 - **Bytes<32>のハッシュ**: プライバシー保護とデータ整合性の両立
 - **型による制約**: `Uint<0..150>`のような範囲指定型でバリデーションを組み込む
+- **集計重視**: 個別データアクセスではなく、集計統計の提供にフォーカス
+- **リッチデータ対応**: 症状、薬歴、受診歴、地域情報を追加でサポート
+- **プライバシー階層**: 機密度に応じた3段階のデータ保護レベル
 
-### エクスポート回路の詳細設計
+### エクスポート回路の詳細設計（HelixChain参考改善版）
 
 ```compact
 /**
- * 患者データ登録回路
+ * コンストラクター（HelixChainパターン）
+ */
+constructor(ownerAddress: Bytes<32>) {
+  contractOwner = disclose(ownerAddress);
+  paused = disclose(false);
+  verificationCount = Counter.from(0);
+}
+
+/**
+ * 患者データ登録回路（HelixChain参考・シンプル化）
  * 
- * @param age 患者の年齢（0-150歳）
- * @param gender 患者の性別（0: 未指定, 1: 男性, 2: 女性）
- * @param conditionHash 症例データのハッシュ
- * @return 生成された患者ID（Bytes<32>）
- * 
- * 処理フロー:
- * 1. witness関数から秘密鍵を取得
- * 2. 秘密鍵から患者IDを生成（persistentHash）
- * 3. 各Mapへのデータ保存（disclose()でラップ）
- * 4. カウンターのインクリメント
- * 5. 患者IDの返却
- * 
- * エラーケース:
- * - 年齢が範囲外: 型システムで防止（Uint<0..150>）
- * - 性別が範囲外: 型システムで防止（Uint<0..2>）
+ * @param patientAddress 患者のウォレットアドレス
+ * @param age 患者の年齢
+ * @param gender 患者の性別
+ * @param regionCode 地域コード
+ * @param medicalDataHash 医療データのハッシュ
+ * @return 登録成功フラグ
  */
 export circuit registerPatient(
-  age: Uint<0..150>,
-  gender: Uint<0..2>,
-  conditionHash: Bytes<32>
-): Bytes<32> {
-  // witness関数から秘密鍵を取得
-  const secretKey = getSecretKey();
-  
-  // 秘密鍵から患者IDを生成
-  const patientId = persistentHash<Bytes<32>>(secretKey);
-  
-  // 各Mapにデータを保存（disclose()でラップ）
-  patientAges.insert(patientId, disclose(age));
-  patientGenders.insert(patientId, disclose(gender));
-  patientConditions.insert(patientId, disclose(conditionHash));
-  
-  // カウンターをインクリメント
-  patientCount.increment(1);
-  
-  // 患者IDを返却
-  return patientId;
-}
-
-/**
- * 同意付与回路
- * 
- * @param patientId 患者ID
- * @param researcherId 研究者ID
- * 
- * 処理フロー:
- * 1. 患者IDの存在確認
- * 2. 複合キーの生成
- * 3. 同意状態をtrueに設定
- * 4. タイムスタンプの記録
- * 
- * エラーケース:
- * - 患者IDが存在しない: assert失敗
- */
-export circuit grantConsent(
-  patientId: Bytes<32>,
-  researcherId: Bytes<32>
-): [] {
-  // 患者IDの存在確認
-  assert(patientAges.member(patientId), "患者が存在しません");
-  
-  // 複合キーの生成（patientId + researcherId）
-  const consentKey = makeConsentKey(patientId, researcherId);
-  
-  // 同意状態をtrueに設定
-  consents.insert(consentKey, disclose(true));
-  
-  // タイムスタンプの記録（現在時刻を取得）
-  const timestamp = getCurrentTimestamp();
-  consentTimestamps.insert(consentKey, disclose(timestamp));
-}
-
-/**
- * 同意取り消し回路
- * 
- * @param patientId 患者ID
- * @param researcherId 研究者ID
- * 
- * 処理フロー:
- * 1. 同意の存在確認
- * 2. 複合キーの生成
- * 3. 同意状態をfalseに設定
- * 
- * エラーケース:
- * - 同意が存在しない: assert失敗
- */
-export circuit revokeConsent(
-  patientId: Bytes<32>,
-  researcherId: Bytes<32>
-): [] {
-  // 複合キーの生成
-  const consentKey = makeConsentKey(patientId, researcherId);
-  
-  // 同意の存在確認
-  assert(consents.member(consentKey), "同意が存在しません");
-  
-  // 同意状態をfalseに設定
-  consents.insert(consentKey, disclose(false));
-}
-
-/**
- * 同意確認回路（読み取り専用）
- * 
- * @param patientId 患者ID
- * @param researcherId 研究者ID
- * @return 同意状態（true: 同意あり, false: 同意なし）
- * 
- * 処理フロー:
- * 1. 複合キーの生成
- * 2. consents Mapから状態を取得
- * 3. 存在しない場合はfalseを返す
- */
-export circuit checkConsent(
-  patientId: Bytes<32>,
-  researcherId: Bytes<32>
+  patientAddress: Bytes<32>,
+  age: Uint<8>,
+  gender: Uint<8>,
+  regionCode: Uint<8>,
+  medicalDataHash: Bytes<32>
 ): Boolean {
-  const consentKey = makeConsentKey(patientId, researcherId);
+  // コントラクトが一時停止中でないことを確認
+  assert(paused == false, "Contract is paused");
   
-  // 同意が存在しない場合はfalseを返す
-  if (!consents.member(consentKey)) {
-    return false;
-  }
+  // 患者レコードの作成
+  const patientRecord = PatientRecord {
+    patientAddress: patientAddress,
+    age: age,
+    gender: gender,
+    regionCode: regionCode,
+    dataHash: medicalDataHash,
+    timestamp: getCurrentTimestamp(),
+    isActive: true
+  };
   
-  // 同意状態を返す
-  return consents.lookup(consentKey);
+  // 患者レコードを保存
+  patientRecords.insert(patientAddress, disclose(patientRecord));
+  
+  // 検証カウンターをインクリメント
+  verificationCount.increment(1);
+  
+  return true;
+}
+
+/**
+ * 研究者登録回路（HelixChainパターン）
+ */
+export circuit addAuthorizedResearcher(
+  researcherAddress: Bytes<32>
+): Boolean {
+  // コントラクト管理者のみが研究者を追加可能
+  assert(paused == false, "Contract is paused");
+  
+  // 研究者を認証済みリストに追加
+  authorizedResearchers.insert(researcherAddress, disclose(true));
+  
+  return true;
+}
+
+/**
+ * AI分析実行回路（HelixChain参考・新機能）
+ * 
+ * @param patientAddress 患者アドレス
+ * @param researcherAddress 研究者アドレス
+ * @param analysisType 分析タイプ（1: 統計分析, 2: AI予測分析, 3: リスク評価）
+ * @return 分析結果
+ */
+export circuit executeAIAnalysis(
+  patientAddress: Bytes<32>,
+  researcherAddress: Bytes<32>,
+  analysisType: Uint<8>
+): AnalysisResult {
+  // コントラクトが一時停止中でないことを確認
+  assert(paused == false, "Contract is paused");
+  
+  // 研究者が認証済みであることを確認
+  assert(authorizedResearchers.member(researcherAddress) == true, "Researcher not authorized");
+  
+  // 患者データが存在することを確認
+  assert(patientRecords.member(patientAddress), "Patient data not found");
+  
+  // 患者データを取得
+  const patientRecord = patientRecords.lookup(patientAddress);
+  
+  // AI分析を実行（witness関数経由）
+  const analysisInput = prepareAnalysisInput(patientRecord);
+  const analysisOutput = executeAIModel(analysisInput, analysisType);
+  
+  // 分析結果を作成
+  const result = AnalysisResult {
+    patientAddress: patientAddress,
+    researcherAddress: researcherAddress,
+    analysisType: analysisType,
+    resultHash: persistentHash<Bytes<32>>(analysisOutput),
+    timestamp: getCurrentTimestamp(),
+    isVerified: true
+  };
+  
+  // 分析結果を保存
+  const resultId = generateResultId(patientAddress, researcherAddress, analysisType);
+  analysisResults.insert(resultId, disclose(result));
+  
+  return result;
+}
+
+/**
+ * 緊急停止回路（HelixChainパターン）
+ */
+export circuit emergencyPause(
+  witness ownerKey: PrivateKey
+): Boolean {
+  assert(getAddress(ownerKey) == contractOwner, "Only owner can pause");
+  paused = disclose(true);
+  return true;
+}
+
+/**
+ * 集計統計取得回路（リッチデータ対応）
+ * 
+ * @param queryType クエリタイプ（統計の種類）
+ * @return 集計統計データ
+ * 
+ * 処理フロー:
+ * 1. 全患者データを集計
+ * 2. 統計データを計算（個別データは露出しない）
+ * 3. 集計結果のみを返却
+ * 
+ * プライバシー保護:
+ * - 個別の患者データは決して返さない
+ * - 集計統計のみを提供
+ * - 地域別統計も提供（都道府県レベル）
+ */
+export circuit getAggregatedStats(
+  queryType: Uint<8>
+): [Uint<32>, Uint<8>, Uint<32>, Uint<32>, Uint<32>, Uint<8>] {
+  // 基本統計を計算
+  const totalPatients = patientCount.read();
+  
+  // 年齢統計の計算（平均年齢など）
+  const avgAge = calculateAverageAge();
+  
+  // 性別分布の計算
+  const maleCount = calculateGenderCount(1);
+  const femaleCount = calculateGenderCount(2);
+  const otherCount = calculateGenderCount(0);
+  
+  // 地域統計の計算（最も多い地域コード）
+  const topRegion = calculateTopRegion();
+  
+  // 集計結果を返却
+  return [totalPatients, avgAge, maleCount, femaleCount, otherCount, topRegion];
+}
+
+/**
+ * 地域別統計取得回路（読み取り専用）
+ * 
+ * @param regionCode 対象地域コード（0-47: 都道府県）
+ * @return [地域内患者数, 地域内平均年齢, 地域内男性数, 地域内女性数]
+ * 
+ * 処理フロー:
+ * 1. 指定地域の患者データを集計
+ * 2. 地域別統計を計算
+ * 3. 地域統計のみを返却
+ * 
+ * プライバシー保護:
+ * - 個別の患者データは決して返さない
+ * - 地域別集計統計のみを提供
+ */
+export circuit getRegionalStats(
+  regionCode: Uint<0..47>
+): [Uint<32>, Uint<8>, Uint<32>, Uint<32>] {
+  // 地域別統計を計算
+  const regionalPatients = calculateRegionalPatientCount(regionCode);
+  const regionalAvgAge = calculateRegionalAverageAge(regionCode);
+  const regionalMaleCount = calculateRegionalGenderCount(regionCode, 1);
+  const regionalFemaleCount = calculateRegionalGenderCount(regionCode, 2);
+  
+  return [regionalPatients, regionalAvgAge, regionalMaleCount, regionalFemaleCount];
 }
 
 /**
  * クエリ記録回路
  * 
  * @param researcherId 研究者ID
+ * @param queryType クエリタイプ
  * 
  * 処理フロー:
- * 1. クエリカウンターのインクリメント
+ * 1. 研究者の登録確認
+ * 2. クエリカウンターのインクリメント
+ * 3. クエリ履歴の記録
  * 
- * 注意: クエリの詳細（対象患者、クエリ内容等）は
- * プライバシー保護のため記録しない
+ * エラーケース:
+ * - 未登録の研究者: assert失敗
  */
 export circuit recordQuery(
-  researcherId: Bytes<32>
+  researcherId: Bytes<32>,
+  queryType: Uint<8>
 ): [] {
+  // 研究者の登録確認
+  assert(registeredResearchers.member(researcherId), "研究者が登録されていません");
+  
+  // クエリカウンターのインクリメント
   queryCount.increment(1);
+  
+  // クエリ履歴の記録（プライバシー保護のため詳細は記録しない）
+  const queryId = generateQueryId(researcherId, queryType);
+  const queryMetadata = createQueryMetadata(queryType);
+  queryHistory.insert(queryId, disclose(queryMetadata));
 }
 
 /**
- * 患者データ取得回路（読み取り専用）
+ * データセット統計取得回路（読み取り専用）
  * 
- * @param patientId 患者ID
- * @return [年齢, 性別, 症例ハッシュ]のタプル
+ * @return [総患者数, 総クエリ数]
  * 
  * 処理フロー:
- * 1. 患者IDの存在確認
- * 2. 各Mapから患者データを取得
- * 3. タプルとして返却
- * 
- * エラーケース:
- * - 患者IDが存在しない: assert失敗
+ * 1. 基本統計情報を取得
+ * 2. 公開可能な統計のみを返却
  */
-export circuit getPatientData(
-  patientId: Bytes<32>
-): [Uint<0..150>, Uint<0..2>, Bytes<32>] {
-  // 患者IDの存在確認
-  assert(patientAges.member(patientId), "患者が存在しません");
+export circuit getDatasetStats(): [Uint<32>, Uint<32>] {
+  const totalPatients = patientCount.read();
+  const totalQueries = queryCount.read();
   
-  // 各Mapからデータを取得
-  const age = patientAges.lookup(patientId);
-  const gender = patientGenders.lookup(patientId);
-  const condition = patientConditions.lookup(patientId);
-  
-  // タプルとして返却
-  return [age, gender, condition];
+  return [totalPatients, totalQueries];
 }
 ```
 
-### ヘルパー関数の設計
+### ヘルパー関数の設計（HelixChain参考改善版）
 
 ```compact
 /**
- * 複合キー生成ヘルパー
+ * 医療データ抽出ヘルパー（HelixChainのextractBRCA1FromGenomeパターン）
  * 
- * 患者IDと研究者IDから複合キーを生成
- * 
- * @param patientId 患者ID（32バイト）
- * @param researcherId 研究者ID（32バイト）
- * @return 複合キー（64バイト）
+ * 医療データから症状関連セグメントを抽出
  */
-circuit makeConsentKey(
-  patientId: Bytes<32>,
-  researcherId: Bytes<32>
-): Bytes<64> {
-  // 2つのBytes<32>を連結してBytes<64>を生成
-  // 実装方法: Vector<64, Uint<8>>として連結
-  const patientBytes = bytesToVector(patientId);
-  const researcherBytes = bytesToVector(researcherId);
+private function extractSymptomsFromMedicalData(medicalData: Bytes<256>): Bytes<64> {
+  // 症状関連セグメントを抽出（簡略化）
+  return sliceBytes(medicalData, 0, 64);
+}
+
+/**
+ * 薬歴データ抽出ヘルパー（HelixChainのextractBRCA2FromGenomeパターン）
+ * 
+ * 医療データから薬歴関連セグメントを抽出
+ */
+private function extractMedicationsFromMedicalData(medicalData: Bytes<256>): Bytes<64> {
+  // 薬歴関連セグメントを抽出（簡略化）
+  return sliceBytes(medicalData, 64, 128);
+}
+
+/**
+
+/**
+ * 性別カウント計算ヘルパー
+ * 
+ * 指定された性別の患者数をカウント
+ * 
+ * @param targetGender 対象性別（0: 未指定, 1: 男性, 2: 女性）
+ * @return 該当する患者数
+ */
+circuit calculateGenderCount(targetGender: Uint<0..2>): Uint<32> {
+  // 実装方法: 全患者の性別データを走査してカウント
+  // プライバシー保護: 個別データは露出せず、カウント結果のみ返す
   
-  // 連結
-  const combined = concatenateVectors(patientBytes, researcherBytes);
+  // 実際の実装では、patientGenders Mapを走査
+  // ここでは簡略化
+  return 10; // 仮のカウント
+}
+
+/**
+ * 最多地域計算ヘルパー
+ * 
+ * 最も患者数の多い地域コードを取得
+ * 
+ * @return 最多地域コード（0-47: 都道府県）
+ */
+circuit calculateTopRegion(): Uint<8> {
+  // 実装方法: 全患者の地域データを走査して最多地域を特定
+  // プライバシー保護: 個別データは露出せず、統計結果のみ返す
   
-  // Bytes<64>に変換
-  return vectorToBytes(combined);
+  // 実際の実装では、patientRegions Mapを走査
+  // ここでは簡略化
+  return 13; // 仮の地域コード（東京都）
+}
+
+/**
+ * 地域別患者数計算ヘルパー
+ * 
+ * 指定地域の患者数をカウント
+ * 
+ * @param regionCode 対象地域コード
+ * @return 地域内患者数
+ */
+circuit calculateRegionalPatientCount(regionCode: Uint<0..47>): Uint<32> {
+  // 実装方法: 指定地域の患者データを走査してカウント
+  // プライバシー保護: 個別データは露出せず、カウント結果のみ返す
+  
+  return 5; // 仮のカウント
+}
+
+/**
+ * 地域別平均年齢計算ヘルパー
+ * 
+ * 指定地域の平均年齢を計算
+ * 
+ * @param regionCode 対象地域コード
+ * @return 地域内平均年齢
+ */
+circuit calculateRegionalAverageAge(regionCode: Uint<0..47>): Uint<8> {
+  // 実装方法: 指定地域の患者年齢を走査して平均を計算
+  // プライバシー保護: 個別データは露出せず、統計結果のみ返す
+  
+  return 40; // 仮の平均年齢
+}
+
+/**
+ * 地域別性別カウント計算ヘルパー
+ * 
+ * 指定地域・性別の患者数をカウント
+ * 
+ * @param regionCode 対象地域コード
+ * @param targetGender 対象性別
+ * @return 該当する患者数
+ */
+circuit calculateRegionalGenderCount(
+  regionCode: Uint<0..47>,
+  targetGender: Uint<0..2>
+): Uint<32> {
+  // 実装方法: 指定地域・性別の患者データを走査してカウント
+  // プライバシー保護: 個別データは露出せず、カウント結果のみ返す
+  
+  return 3; // 仮のカウント
+}
+
+/**
+ * クエリID生成ヘルパー
+ * 
+ * 研究者IDとクエリタイプからユニークなクエリIDを生成
+ * 
+ * @param researcherId 研究者ID
+ * @param queryType クエリタイプ
+ * @return クエリID
+ */
+circuit generateQueryId(
+  researcherId: Bytes<32>,
+  queryType: Uint<8>
+): Bytes<32> {
+  // タイムスタンプと研究者ID、クエリタイプを組み合わせてハッシュ化
+  const timestamp = getCurrentTimestamp();
+  const combined = combineForHash(researcherId, queryType, timestamp);
+  return persistentHash<Bytes<32>>(combined);
+}
+
+/**
+ * クエリメタデータ生成ヘルパー
+ * 
+ * @param queryType クエリタイプ
+ * @return クエリメタデータのハッシュ
+ */
+circuit createQueryMetadata(queryType: Uint<8>): Bytes<32> {
+  const timestamp = getCurrentTimestamp();
+  return persistentHash<[Uint<8>, Uint<64>]>([queryType, timestamp]);
 }
 
 /**
@@ -651,37 +833,65 @@ circuit makeConsentKey(
  */
 circuit getCurrentTimestamp(): Uint<64> {
   // Midnight SDKのブロックタイム取得機能を使用
-  // 実装方法: kernel.blockTime()を使用
   return kernel.blockTime();
 }
 ```
 
-### Witness関数の設計
+### Witness関数の設計（HelixChain参考改善版）
 
 ```compact
-/**
- * 秘密鍵取得witness
- * 
- * TypeScript実装側で患者の秘密鍵を返す
- * この秘密鍵から患者IDを生成する
- * 
- * セキュリティ考慮:
- * - 秘密鍵は決して公開台帳に保存されない
- * - witness関数の結果はZK証明の入力として使用される
- */
-witness getSecretKey(): Bytes<32>;
+// HelixChainパターンを参考にしたwitness関数設計
 
 /**
- * 症例データハッシュ取得witness
+ * 医療データ取得witness（HelixChainのgetGenomeDataパターン）
  * 
- * TypeScript実装側で症例データのハッシュを返す
- * 生の症例データはクライアント側で保持
- * 
- * プライバシー考慮:
- * - 症例データの生データは公開されない
- * - ハッシュのみが公開台帳に保存される
+ * TypeScript実装側で患者の医療データを返す
+ * 生データはクライアント側で保持し、ハッシュ化して使用
  */
-witness getConditionHash(): Bytes<32>;
+witness getMedicalData(): Bytes<256>;
+
+/**
+ * 患者秘密鍵取得witness（HelixChainのgetPatientPrivateKeyパターン）
+ * 
+ * 患者認証用の秘密鍵を取得
+ * この鍵でウォレットアドレスを検証
+ */
+witness getPatientPrivateKey(): PrivateKey;
+
+/**
+ * 症状マーカー取得witness（HelixChainのgetBRCA1Markersパターン）
+ * 
+ * 症状データから特定のマーカーを抽出
+ */
+witness getSymptomsMarkers(): Bytes<64>;
+
+/**
+ * 薬歴マーカー取得witness（HelixChainのgetBRCA2Markersパターン）
+ * 
+ * 薬歴データから特定のマーカーを抽出
+ */
+witness getMedicationMarkers(): Bytes<64>;
+
+/**
+ * 診断マーカー取得witness（HelixChainのgetCYP2D6Markersパターン）
+ * 
+ * 診断データから特定のマーカーを抽出
+ */
+witness getDiagnosisMarkers(): Bytes<32>;
+
+/**
+ * AI分析入力準備witness（新機能）
+ * 
+ * AI分析用の入力データを準備
+ */
+witness prepareAnalysisInput(patientRecord: PatientRecord): Bytes<128>;
+
+/**
+ * AI分析実行witness（新機能）
+ * 
+ * 実際のAI分析を実行（オフチェーン）
+ */
+witness executeAIModel(input: Bytes<128>, analysisType: Uint<8>): Bytes<64>;
 ```
 
 ### TypeScript側のWitness実装
@@ -692,14 +902,33 @@ witness getConditionHash(): Bytes<32>;
 import type { WitnessContext } from '@midnight-ntwrk/compact-runtime';
 
 /**
- * プライベート状態の型定義
+ * プライベート状態の型定義（リッチデータ対応）
  */
 export type NextMedPrivateState = {
   // 患者の秘密鍵（32バイト）
   secretKey: Uint8Array;
   
-  // 症例データのハッシュ（32バイト）
-  conditionHash: Uint8Array;
+  // 医療データのハッシュ（各32バイト）
+  symptomsHash: Uint8Array;      // 症状データのハッシュ
+  medicationsHash: Uint8Array;   // 薬歴データのハッシュ
+  visitsHash: Uint8Array;        // 受診歴データのハッシュ
+  
+  // 研究者の認証情報（32バイト）
+  researcherCredentials: Uint8Array;
+  
+  // 機密データ（スマートコントラクトには登録しない）
+  patientRecord?: {
+    fullName: string;           // 氏名 - 完全に秘匿
+    phoneNumber: string;        // 電話番号 - 完全に秘匿
+    insuranceId: string;        // 保険ID - 完全に秘匿
+    address: string;            // 住所 - 完全に秘匿
+    symptoms: string[];         // 症状リスト（生データ）
+    medicationHistory: string[]; // 薬歴（生データ）
+    pastVisits: Array<{         // 受診歴（生データ）
+      date: string;
+      diagnosis: string;
+    }>;
+  };
 };
 
 /**
@@ -714,10 +943,31 @@ export const witnesses = {
   },
   
   /**
-   * 症例ハッシュを返すwitness実装
+   * 症状ハッシュを返すwitness実装
    */
-  getConditionHash(context: WitnessContext<NextMedPrivateState>): Uint8Array {
-    return context.privateState.conditionHash;
+  getSymptomsHash(context: WitnessContext<NextMedPrivateState>): Uint8Array {
+    return context.privateState.symptomsHash;
+  },
+  
+  /**
+   * 薬歴ハッシュを返すwitness実装
+   */
+  getMedicationsHash(context: WitnessContext<NextMedPrivateState>): Uint8Array {
+    return context.privateState.medicationsHash;
+  },
+  
+  /**
+   * 受診歴ハッシュを返すwitness実装
+   */
+  getVisitsHash(context: WitnessContext<NextMedPrivateState>): Uint8Array {
+    return context.privateState.visitsHash;
+  },
+  
+  /**
+   * 研究者認証情報を返すwitness実装
+   */
+  getResearcherCredentials(context: WitnessContext<NextMedPrivateState>): Uint8Array {
+    return context.privateState.researcherCredentials;
   }
 };
 ```
@@ -1115,3 +1365,589 @@ GET    /api/researchers/queries/:id     // クエリ結果取得
 1. **データ集計の最適化**: インデックス作成による高速検索
 2. **ZK証明生成の最適化**: Proof Serverの並列処理
 3. **フロントエンドの最適化**: コード分割とレイジーローディング
+
+## フロントエンド データ処理設計
+
+### データ収集・処理フロー
+
+```typescript
+// フロントエンド側のデータ処理ロジック
+class PatientDataProcessor {
+  /**
+   * リッチな患者データを処理してスマートコントラクト用に変換
+   */
+  static async processPatientData(formData: PatientFormData): Promise<ContractData> {
+    // 1. 機密データの分離（ローカル保存のみ）
+    const confidentialData = {
+      fullName: formData.fullName,
+      phoneNumber: formData.phoneNumber,
+      insuranceId: formData.insuranceId,
+      address: formData.address
+    };
+    
+    // 2. 統計データの抽出（スマートコントラクトに登録）
+    const statisticalData = {
+      age: formData.age,
+      gender: this.mapGenderToCode(formData.gender),
+      regionCode: this.mapRegionToCode(formData.region)
+    };
+    
+    // 3. 医療データのハッシュ化
+    const medicalHashes = {
+      symptomsHash: await this.hashMedicalData(formData.symptoms),
+      medicationsHash: await this.hashMedicalData(formData.medicationHistory),
+      visitsHash: await this.hashMedicalData(formData.pastVisits)
+    };
+    
+    // 4. ローカルストレージに機密データを保存
+    await this.storeConfidentialData(confidentialData);
+    
+    return {
+      ...statisticalData,
+      ...medicalHashes
+    };
+  }
+  
+  /**
+   * 性別を数値コードにマッピング
+   */
+  private static mapGenderToCode(gender: string): number {
+    const genderMap = {
+      'Male': 1,
+      'Female': 2,
+      'Other': 0
+    };
+    return genderMap[gender] || 0;
+  }
+  
+  /**
+   * 地域を都道府県コードにマッピング
+   */
+  private static mapRegionToCode(region: string): number {
+    const regionMap = {
+      'Hokkaido': 1,
+      'Aomori': 2,
+      'Iwate': 3,
+      // ... 全47都道府県
+      'Tokyo': 13,
+      'Osaka': 27,
+      'Kyoto': 26,
+      // ...
+      'Okinawa': 47
+    };
+    return regionMap[region] || 0;
+  }
+  
+  /**
+   * 医療データをハッシュ化
+   */
+  private static async hashMedicalData(data: any): Promise<Uint8Array> {
+    const jsonString = JSON.stringify(data);
+    const encoder = new TextEncoder();
+    const dataBuffer = encoder.encode(jsonString);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
+    return new Uint8Array(hashBuffer);
+  }
+  
+  /**
+   * 機密データをローカルストレージに暗号化保存
+   */
+  private static async storeConfidentialData(data: any): Promise<void> {
+    // 実装: ローカルストレージに暗号化して保存
+    // 注意: 実際の実装では適切な暗号化を行う
+    const encrypted = await this.encryptData(data);
+    localStorage.setItem('patient_confidential_data', encrypted);
+  }
+  
+  private static async encryptData(data: any): Promise<string> {
+    // 実装: データの暗号化
+    // 注意: 実際の実装では適切な暗号化アルゴリズムを使用
+    return btoa(JSON.stringify(data)); // 簡易実装（実際はAES等を使用）
+  }
+}
+```
+
+### フロントエンド コンポーネント設計
+
+```typescript
+// 患者データ登録フォームコンポーネント
+interface PatientRegistrationFormProps {
+  onSubmit: (data: ContractData) => Promise<void>;
+}
+
+const PatientRegistrationForm: React.FC<PatientRegistrationFormProps> = ({ onSubmit }) => {
+  const [formData, setFormData] = useState<PatientFormData>({
+    // 基本情報（機密）
+    fullName: '',
+    phoneNumber: '',
+    insuranceId: '',
+    address: '',
+    
+    // 統計データ
+    age: 0,
+    gender: 'Other',
+    region: '',
+    
+    // 医療データ
+    symptoms: [],
+    medicationHistory: [],
+    pastVisits: []
+  });
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // データ処理・変換
+    const contractData = await PatientDataProcessor.processPatientData(formData);
+    
+    // スマートコントラクトに送信
+    await onSubmit(contractData);
+  };
+  
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* 基本情報セクション */}
+      <div className="bg-red-50 p-4 rounded-lg">
+        <h3 className="text-lg font-semibold text-red-800 mb-4">
+          基本情報（完全機密 - ローカル保存のみ）
+        </h3>
+        <div className="grid grid-cols-2 gap-4">
+          <Input
+            label="氏名"
+            value={formData.fullName}
+            onChange={(value) => setFormData({...formData, fullName: value})}
+            required
+          />
+          <Input
+            label="電話番号"
+            value={formData.phoneNumber}
+            onChange={(value) => setFormData({...formData, phoneNumber: value})}
+            required
+          />
+          <Input
+            label="保険ID"
+            value={formData.insuranceId}
+            onChange={(value) => setFormData({...formData, insuranceId: value})}
+            required
+          />
+          <Input
+            label="住所"
+            value={formData.address}
+            onChange={(value) => setFormData({...formData, address: value})}
+            required
+          />
+        </div>
+      </div>
+      
+      {/* 統計データセクション */}
+      <div className="bg-green-50 p-4 rounded-lg">
+        <h3 className="text-lg font-semibold text-green-800 mb-4">
+          統計データ（スマートコントラクトに登録）
+        </h3>
+        <div className="grid grid-cols-3 gap-4">
+          <Input
+            type="number"
+            label="年齢"
+            value={formData.age}
+            onChange={(value) => setFormData({...formData, age: parseInt(value)})}
+            min={0}
+            max={150}
+            required
+          />
+          <Select
+            label="性別"
+            value={formData.gender}
+            onChange={(value) => setFormData({...formData, gender: value})}
+            options={[
+              { value: 'Male', label: '男性' },
+              { value: 'Female', label: '女性' },
+              { value: 'Other', label: 'その他' }
+            ]}
+            required
+          />
+          <Select
+            label="地域"
+            value={formData.region}
+            onChange={(value) => setFormData({...formData, region: value})}
+            options={REGION_OPTIONS}
+            required
+          />
+        </div>
+      </div>
+      
+      {/* 医療データセクション */}
+      <div className="bg-yellow-50 p-4 rounded-lg">
+        <h3 className="text-lg font-semibold text-yellow-800 mb-4">
+          医療データ（ハッシュ化してスマートコントラクトに登録）
+        </h3>
+        <div className="space-y-4">
+          <MultiInput
+            label="症状"
+            values={formData.symptoms}
+            onChange={(values) => setFormData({...formData, symptoms: values})}
+            placeholder="症状を入力してください"
+          />
+          <MultiInput
+            label="薬歴"
+            values={formData.medicationHistory}
+            onChange={(values) => setFormData({...formData, medicationHistory: values})}
+            placeholder="薬剤名を入力してください"
+          />
+          <VisitHistoryInput
+            label="受診歴"
+            values={formData.pastVisits}
+            onChange={(values) => setFormData({...formData, pastVisits: values})}
+          />
+        </div>
+      </div>
+      
+      <Button type="submit" className="w-full">
+        患者データを登録
+      </Button>
+    </form>
+  );
+};
+```
+
+### プライバシー保護レベル
+
+| データ種別 | 保護レベル | 保存場所 | 用途 |
+|------------|------------|----------|------|
+| 氏名・住所・電話・保険ID | **完全機密** | ローカルストレージ（暗号化） | 患者確認のみ |
+| 年齢・性別・地域 | **統計データ** | スマートコントラクト（公開） | 研究統計 |
+| 症状・薬歴・受診歴 | **ハッシュ化** | スマートコントラクト（ハッシュ） | AI分析・研究 |
+
+この設計により、リッチな医療データを適切なプライバシー保護レベルで管理しながら、研究者には有用な統計データとAI分析機能を提供できます。
+## Hel
+ixChainから学んだ重要な改善点
+
+### 1. **実装可能性を重視した設計**
+
+HelixChainの成功要因を分析した結果、以下の設計原則を採用します：
+
+#### **シンプルで実用的なアプローチ**
+- **段階的実装**: 最小限の機能から始めて段階的に拡張
+- **実証済みパターン**: HelixChainで実際に動作したパターンを採用
+- **Compact言語制約への適応**: 言語仕様に適合した現実的な設計
+
+#### **HelixChain参考の核心機能**
+```compact
+// HelixChainの成功パターンを参考にした核心機能
+export circuit verifyMedicalCondition(
+  patientAddress: Bytes<32>,
+  conditionType: Uint<8>,
+  threshold: Uint<64>
+): Boolean {
+  // HelixChainのverify_brca1パターンを医療データに適用
+  verificationCount.increment(1);
+  
+  // 医療データの検証（プライバシー保護）
+  const medicalData = getMedicalData();
+  const conditionMarkers = extractConditionMarkers(medicalData, conditionType);
+  
+  // 閾値との比較（ゼロ知識証明）
+  const meetsCondition = checkConditionThreshold(conditionMarkers, threshold);
+  
+  // 結果のみを公開（生データは秘匿）
+  return disclose(meetsCondition);
+}
+```
+
+### 2. **プライバシー保護の強化**
+
+HelixChainの遺伝子プライバシー保護パターンを医療データに適用：
+
+#### **コミット・ナリファイアパターンの採用**
+```compact
+// HelixChainのコミット・ナリファイアパターンを参考
+export ledger medicalCommitments: HistoricMerkleTree<10, Bytes<32>>;
+export ledger usedNullifiers: Set<Bytes<32>>;
+
+export circuit commitMedicalData(
+  witness patientKey: PrivateKey,
+  medicalDataHash: Bytes<32>
+): Boolean {
+  // 医療データのコミットメント作成
+  const commitment = createMedicalCommitment(patientKey, medicalDataHash);
+  medicalCommitments.insert(commitment);
+  return true;
+}
+
+export circuit proveMedicalCondition(
+  witness patientKey: PrivateKey,
+  conditionType: Uint<8>
+): Boolean {
+  // コミットメントの存在証明（どのコミットメントかは秘匿）
+  const authPath = findMedicalCommitmentPath(publicKey(patientKey));
+  assert(medicalCommitments.checkRoot(merkleTreePathRoot<10, Bytes<32>>(authPath)),
+    "Medical data not committed");
+  
+  // 一回限りの使用を保証
+  const nullifier = createMedicalNullifier(patientKey, conditionType);
+  assert(!usedNullifiers.member(nullifier), "Already used");
+  usedNullifiers.insert(disclose(nullifier));
+  
+  return true;
+}
+```
+
+### 3. **AI分析機能の統合**
+
+HelixChainの遺伝子分析パターンを参考に、AI分析機能を設計：
+
+#### **プライバシー保護AI分析**
+```compact
+// HelixChainの分析パターンを参考にしたAI分析
+export circuit executePrivateAIAnalysis(
+  patientAddress: Bytes<32>,
+  researcherAddress: Bytes<32>,
+  analysisModel: Uint<8>
+): AnalysisResult {
+  // 研究者の認証確認
+  assert(authorizedResearchers.member(researcherAddress), "Unauthorized researcher");
+  
+  // 患者データの存在確認
+  assert(patientRecords.member(patientAddress), "Patient not found");
+  
+  // プライベートAI分析実行
+  const patientData = getMedicalData();
+  const analysisInput = prepareAIInput(patientData, analysisModel);
+  const analysisOutput = executeAIModel(analysisInput);
+  
+  // 結果のハッシュ化（生データは秘匿）
+  const resultHash = persistentHash<Bytes<64>>(analysisOutput);
+  
+  // 分析結果の記録
+  const result = AnalysisResult {
+    patientAddress: patientAddress,
+    researcherAddress: researcherAddress,
+    analysisType: analysisModel,
+    resultHash: resultHash,
+    timestamp: getCurrentTimestamp(),
+    isVerified: true
+  };
+  
+  return result;
+}
+```
+
+### 4. **エラーハンドリングとセキュリティ**
+
+HelixChainの堅牢なエラーハンドリングパターンを採用：
+
+#### **包括的なセキュリティチェック**
+```compact
+// HelixChainのセキュリティパターンを参考
+export circuit secureDataAccess(
+  witness accessKey: PrivateKey,
+  targetPatient: Bytes<32>,
+  accessType: Uint<8>
+): Boolean {
+  // コントラクト状態チェック
+  assert(paused == false, "Contract is paused");
+  
+  // アクセス権限チェック
+  const accessorAddress = getAddress(accessKey);
+  assert(authorizedResearchers.member(accessorAddress), "Access denied");
+  
+  // 患者データ存在チェック
+  assert(patientRecords.member(targetPatient), "Patient data not found");
+  
+  // レート制限チェック
+  assert(checkRateLimit(accessorAddress), "Rate limit exceeded");
+  
+  // 監査ログ記録
+  recordAccessLog(accessorAddress, targetPatient, accessType);
+  
+  return true;
+}
+```
+
+### 5. **テスト戦略の改善**
+
+HelixChainの実証済みテストパターンを採用：
+
+#### **段階的テストアプローチ**
+1. **基本機能テスト**: シンプルなデータ登録・取得
+2. **プライバシーテスト**: データ秘匿性の検証
+3. **AI分析テスト**: 分析機能の正確性検証
+4. **セキュリティテスト**: 不正アクセス防止の確認
+5. **統合テスト**: エンドツーエンドの動作確認
+
+### 6. **実装優先順位の最適化**
+
+HelixChainの成功パターンに基づく実装順序：
+
+#### **Phase 1: 基本機能（HelixChainのsimple_finalパターン）**
+```compact
+// 最小限の動作する機能
+export ledger verificationCount: Counter;
+
+export circuit registerBasicData(data: Uint<64>): Boolean {
+  verificationCount.increment(1);
+  return data > 100;
+}
+```
+
+#### **Phase 2: プライバシー機能（HelixChainのworkingパターン）**
+```compact
+// プライバシー保護機能の追加
+export ledger patientCommitments: Map<Bytes<32>, Bytes<32>>;
+
+export circuit commitPatientData(
+  patientAddress: Bytes<32>,
+  dataHash: Bytes<32>
+): Boolean {
+  patientCommitments.insert(patientAddress, disclose(dataHash));
+  return true;
+}
+```
+
+#### **Phase 3: 高度な機能（HelixChainの完全版パターン）**
+```compact
+// AI分析とアクセス制御の完全実装
+export circuit fullAIAnalysis(/* 完全なパラメータ */): AnalysisResult {
+  // 完全なAI分析機能
+}
+```
+
+### 7. **アーキテクチャの改善**
+
+HelixChainの成功したアーキテクチャパターンを採用：
+
+#### **モジュラー設計**
+- **コア機能**: 基本的なデータ管理
+- **プライバシー層**: ゼロ知識証明機能
+- **AI分析層**: 機械学習機能
+- **セキュリティ層**: アクセス制御機能
+
+#### **スケーラブルな実装**
+- **水平スケーリング**: 複数の分析モデル対応
+- **垂直スケーリング**: より複雑なデータ構造対応
+- **プラグイン対応**: 新しい分析手法の追加容易性
+
+## 改善された全体設計
+
+### 統合されたスマートコントラクト設計
+
+```compact
+pragma language_version 0.17.0;
+import CompactStandardLibrary;
+
+// HelixChainパターンを統合した最終設計
+struct MedicalRecord {
+  patientAddress: Bytes<32>;
+  dataCommitment: Bytes<32>;
+  timestamp: Uint<64>;
+  isActive: Boolean;
+}
+
+struct AIAnalysisResult {
+  analysisId: Bytes<32>;
+  patientAddress: Bytes<32>;
+  researcherAddress: Bytes<32>;
+  modelType: Uint<8>;
+  resultHash: Bytes<32>;
+  confidence: Uint<8>;
+  timestamp: Uint<64>;
+}
+
+// 核心的なLedger状態
+export ledger medicalRecords: Map<Bytes<32>, MedicalRecord>;
+export ledger analysisResults: Map<Bytes<32>, AIAnalysisResult>;
+export ledger authorizedResearchers: Map<Bytes<32>, Boolean>;
+export ledger medicalCommitments: HistoricMerkleTree<10, Bytes<32>>;
+export ledger usedAnalysisNullifiers: Set<Bytes<32>>;
+
+// 管理機能
+export ledger contractOwner: Bytes<32>;
+export ledger paused: Boolean;
+export ledger totalAnalyses: Counter;
+
+// コンストラクター
+constructor(ownerAddress: Bytes<32>) {
+  contractOwner = disclose(ownerAddress);
+  paused = disclose(false);
+  totalAnalyses = Counter.from(0);
+}
+
+// 核心機能の実装
+export circuit commitMedicalData(
+  patientAddress: Bytes<32>,
+  dataCommitment: Bytes<32>
+): Boolean {
+  assert(paused == false, "Contract paused");
+  
+  const record = MedicalRecord {
+    patientAddress: patientAddress,
+    dataCommitment: dataCommitment,
+    timestamp: getCurrentTimestamp(),
+    isActive: true
+  };
+  
+  medicalRecords.insert(patientAddress, disclose(record));
+  medicalCommitments.insert(dataCommitment);
+  
+  return true;
+}
+
+export circuit executeAIAnalysis(
+  patientAddress: Bytes<32>,
+  researcherAddress: Bytes<32>,
+  modelType: Uint<8>
+): AIAnalysisResult {
+  // セキュリティチェック
+  assert(paused == false, "Contract paused");
+  assert(authorizedResearchers.member(researcherAddress), "Unauthorized");
+  assert(medicalRecords.member(patientAddress), "Patient not found");
+  
+  // AI分析実行
+  const medicalData = getMedicalData();
+  const analysisInput = prepareAIAnalysisInput(medicalData, modelType);
+  const analysisOutput = executeAIModel(analysisInput, modelType);
+  
+  // 結果の作成
+  const analysisId = generateAnalysisId(patientAddress, researcherAddress, modelType);
+  const result = AIAnalysisResult {
+    analysisId: analysisId,
+    patientAddress: patientAddress,
+    researcherAddress: researcherAddress,
+    modelType: modelType,
+    resultHash: persistentHash<Bytes<64>>(analysisOutput),
+    confidence: calculateConfidence(analysisOutput),
+    timestamp: getCurrentTimestamp()
+  };
+  
+  // 結果の保存
+  analysisResults.insert(analysisId, disclose(result));
+  totalAnalyses.increment(1);
+  
+  return result;
+}
+
+// Witness関数
+witness getMedicalData(): Bytes<256>;
+witness prepareAIAnalysisInput(data: Bytes<256>, modelType: Uint<8>): Bytes<128>;
+witness executeAIModel(input: Bytes<128>, modelType: Uint<8>): Bytes<64>;
+
+// ヘルパー関数
+circuit getCurrentTimestamp(): Uint<64> {
+  return kernel.blockTime();
+}
+
+circuit generateAnalysisId(
+  patient: Bytes<32>,
+  researcher: Bytes<32>,
+  model: Uint<8>
+): Bytes<32> {
+  const combined = combineForHash(patient, researcher, model, getCurrentTimestamp());
+  return persistentHash<Bytes<32>>(combined);
+}
+
+circuit calculateConfidence(output: Bytes<64>): Uint<8> {
+  // AI分析結果から信頼度を計算
+  return 85; // 簡略化（実際は複雑な計算）
+}
+```
+
+この改善された設計により、HelixChainの成功パターンを活用しながら、NextMedの医療データプライバシー保護とAI分析機能を実現できます。
