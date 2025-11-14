@@ -18,7 +18,9 @@
     "start-testnet-remote": "npm run build && npm run testnet-remote",
     "start-testnet-remote-ps": "npm run build && npm run testnet-remote-ps",
     "deploy": "node --experimental-specifier-resolution=node --loader ts-node/esm scripts/deploy.ts",
-    "increment": "node --experimental-specifier-resolution=node --loader ts-node/esm scripts/increment.ts"
+    "increment": "node --experimental-specifier-resolution=node --loader ts-node/esm scripts/increment.ts",
+    "deploy:patient-registry": "node --experimental-specifier-resolution=node --loader ts-node/esm scripts/deploy-patient-registry.ts",
+    "verify:patient-registry": "node --experimental-specifier-resolution=node --loader ts-node/esm scripts/verify-patient-registry.ts"
   },
   "dependencies": {
     "@midnight-ntwrk/compact-runtime": "^0.9.0",

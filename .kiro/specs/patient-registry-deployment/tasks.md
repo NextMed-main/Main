@@ -2,55 +2,55 @@
 
 ## タスク一覧
 
-- [ ] 1. デプロイスクリプトの作成
+- [x] 1. デプロイスクリプトの作成
   - deploy-patient-registry.tsを作成し、Patient Registryコントラクトをデプロイする機能を実装
   - _Requirements: 要件1.1, 要件1.2, 要件1.3, 要件1.4, 要件1.5_
 
-- [ ] 1.1 環境変数読み込み機能の実装
+- [x] 1.1 環境変数読み込み機能の実装
   - NETWORK_ENV_VAR、SEED_ENV_VAR、CACHE_FILE_ENV_VARを読み込む
   - _Requirements: 要件1.1, 要件2.1_
 
-- [ ] 1.2 ウォレット作成機能の実装
+- [x] 1.2 ウォレット作成機能の実装
   - シードからウォレットを復元し、資金を確認
   - _Requirements: 要件1.2, 要件1.3_
 
-- [ ] 1.3 コントラクトデプロイ機能の実装
+- [x] 1.3 コントラクトデプロイ機能の実装
   - Patient Registryコントラクトをデプロイ
   - _Requirements: 要件1.4_
 
-- [ ] 1.4 デプロイ情報保存機能の実装
+- [x] 1.4 デプロイ情報保存機能の実装
   - deployment-patient-registry.jsonに情報を保存
   - _Requirements: 要件1.5_
 
-- [ ] 2. 検証スクリプトの作成
+- [x] 2. 検証スクリプトの作成
   - verify-patient-registry.tsを作成し、デプロイされたコントラクトを検証
   - _Requirements: 要件3.1, 要件3.2, 要件3.3, 要件3.4, 要件3.5_
 
-- [ ] 2.1 デプロイ情報読み込み機能の実装
+- [x] 2.1 デプロイ情報読み込み機能の実装
   - deployment-patient-registry.jsonから情報を読み込む
   - _Requirements: 要件3.1_
 
-- [ ] 2.2 初期状態確認機能の実装
+- [x] 2.2 初期状態確認機能の実装
   - getRegistrationStatsを呼び出して初期状態を確認
   - _Requirements: 要件3.2_
 
-- [ ] 2.3 テスト登録機能の実装
+- [x] 2.3 テスト登録機能の実装
   - registerPatientを呼び出してテスト登録を実行
   - _Requirements: 要件3.3_
 
-- [ ] 2.4 統計確認機能の実装
+- [x] 2.4 統計確認機能の実装
   - 登録後の統計情報を取得して表示
   - _Requirements: 要件3.4, 要件3.5_
 
-- [ ] 3. package.jsonスクリプトの追加
+- [x] 3. package.jsonスクリプトの追加
   - デプロイと検証用のnpmスクリプトを追加
   - _Requirements: 要件1.1_
 
-- [ ] 4. .env.exampleの更新
+- [x] 4. .env.exampleの更新
   - Patient Registry用の環境変数例を追加
   - _Requirements: 要件2.5, 要件5.1_
 
-- [ ] 5. ドキュメントの作成
+- [x] 5. ドキュメントの作成
   - DEPLOYMENT.mdを作成し、デプロイ手順を記載
   - _Requirements: 要件5.1, 要件5.2, 要件5.3, 要件5.4, 要件5.5_
 
