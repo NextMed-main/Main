@@ -14,6 +14,7 @@ import * as api from '../src/api.js';
 import * as dotenv from 'dotenv';
 import * as fsAsync from 'node:fs/promises';
 import * as path from 'node:path';
+import * as Rx from 'rxjs';
 
 dotenv.config();
 
@@ -73,7 +74,7 @@ const buildConfig = (network: SupportedNetwork): Config => {
  */
 const ensureSeed = (seed: string | undefined): string => {
 	if (seed === undefined || seed.trim() === '') {
-		throw new Error('Wallet seed is required. Set SEED_ENV_VAR environment variable.');
+		throw new Error(`Wallet seed is required. Set ${SEED_ENV_VAR}.`);
 	}
 	return seed.trim();
 };
@@ -139,7 +140,9 @@ const saveDeploymentInfo = async (
 		JSON.stringify(deploymentInfo, null, 2),
 		'utf-8'
 	);
-	logger.info(`Deployment info saved to: ${filePath}`);
+	if (logger !== undefined) {
+		logger.info(`Deployment info saved to: ${filePath}`);
+	}
 };
 
 let logger: Logger | undefined;
@@ -185,7 +188,7 @@ const main = async () => {
 		const deployTx = counterContract.deployTxData.public;
 		
 		// デプロイ情報の作成
-		const walletState = await wallet.state().toPromise();
+		const walletState = await Rx.firstValueFrom(wallet.state());
 		const deploymentInfo: DeploymentInfo = {
 			contractAddress: deployTx.contractAddress,
 			transactionHash: deployTx.txId,
@@ -203,9 +206,6 @@ const main = async () => {
 		// デプロイ情報の保存
 		await saveDeploymentInfo(deploymentInfo);
 		
-		// ウォレット状態の保存
-		await api.saveState(wallet, cacheFileName);
-		
 		// 成功メッセージ
 		logger.info('='.repeat(60));
 		logger.info('✅ Deployment Successful!');
@@ -220,11 +220,8 @@ const main = async () => {
 		console.log(`Transaction Hash: ${deployTx.txId}`);
 		console.log(`\nDeployment info saved to: deployment-patient-registry.json`);
 		
-		// プロバイダーのクローズ
+		await api.saveState(wallet, cacheFileName);
 		await closeIfPossible(providers.privateStateProvider, 'private state provider');
-	} catch (error) {
-		logger?.error('Deployment failed');
-		throw error;
 	} finally {
 		if (wallet !== undefined) {
 			await closeIfPossible(wallet, 'wallet');
