@@ -130,3 +130,96 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ============================================================================
+   Wallet Styles
+   ============================================================================ */
+
+/* ウォレット接続ボタンのアニメーション */
+@keyframes wallet-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.wallet-connecting {
+  animation: wallet-pulse 1.5s ease-in-out infinite;
+}
+
+/* ウォレットモーダルのスライドアップアニメーション */
+@keyframes wallet-modal-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.wallet-modal-content {
+  animation: wallet-modal-slide-up 0.3s ease-out;
+}
+
+/* ウォレットアイコンのホバーエフェクト */
+.wallet-icon-hover {
+  transition: transform 0.2s ease-in-out;
+}
+
+.wallet-icon-hover:hover {
+  transform: scale(1.05);
+}
+
+/* グラデーションボタンのホバーエフェクト */
+.wallet-gradient-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.wallet-gradient-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.wallet-gradient-button:hover::before {
+  left: 100%;
+}
+
+/* ウォレット接続状態のインジケーター */
+.wallet-connected-indicator {
+  position: relative;
+}
+
+.wallet-connected-indicator::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 8px;
+  background-color: #10b981;
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+/* レスポンシブ調整 */
+@media (max-width: 768px) {
+  .wallet-modal-content {
+    max-width: 90vw;
+  }
+}

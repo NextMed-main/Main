@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Shield, Wallet, History, LogOut, CheckCircle2, TrendingUp, Upload, FileText, Coins } from "lucide-react"
+import { WalletButton } from "@/components/wallet/wallet-button"
 
 interface PatientDashboardProps {
   onLogout: () => void
@@ -177,6 +178,7 @@ export function PatientDashboard({ onLogout }: PatientDashboardProps) {
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground">Patient Portal</span>
+            <WalletButton />
             <Button variant="ghost" size="sm" onClick={onLogout}>
               <LogOut className="h-4 w-4 mr-2" />
               Logout
