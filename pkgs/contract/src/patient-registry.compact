@@ -1,0 +1,76 @@
+pragma language_version 0.18.0;
+import CompactStandardLibrary;
+
+// Gender enumeration
+enum Gender {
+	MALE,
+	FEMALE,
+	OTHER
+}
+
+// Registration state enumeration
+enum RegistrationState {
+	UNREGISTERED,
+	REGISTERED,
+	VERIFIED
+}
+
+// Public ledger data - registration counters
+export ledger registrationCount: Field;
+export ledger ageGroupCount: Field;
+export ledger maleCount: Field;
+export ledger femaleCount: Field;
+export ledger otherCount: Field;
+export ledger state: RegistrationState;
+
+// Constructor - initialize all counters to 0
+constructor() {
+	registrationCount = 0;
+	ageGroupCount = 0;
+	maleCount = 0;
+	femaleCount = 0;
+	otherCount = 0;
+	state = RegistrationState.UNREGISTERED;
+}
+
+// Register patient circuit
+export circuit registerPatient(
+	age: Uint<64>,
+	gender_code: Uint<64>,
+	condition_hash: Field
+): Boolean {
+	// Age validation (0-150 years)
+	assert(age <= (150 as Uint<64>), "Age must be between 0 and 150");
+
+	// Increment registration counter
+	registrationCount = registrationCount + (1 as Field);
+
+	// Update gender counters (disclose gender_code for statistics)
+	const disclosed_gender = disclose(gender_code);
+	if (disclosed_gender == (0 as Uint<64>)) {
+		maleCount = maleCount + (1 as Field);
+	} else if (disclosed_gender == (1 as Uint<64>)) {
+		femaleCount = femaleCount + (1 as Field);
+	} else {
+		otherCount = otherCount + (1 as Field);
+	}
+
+	// Update state
+	state = RegistrationState.REGISTERED;
+
+	return true;
+}
+
+// Get registration statistics
+export circuit getRegistrationStats(): [Field, Field, Field, Field] {
+	return [registrationCount, maleCount, femaleCount, otherCount];
+}
+
+// Verify age range
+export circuit verifyAgeRange(
+	age: Uint<64>,
+	min_age: Uint<64>,
+	max_age: Uint<64>
+): Boolean {
+	return age >= min_age && age <= max_age;
+}
