@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Shield, Upload, LogOut, CheckCircle2, Clock, FileText, Activity, Coins, TrendingUp } from "lucide-react"
+import { WalletButton } from "@/components/wallet/wallet-button"
 
 interface InstitutionDashboardProps {
   onLogout: () => void
@@ -85,6 +86,7 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground">Company Portal</span>
+            <WalletButton />
             <Button variant="ghost" size="sm" onClick={onLogout}>
               <LogOut className="h-4 w-4 mr-2" />
               Logout

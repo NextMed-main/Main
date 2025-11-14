@@ -40,6 +40,7 @@ import {
   TrendingUp,
   Activity,
 } from "lucide-react"
+import { WalletButton } from "@/components/wallet/wallet-button"
 
 interface ResearcherDashboardProps {
   onLogout: () => void
@@ -227,6 +228,7 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
               </Badge>
             )}
             <span className="text-sm text-muted-foreground">Researcher Portal</span>
+            <WalletButton />
             <Button variant="ghost" size="sm" onClick={onLogout}>
               <LogOut className="h-4 w-4 mr-2" />
               Logout
