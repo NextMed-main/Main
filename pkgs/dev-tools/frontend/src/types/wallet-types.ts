@@ -115,5 +115,6 @@ export interface WalletInfo {
 	installed: boolean;
 	provider?: CardanoWalletProvider;
 	icon?: string;
+	isMidnightNative?: boolean; // Midnight Network専用APIを使用しているかどうか
 }
 

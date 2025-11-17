@@ -89,26 +89,50 @@ export function getAvailableWallets(): WalletInfo[] {
 		if (cardano) {
 			console.log("[Wallet Debug] cardano keys:", Object.keys(cardano));
 			console.log("[Wallet Debug] cardano.lace:", cardano.lace);
+			console.log("[Wallet Debug] cardano.yoroi:", cardano.yoroi);
+			console.log("[Wallet Debug] cardano.eternl:", cardano.eternl);
+		}
+		if (windowObj.midnight) {
+			console.log("[Wallet Debug] window.midnight keys:", Object.keys(windowObj.midnight));
+			console.log("[Wallet Debug] window.midnight.mnLace:", windowObj.midnight.mnLace);
+			// Midnight専用APIの可能性をチェック
+			console.log("[Wallet Debug] window.midnight.mnYoroi:", (windowObj.midnight as any).mnYoroi);
+			console.log("[Wallet Debug] window.midnight.mnEternl:", (windowObj.midnight as any).mnEternl);
 		}
 	}
 
 	return walletNames.map((name) => {
 		let installed = false;
 		let provider: WalletInfo["provider"];
+		let isMidnightNative = false;
 		
-		// まず通常のCIP-30ウォレットをチェック（通常のLace Walletを含む）
-		if (cardano?.[name]) {
+		// まずMidnight Network専用APIをチェック
+		const midnightKey = `mn${name.charAt(0).toUpperCase() + name.slice(1)}` as keyof typeof windowObj.midnight;
+		if (windowObj.midnight && (windowObj.midnight as any)[midnightKey]) {
 			installed = true;
-			provider = cardano[name];
-			console.log(`[Wallet Debug] Found ${name} via cardano.${name}`);
+			isMidnightNative = true;
+			const midnightApi = (windowObj.midnight as any)[midnightKey];
+			provider = {
+				enable: async () => {
+					const api = await midnightApi.enable();
+					// Midnight専用APIの場合はアダプターを使用
+					return createMidnightLaceAdapter(api);
+				},
+				isEnabled: () => midnightApi.isEnabled ? midnightApi.isEnabled() : Promise.resolve(false),
+				apiVersion: "1.0.0",
+				name: `${getWalletDisplayName(name)} (Midnight)`,
+				icon: getWalletIconPath(name),
+			};
+			console.log(`[Wallet Debug] Found ${name} via window.midnight.${midnightKey} (Midnight Native)`);
 		} else if (name === "lace" && windowObj.midnight?.mnLace) {
 			// Midnight Network用のLace Walletをフォールバックとしてチェック
 			installed = true;
+			isMidnightNative = true;
 			// mnLaceをCIP-30互換のプロバイダーとして扱う
 			provider = {
 				enable: async () => {
 					const api = await windowObj.midnight!.mnLace!.enable();
-					return api as Cip30WalletApi;
+					return createMidnightLaceAdapter(api);
 				},
 				isEnabled: () => windowObj.midnight!.mnLace!.isEnabled(),
 				apiVersion: "1.0.0",
@@ -116,16 +140,22 @@ export function getAvailableWallets(): WalletInfo[] {
 				icon: getWalletIconPath("lace"),
 			};
 			console.log("[Wallet Debug] Found lace via window.midnight.mnLace");
+		} else if (cardano?.[name]) {
+			// 通常のCIP-30ウォレットをチェック（Cardano用）
+			installed = true;
+			provider = cardano[name];
+			console.log(`[Wallet Debug] Found ${name} via cardano.${name} (Cardano only - may not support Midnight)`);
 		} else {
 			console.log(`[Wallet Debug] ${name} not found`);
 		}
 		
 		return {
 			name,
-			displayName: getWalletDisplayName(name),
+			displayName: getWalletDisplayName(name) + (isMidnightNative ? " (Midnight)" : " (Cardano)"),
 			installed,
 			provider,
 			icon: getWalletIconPath(name),
+			isMidnightNative,
 		};
 	});
 }
@@ -143,6 +173,40 @@ export async function connectWallet(
 	console.log("[Wallet Debug] window.cardano:", cardano);
 	console.log("[Wallet Debug] cardano?.[walletName]:", cardano?.[walletName]);
 	console.log("[Wallet Debug] window.midnight?.mnLace:", windowObj.midnight?.mnLace);
+	
+	// まずMidnight Network専用APIをチェック
+	const midnightKey = `mn${walletName.charAt(0).toUpperCase() + walletName.slice(1)}` as keyof typeof windowObj.midnight;
+	if (windowObj.midnight && (windowObj.midnight as any)[midnightKey]) {
+		console.log(`[Wallet Debug] Found Midnight native API: window.midnight.${midnightKey}`);
+		const midnightApi = (windowObj.midnight as any)[midnightKey];
+		try {
+			const api = await midnightApi.enable();
+			console.log("[Wallet Debug] Successfully enabled Midnight native wallet");
+			return createMidnightLaceAdapter(api);
+		} catch (error) {
+			console.error(`[Wallet Debug] Error enabling Midnight native ${walletName}:`, error);
+			if (error instanceof WalletError) {
+				throw error;
+			}
+			if (
+				error instanceof Error &&
+				(error.message.includes("reject") ||
+					error.message.includes("denied") ||
+					error.message.includes("cancel"))
+			) {
+				throw new WalletError(
+					"CONNECTION_REJECTED",
+					"Connection was rejected by user",
+				);
+			}
+			throw new WalletError(
+				"CONNECTION_FAILED",
+				error instanceof Error
+					? error.message
+					: "Failed to connect to Midnight native wallet",
+			);
+		}
+	}
 
 	// まず通常のCIP-30ウォレットをチェック（通常のLace Walletを含む）
 	if (cardano?.[walletName]) {
