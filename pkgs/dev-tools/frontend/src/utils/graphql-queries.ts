@@ -149,15 +149,32 @@ export function buildBlockWithTransactionsQuery(height?: number): string {
           timestamp
           protocolVersion
           author
+          parent {
+            hash
+            height
+          }
           transactions {
             hash
             protocolVersion
             applyStage
             identifiers
+            raw
+            merkleTreeRoot
             block {
-              hash
               height
+              hash
               timestamp
+              author
+              protocolVersion
+            }
+            contractActions {
+              __typename
+              address
+              state
+              chainState
+              transaction {
+                hash
+              }
             }
           }
         }
@@ -173,15 +190,32 @@ export function buildBlockWithTransactionsQuery(height?: number): string {
         timestamp
         protocolVersion
         author
+        parent {
+          hash
+          height
+        }
         transactions {
           hash
           protocolVersion
           applyStage
           identifiers
+          raw
+          merkleTreeRoot
           block {
-            hash
             height
+            hash
             timestamp
+            author
+            protocolVersion
+          }
+          contractActions {
+            __typename
+            address
+            state
+            chainState
+            transaction {
+              hash
+            }
           }
         }
       }
@@ -331,10 +365,30 @@ export function buildTransactionsByHashQuery(txHash: string): string {
         protocolVersion
         applyStage
         identifiers
+        raw
+        merkleTreeRoot
         block {
-          hash
           height
           timestamp
+          hash
+          author
+          protocolVersion
+          parent {
+            hash
+            height
+          }
+          transactions {
+            hash
+          }
+        }
+        contractActions {
+          __typename
+          address
+          state
+          chainState
+          transaction {
+            hash
+          }
         }
       }
     }
@@ -342,21 +396,47 @@ export function buildTransactionsByHashQuery(txHash: string): string {
 }
 
 /**
- * Query transactions by identifier (hex-encoded)
- * identifier must be a hex-encoded 32-byte value (64 hex chars with 0x prefix)
+ * Query transactions by identifier
+ * identifier can be:
+ * - 72-character hex string (full identifier from transaction.identifiers)
+ * - 64-character hex string with 0x prefix (data part of identifier)
  */
-export function buildTransactionsByIdentifierQuery(identifierHex: string): string {
+export function buildTransactionsByIdentifierQuery(identifier: string): string {
+	// If it's a 72-character identifier, use it as-is
+	// Otherwise, assume it's already formatted correctly (with or without 0x)
+	const identifierValue = identifier.length === 72 ? identifier : identifier;
+	
 	return `
     query {
-      transactions(offset: { identifier: "${identifierHex}" }) {
+      transactions(offset: { identifier: "${identifierValue}" }) {
         hash
         protocolVersion
         applyStage
         identifiers
+        raw
+        merkleTreeRoot
         block {
-          hash
           height
           timestamp
+          hash
+          author
+          protocolVersion
+          parent {
+            hash
+            height
+          }
+          transactions {
+            hash
+          }
+        }
+        contractActions {
+          __typename
+          address
+          state
+          chainState
+          transaction {
+            hash
+          }
         }
       }
     }

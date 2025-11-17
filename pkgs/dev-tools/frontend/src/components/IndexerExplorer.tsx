@@ -30,13 +30,34 @@ interface Transaction {
 	protocolVersion?: number;
 	applyStage?: string;
 	identifiers?: string[];
+	raw?: string;
+	merkleTreeRoot?: string;
 	blockNumber?: number;
 	blockHeight?: number;
 	extrinsicIndex?: number;
 	block?: {
 		height: number;
 		hash: string;
+		timestamp?: number;
+		author?: string;
+		protocolVersion?: number;
+		parent?: {
+			hash: string;
+			height: number;
+		};
+		transactions?: Array<{
+			hash: string;
+		}>;
 	};
+	contractActions?: Array<{
+		__typename?: string;
+		address?: string;
+		state?: string;
+		chainState?: string;
+		transaction?: {
+			hash: string;
+		};
+	}>;
 }
 
 export function IndexerExplorer() {
@@ -269,7 +290,7 @@ export function IndexerExplorer() {
 
 	const handleSearchTransaction = async () => {
 		if (!searchTxHash.trim()) {
-			setError("Please enter a transaction hash");
+			setError("Please enter a transaction hash or identifier");
 			return;
 		}
 
@@ -278,22 +299,39 @@ export function IndexerExplorer() {
 		setSearchResult(null);
 
 		try {
-			// Normalize hash length for user feedback
-			const originalHash = searchTxHash.trim();
-			const cleanHash = originalHash.startsWith("0x") 
-				? originalHash.slice(2) 
-				: originalHash;
+			const searchValue = searchTxHash.trim();
+			const cleanValue = searchValue.startsWith("0x") 
+				? searchValue.slice(2) 
+				: searchValue;
 			
+			// Check if it's a 72-character identifier (transaction identifier)
+			if (/^[0-9a-fA-F]{72}$/.test(cleanValue)) {
+				// Use the full 72-character identifier for GraphQL query
+				// The identifier should be passed as-is (without 0x prefix)
+				const query = buildTransactionsByIdentifierQuery(cleanValue);
+				const data = await client.query<{ transactions: Transaction[] }>(query);
+				
+				if (data.transactions && data.transactions.length > 0) {
+					setSearchResult(data.transactions[0]);
+					setResult(JSON.stringify(data, null, 2));
+					setError(""); // Clear any previous errors
+				} else {
+					setError(`No transactions found for identifier: ${searchValue}`);
+				}
+				return;
+			}
+			
+			// Otherwise, treat as transaction hash
 			let warningMessage = "";
-			let queryHash = searchTxHash;
+			let queryHash = searchValue;
 			
 			// If hash is longer than 64 characters, try multiple approaches
-			if (cleanHash.length > 64) {
-				warningMessage = `Note: Hash length is ${cleanHash.length} characters (expected 64). Trying first 64 characters.`;
+			if (cleanValue.length > 64) {
+				warningMessage = `Note: Hash length is ${cleanValue.length} characters (expected 64). Trying first 64 characters.`;
 				// Try first 64 characters
-				queryHash = cleanHash.slice(0, 64);
-			} else if (cleanHash.length < 64) {
-				warningMessage = `Note: Hash was padded from ${cleanHash.length} to 64 characters`;
+				queryHash = cleanValue.slice(0, 64);
+			} else if (cleanValue.length < 64) {
+				warningMessage = `Note: Hash was padded from ${cleanValue.length} to 64 characters`;
 			}
 			
 			// Try searching with normalized hash
@@ -301,9 +339,9 @@ export function IndexerExplorer() {
 			let data = await client.query<{ transactions: Transaction[] }>(query);
 
 			// If not found and hash was longer than 64, try last 64 characters
-			if ((!data.transactions || data.transactions.length === 0) && cleanHash.length > 64) {
-				const last64 = cleanHash.slice(-64);
-				warningMessage = `Note: Hash length is ${cleanHash.length} characters. Tried first 64, now trying last 64 characters.`;
+			if ((!data.transactions || data.transactions.length === 0) && cleanValue.length > 64) {
+				const last64 = cleanValue.slice(-64);
+				warningMessage = `Note: Hash length is ${cleanValue.length} characters. Tried first 64, now trying last 64 characters.`;
 				query = buildTransactionsByHashQuery(last64);
 				data = await client.query<{ transactions: Transaction[] }>(query);
 			}
@@ -343,6 +381,29 @@ export function IndexerExplorer() {
 		try {
 			const searchValue = searchAccount.trim();
 			const limit = parseInt(searchAccountLimit, 10) || 100;
+			
+			// Check if it's a 72-character identifier (transaction identifier)
+			const isIdentifier = /^[0-9a-fA-F]{72}$/.test(searchValue);
+			
+			if (isIdentifier) {
+				// Extract the 64-character data part (positions 8-72)
+				const identifierDataPart = searchValue.slice(8, 72);
+				const identifierHex = `0x${identifierDataPart}`;
+				
+				// Search by identifier using GraphQL query
+				const query = buildTransactionsByIdentifierQuery(identifierHex);
+				const data = await client.query<{ transactions: Transaction[] }>(query);
+				
+				const limitedTransactions = data.transactions.slice(0, limit);
+				setSearchResult(limitedTransactions);
+				setResult(JSON.stringify({ transactions: limitedTransactions }, null, 2));
+				if (limitedTransactions.length === 0) {
+					setError(`No transactions found for identifier: ${searchValue}`);
+				} else {
+					setError(""); // Clear any previous errors
+				}
+				return;
+			}
 			
 			// Check if it's a Bech32m address (starts with mn_shield-addr_)
 			const isBech32mAddress = searchValue.startsWith("mn_shield-addr_");
@@ -762,20 +823,21 @@ export function IndexerExplorer() {
 						<div className="method-panel">
 							<h2>Search</h2>
 							<p className="method-description-text">
-								Search for transactions by hash or account address.
+								Search for transactions by hash, identifier, or account address. Identifiers are 72-character hex strings (8-char prefix + 64-char data) found in transaction.identifiers.
 							</p>
 
 							<div className="params-section">
 								<div className="param-input">
 									<label>
-										Transaction Hash
+										Transaction Hash or Identifier
 										<input
 											type="text"
 											value={searchTxHash}
 											onChange={(e) => setSearchTxHash(e.target.value)}
-											placeholder="0x..."
+											placeholder="0x... (64 hex chars) or identifier (72 hex chars)"
 										/>
 									</label>
+									<small>64-char hash or 72-char identifier from transaction.identifiers</small>
 								</div>
 								<button
 									type="button"
@@ -788,14 +850,15 @@ export function IndexerExplorer() {
 
 								<div className="param-input" style={{ marginTop: "2rem" }}>
 									<label>
-										Account Address
+										Transaction Identifier (72-char hex)
 										<input
 											type="text"
 											value={searchAccount}
 											onChange={(e) => setSearchAccount(e.target.value)}
-											placeholder="mn_shield-addr_..."
+											placeholder="00000000... (72 hex chars)"
 										/>
 									</label>
+									<small>Search by identifier from transaction.identifiers field</small>
 								</div>
 								<div className="param-input">
 									<label>
