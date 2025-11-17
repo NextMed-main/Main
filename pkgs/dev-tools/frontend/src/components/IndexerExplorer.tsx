@@ -98,6 +98,9 @@ export function IndexerExplorer() {
 	// Search states
 	const [searchTxHash, setSearchTxHash] = useState<string>("");
 	const [searchResult, setSearchResult] = useState<Transaction | null>(null);
+	
+	// Toggle states for raw JSON display
+	const [showRawJson, setShowRawJson] = useState<{ [key: string]: boolean }>({});
 
 	// Custom query states
 	const [customQuery, setCustomQuery] = useState<string>(
@@ -224,91 +227,140 @@ export function IndexerExplorer() {
 		}));
 	};
 
-	// Format decoded JSON for human-readable display
-	const formatDecodedState = (jsonString: string): string => {
+	// Format decoded JSON for human-readable display with syntax highlighting
+	// 
+	// Contract State Structure:
+	// The decoded contract state from midnight_jsonContractState has the following structure:
+	// {
+	//   "data": [...],           // Contract data (array of state values)
+	//   "operations": {          // Contract operations (function calls/entry points)
+	//     "operationName": {
+	//       "v2": "0x..."        // Verifier key for ZK proof verification (version 2)
+	//     }
+	//   }
+	// }
+	//
+	// The "v2" field contains the verifier key (public key) used to verify zero-knowledge proofs
+	// for each contract operation. This is essential for Midnight Network's privacy features.
+	// Each operation (entry point) has its own verifier key stored as a serialized hex string.
+	const formatDecodedState = (jsonString: string): ReactElement => {
 		try {
 			const parsed = JSON.parse(jsonString);
 			return formatDecodedObject(parsed, 0);
 		} catch {
 			// If not valid JSON, return as-is
-			return jsonString;
+			return <span>{jsonString}</span>;
 		}
 	};
 
-	// Recursively format object, truncating long hex strings
-	const formatDecodedObject = (obj: unknown, indent: number = 0): string => {
+	// Recursively format object with syntax highlighting, truncating long hex strings
+	// Long hex strings (like verifier keys in "v2" fields) are truncated for readability
+	const formatDecodedObject = (obj: unknown, indent: number = 0): ReactElement => {
 		const indentStr = "  ".repeat(indent);
 		
+		// Muted dark color theme for better readability
+		const colors = {
+			key: "#5a9fd4",        // Muted blue - for object keys
+			string: "#6a9a3f",     // Muted green - for strings
+			number: "#c98a5a",     // Muted orange - for numbers
+			boolean: "#8b7fd8",    // Muted purple - for booleans
+			null: "#777777",       // Gray - for null
+			punctuation: "#777777", // Gray - for brackets, commas, colons
+		};
+		
 		if (obj === null) {
-			return "null";
+			return <span style={{ color: colors.null }}>null</span>;
 		}
 		
 		if (typeof obj === "string") {
 			// Check if it's a hex string (starts with 0x or contains only hex characters)
 			const isHexString = obj.startsWith("0x") || /^[0-9a-fA-F]+$/.test(obj);
 			
+			let displayString = obj;
 			// Truncate long hex strings (likely witness/proof data)
 			if (isHexString && obj.length > 100) {
 				const preview = obj.startsWith("0x") ? obj.substring(0, 22) : obj.substring(0, 20);
 				const suffix = obj.substring(obj.length - 20);
-				const sizeKB = (obj.length / 2 / 1024).toFixed(2);
-				return `"${preview}...${suffix}" (${obj.length} chars, ~${sizeKB} KB hex data)`;
+				displayString = `${preview}...${suffix}`;
 			}
 			
 			// Truncate very long non-hex strings
 			if (!isHexString && obj.length > 200) {
 				const preview = obj.substring(0, 50);
 				const suffix = obj.substring(obj.length - 50);
-				return `"${preview}...${suffix}" (${obj.length} chars)`;
+				displayString = `${preview}...${suffix}`;
 			}
 			
-			return JSON.stringify(obj);
+			return (
+				<span>
+					<span style={{ color: colors.string }}>"{displayString}"</span>
+				</span>
+			);
 		}
 		
-		if (typeof obj === "number" || typeof obj === "boolean") {
-			return String(obj);
+		if (typeof obj === "number") {
+			return <span style={{ color: colors.number }}>{String(obj)}</span>;
+		}
+		
+		if (typeof obj === "boolean") {
+			return <span style={{ color: colors.boolean }}>{String(obj)}</span>;
 		}
 		
 		if (Array.isArray(obj)) {
 			if (obj.length === 0) {
-				return "[]";
+				return (
+					<span>
+						<span style={{ color: colors.punctuation }}>[</span>
+						<span style={{ color: colors.punctuation }}>]</span>
+					</span>
+				);
 			}
-			const items = obj.map((item, idx) => {
-				const formatted = formatDecodedObject(item, indent + 1);
-				return `${indentStr}  ${idx}: ${formatted}`;
-			});
-			return `[\n${items.join(",\n")}\n${indentStr}]`;
+			return (
+				<span>
+					<span style={{ color: colors.punctuation }}>[</span>
+					<br />
+					{obj.map((item, idx) => (
+						<span key={idx}>
+							{indentStr}  <span style={{ color: colors.punctuation }}>{idx}:</span> {formatDecodedObject(item, indent + 1)}
+							{idx < obj.length - 1 && <span style={{ color: colors.punctuation }}>,</span>}
+							<br />
+						</span>
+					))}
+					{indentStr}
+					<span style={{ color: colors.punctuation }}>]</span>
+				</span>
+			);
 		}
 		
 		if (typeof obj === "object") {
 			const entries = Object.entries(obj);
 			if (entries.length === 0) {
-				return "{}";
+				return (
+					<span>
+						<span style={{ color: colors.punctuation }}>{"{"}</span>
+						<span style={{ color: colors.punctuation }}>{"}"}</span>
+					</span>
+				);
 			}
-			const formatted = entries.map(([key, value]) => {
-				const formattedValue = formatDecodedObject(value, indent + 1);
-				// Add helpful comments for known keys
-				const keyComment = getKeyDescription(key);
-				const comment = keyComment ? ` // ${keyComment}` : "";
-				return `${indentStr}  "${key}": ${formattedValue}${comment}`;
-			});
-			return `{\n${formatted.join(",\n")}\n${indentStr}}`;
+			return (
+				<span>
+					<span style={{ color: colors.punctuation }}>{"{"}</span>
+					<br />
+					{entries.map(([key, value], idx) => (
+						<span key={key}>
+							{indentStr}  <span style={{ color: colors.key }}>"{key}"</span><span style={{ color: colors.punctuation }}>: </span>
+							{formatDecodedObject(value, indent + 1)}
+							{idx < entries.length - 1 && <span style={{ color: colors.punctuation }}>,</span>}
+							<br />
+						</span>
+					))}
+					{indentStr}
+					<span style={{ color: colors.punctuation }}>{"}"}</span>
+				</span>
+			);
 		}
 		
-		return String(obj);
-	};
-
-	// Get human-readable description for known keys
-	const getKeyDescription = (key: string): string => {
-		const descriptions: Record<string, string> = {
-			data: "Contract data (array of state values)",
-			operations: "Contract operations (function calls)",
-			increment: "Increment operation",
-			v2: "Version 2 data (likely contains witness/proof data)",
-			state: "Contract state",
-			chainState: "Chain state",
-		};
-		return descriptions[key] || "";
+		return <span>{String(obj)}</span>;
 	};
 
 	const handleIntrospectSchema = async () => {
@@ -614,7 +666,7 @@ export function IndexerExplorer() {
 					const showRawChainState = showRawData[chainStateCacheKey] ?? false;
 
 					return (
-						<div key={idx} style={{ marginBottom: "1rem", padding: "0.75rem", backgroundColor: "var(--color-bg-secondary)", borderRadius: "4px" }}>
+						<div key={idx} style={{ marginBottom: "1rem", padding: "0.75rem", backgroundColor: "#f8f9fa", borderRadius: "4px", border: "1px solid #e0e0e0" }}>
 							<div style={{ marginBottom: "0.5rem" }}>
 								<strong>Address:</strong> <code style={{ fontSize: "0.875rem" }}>{address}</code>
 								{action.__typename && (
@@ -648,11 +700,36 @@ export function IndexerExplorer() {
 											</button>
 										)}
 									</div>
-									{decodedState && !showRawState ? (
-										<pre style={{ margin: 0, padding: "0.5rem", backgroundColor: "var(--color-surface)", color: "var(--color-text)", borderRadius: "2px", fontSize: "0.75rem", overflow: "auto", maxHeight: "400px", border: "1px solid var(--color-border)", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
-											{formatDecodedState(decodedState)}
+									{decodedState && !showRawState && (() => {
+										try {
+											const parsed = JSON.parse(decodedState);
+											const hasOperations = parsed && typeof parsed === "object" && "operations" in parsed;
+											return (
+												<>
+													{hasOperations && (
+														<div style={{ marginBottom: "0.5rem", padding: "0.75rem", backgroundColor: "#e8f0ff", border: "1px solid var(--color-primary)", borderRadius: "2px", fontSize: "0.8125rem", color: "#1a1a1a", lineHeight: "1.5" }}>
+															<strong style={{ color: "#0000FE", fontWeight: 600 }}>About "operations" and "v2" fields:</strong> The <code style={{ backgroundColor: "#d0e0ff", padding: "0.125rem 0.25rem", borderRadius: "2px", fontSize: "0.75rem", fontFamily: '"Monaco", "Menlo", "Ubuntu Mono", monospace', color: "#0000FE", fontWeight: 600 }}>operations</code> field contains entry points (functions) of the contract. Each operation has a <code style={{ backgroundColor: "#d0e0ff", padding: "0.125rem 0.25rem", borderRadius: "2px", fontSize: "0.75rem", fontFamily: '"Monaco", "Menlo", "Ubuntu Mono", monospace', color: "#0000FE", fontWeight: 600 }}>v2</code> field containing a <strong style={{ color: "#1a1a1a", fontWeight: 600 }}>verifier key</strong> - a public key used to verify zero-knowledge proofs for that operation. This is essential for Midnight Network's privacy features.
+														</div>
+													)}
+													<div style={{ margin: 0, padding: "0.5rem", backgroundColor: "var(--color-surface)", color: "var(--color-text)", borderRadius: "2px", fontSize: "0.75rem", overflow: "auto", maxHeight: "400px", border: "1px solid var(--color-border)", whiteSpace: "pre-wrap", wordBreak: "break-word", fontFamily: '"Monaco", "Menlo", "Ubuntu Mono", monospace' }}>
+														{formatDecodedState(decodedState)}
+													</div>
+												</>
+											);
+										} catch {
+											return (
+												<div style={{ margin: 0, padding: "0.5rem", backgroundColor: "var(--color-surface)", color: "var(--color-text)", borderRadius: "2px", fontSize: "0.75rem", overflow: "auto", maxHeight: "400px", border: "1px solid var(--color-border)", whiteSpace: "pre-wrap", wordBreak: "break-word", fontFamily: '"Monaco", "Menlo", "Ubuntu Mono", monospace' }}>
+													{formatDecodedState(decodedState)}
+												</div>
+											);
+										}
+									})()}
+									{decodedState && showRawState && (
+										<pre style={{ margin: 0, padding: "0.5rem", backgroundColor: "var(--color-surface)", color: "var(--color-text)", borderRadius: "2px", fontSize: "0.75rem", overflow: "auto", maxHeight: "150px", wordBreak: "break-all", border: "1px solid var(--color-border)" }}>
+											{action.state}
 										</pre>
-									) : (
+									)}
+									{!decodedState && (
 										<pre style={{ margin: 0, padding: "0.5rem", backgroundColor: "var(--color-surface)", color: "var(--color-text)", borderRadius: "2px", fontSize: "0.75rem", overflow: "auto", maxHeight: "150px", wordBreak: "break-all", border: "1px solid var(--color-border)" }}>
 											{action.state}
 										</pre>
@@ -684,11 +761,36 @@ export function IndexerExplorer() {
 											</button>
 										)}
 									</div>
-									{decodedChainState && !showRawChainState ? (
-										<pre style={{ margin: 0, padding: "0.5rem", backgroundColor: "var(--color-surface)", color: "var(--color-text)", borderRadius: "2px", fontSize: "0.75rem", overflow: "auto", maxHeight: "400px", border: "1px solid var(--color-border)", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
-											{formatDecodedState(decodedChainState)}
+									{decodedChainState && !showRawChainState && (() => {
+										try {
+											const parsed = JSON.parse(decodedChainState);
+											const hasOperations = parsed && typeof parsed === "object" && "operations" in parsed;
+											return (
+												<>
+													{hasOperations && (
+														<div style={{ marginBottom: "0.5rem", padding: "0.75rem", backgroundColor: "#e8f0ff", border: "1px solid var(--color-primary)", borderRadius: "2px", fontSize: "0.8125rem", color: "#1a1a1a", lineHeight: "1.5" }}>
+															<strong style={{ color: "#0000FE", fontWeight: 600 }}>About "operations" and "v2" fields:</strong> The <code style={{ backgroundColor: "#d0e0ff", padding: "0.125rem 0.25rem", borderRadius: "2px", fontSize: "0.75rem", fontFamily: '"Monaco", "Menlo", "Ubuntu Mono", monospace', color: "#0000FE", fontWeight: 600 }}>operations</code> field contains entry points (functions) of the contract. Each operation has a <code style={{ backgroundColor: "#d0e0ff", padding: "0.125rem 0.25rem", borderRadius: "2px", fontSize: "0.75rem", fontFamily: '"Monaco", "Menlo", "Ubuntu Mono", monospace', color: "#0000FE", fontWeight: 600 }}>v2</code> field containing a <strong style={{ color: "#1a1a1a", fontWeight: 600 }}>verifier key</strong> - a public key used to verify zero-knowledge proofs for that operation. This is essential for Midnight Network's privacy features.
+														</div>
+													)}
+													<div style={{ margin: 0, padding: "0.5rem", backgroundColor: "var(--color-surface)", color: "var(--color-text)", borderRadius: "2px", fontSize: "0.75rem", overflow: "auto", maxHeight: "400px", border: "1px solid var(--color-border)", whiteSpace: "pre-wrap", wordBreak: "break-word", fontFamily: '"Monaco", "Menlo", "Ubuntu Mono", monospace' }}>
+														{formatDecodedState(decodedChainState)}
+													</div>
+												</>
+											);
+										} catch {
+											return (
+												<div style={{ margin: 0, padding: "0.5rem", backgroundColor: "var(--color-surface)", color: "var(--color-text)", borderRadius: "2px", fontSize: "0.75rem", overflow: "auto", maxHeight: "400px", border: "1px solid var(--color-border)", whiteSpace: "pre-wrap", wordBreak: "break-word", fontFamily: '"Monaco", "Menlo", "Ubuntu Mono", monospace' }}>
+													{formatDecodedState(decodedChainState)}
+												</div>
+											);
+										}
+									})()}
+									{decodedChainState && showRawChainState && (
+										<pre style={{ margin: 0, padding: "0.5rem", backgroundColor: "var(--color-surface)", color: "var(--color-text)", borderRadius: "2px", fontSize: "0.75rem", overflow: "auto", maxHeight: "150px", wordBreak: "break-all", border: "1px solid var(--color-border)" }}>
+											{action.chainState}
 										</pre>
-									) : (
+									)}
+									{!decodedChainState && (
 										<pre style={{ margin: 0, padding: "0.5rem", backgroundColor: "var(--color-surface)", color: "var(--color-text)", borderRadius: "2px", fontSize: "0.75rem", overflow: "auto", maxHeight: "150px", wordBreak: "break-all", border: "1px solid var(--color-border)" }}>
 											{action.chainState}
 										</pre>
@@ -898,9 +1000,38 @@ export function IndexerExplorer() {
 												</div>
 												<div className="result-item-content">
 													{renderContractActions(tx.contractActions)}
-													<pre style={{ marginTop: tx.contractActions && tx.contractActions.length > 0 ? "1rem" : 0 }}>
-														{JSON.stringify(tx, null, 2)}
-													</pre>
+													<div style={{ marginTop: tx.contractActions && tx.contractActions.length > 0 ? "1rem" : 0 }}>
+														<button
+															type="button"
+															onClick={() => {
+																setShowRawJson((prev) => ({
+																	...prev,
+																	[tx.hash]: !prev[tx.hash],
+																}));
+															}}
+															style={{
+																marginBottom: "0.5rem",
+																padding: "0.25rem 0.5rem",
+																fontSize: "0.75rem",
+																cursor: "pointer",
+																backgroundColor: "var(--color-primary)",
+																color: "white",
+																border: "none",
+																borderRadius: "2px",
+															}}
+														>
+															{showRawJson[tx.hash] ? "Show Formatted JSON" : "Show Raw JSON"}
+														</button>
+														{showRawJson[tx.hash] ? (
+															<pre style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+																{JSON.stringify(tx, null, 2)}
+															</pre>
+														) : (
+															<div style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", fontFamily: '"Monaco", "Menlo", "Ubuntu Mono", monospace', fontSize: "0.875rem", lineHeight: "1.5" }}>
+																{formatDecodedObject(tx)}
+															</div>
+														)}
+													</div>
 												</div>
 											</div>
 										))}
@@ -953,9 +1084,38 @@ export function IndexerExplorer() {
 									{searchResult.contractActions && renderContractActions(searchResult.contractActions) && (
 										<div>{renderContractActions(searchResult.contractActions)}</div>
 									)}
-									<pre style={{ marginTop: searchResult.contractActions && searchResult.contractActions.length > 0 ? "1rem" : 0 }}>
-										{String(JSON.stringify(searchResult, null, 2))}
-									</pre>
+									<div style={{ marginTop: searchResult.contractActions && searchResult.contractActions.length > 0 ? "1rem" : 0 }}>
+										<button
+											type="button"
+											onClick={() => {
+												setShowRawJson((prev) => ({
+													...prev,
+													search: !prev.search,
+												}));
+											}}
+											style={{
+												marginBottom: "0.5rem",
+												padding: "0.25rem 0.5rem",
+												fontSize: "0.75rem",
+												cursor: "pointer",
+												backgroundColor: "var(--color-primary)",
+												color: "white",
+												border: "none",
+												borderRadius: "2px",
+											}}
+										>
+											{showRawJson.search ? "Show Formatted JSON" : "Show Raw JSON"}
+										</button>
+										{showRawJson.search ? (
+											<pre style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+												{JSON.stringify(searchResult, null, 2)}
+											</pre>
+										) : (
+											<div style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", fontFamily: '"Monaco", "Menlo", "Ubuntu Mono", monospace', fontSize: "0.875rem", lineHeight: "1.5" }}>
+												{formatDecodedObject(searchResult)}
+											</div>
+										)}
+									</div>
 								</div>
 							)}
 						</div>

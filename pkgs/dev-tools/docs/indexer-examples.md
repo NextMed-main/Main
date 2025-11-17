@@ -584,6 +584,62 @@ watch -n 5 'curl -s http://localhost:8088/ready'
 | ブロック範囲クエリ | 複数のRPC呼び出し | 単一のGraphQLクエリ |
 | パフォーマンス | 検索でO(n) | インデックス化されたデータでO(1) |
 
+## コントラクトステートの構造
+
+`midnight_jsonContractState` RPCメソッドで取得できるコントラクトステートのJSON構造について説明します。
+
+### 基本構造
+
+コントラクトステートは以下のような構造を持ちます：
+
+```json
+{
+  "data": [...],
+  "operations": {
+    "operationName": {
+      "v2": "0x0400bb040000028d0000...03b0d9709c55193eaf76"
+    }
+  }
+}
+```
+
+### `operations`フィールド
+
+`operations`フィールドには、コントラクトの各エントリーポイント（操作）ごとの情報が格納されています。
+
+#### `v2`データの正体
+
+各操作の`v2`フィールドには、**ゼロ知識証明システムのバージョン2のverifier key（検証鍵）**が格納されています。
+
+**詳細：**
+
+- **Verifier Keyとは**: ゼロ知識証明を検証するための公開鍵です。各コントラクト操作（例：`viewVendorScores`、`getVendorPublicProfile`など）ごとに存在します。
+- **用途**: トランザクションのゼロ知識証明を検証するために使用されます。Midnight Networkのプライバシー保護機能の基盤となる重要なデータです。
+- **データ形式**: シリアライズされたverifier key（Uint8Array）がhex文字列として格納されています。
+- **バージョン管理**: コントラクトは複数のバージョンのverifier keyを保持できますが、現在のAPIでは最新バージョンのみが公開されています。
+
+**例：**
+
+```json
+{
+  "operations": {
+    "viewVendorScores": {
+      "v2": "0x0400bb040000028d0000...03b0d9709c55193eaf76"
+    },
+    "getVendorPublicProfile": {
+      "v2": "0x0400bb04000002360000...03b0d9709c55193eaf76"
+    }
+  }
+}
+```
+
+各操作名（エントリーポイント名）がキーとなり、その値としてverifier keyが格納されています。
+
+### 参考資料
+
+- [Midnight Network Contract State Documentation](https://docs.midnight.network/develop/reference/midnight-api/ledger/classes/ContractOperation)
+- [Zero-Knowledge Proof Transaction Structure](https://docs.midnight.network/develop/how-midnight-works/smart-contracts)
+
 ## 参考リンク
 
 - [Midnight Network Documentation](https://docs.midnight.network)
