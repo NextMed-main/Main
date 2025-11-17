@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
 import type { Cip30WalletApi, WalletName } from "../types/wallet-types";
 import {
-	deployCounterContract,
 	joinCounterContract,
 	incrementCounter,
 	getCounterValue,
 	checkProofServer,
-	type DeployResult,
 } from "../utils/counter-contract";
 import "../App.css";
 
@@ -19,14 +17,15 @@ interface CounterContractPanelProps {
 export function CounterContractPanel({
 	walletApi,
 }: CounterContractPanelProps) {
-	const [contractAddress, setContractAddress] = useState<string>("");
-	const [deploying, setDeploying] = useState(false);
+	// Default contract address for testing (deployed via CLI)
+	const [contractAddress, setContractAddress] = useState<string>(
+		"0200ea62067fe8bac97e8f8caaee6413c8ed7f42e0a960335f1b1aeb43fa37999315",
+	);
 	const [joining, setJoining] = useState(false);
 	const [incrementing, setIncrementing] = useState(false);
 	const [viewingState, setViewingState] = useState(false);
 	const [counterValue, setCounterValue] = useState<bigint | null>(null);
 	const [error, setError] = useState<string>("");
-	const [deployResult, setDeployResult] = useState<DeployResult | null>(null);
 	const [proofServerStatus, setProofServerStatus] = useState<boolean | null>(
 		null,
 	);
@@ -45,24 +44,6 @@ export function CounterContractPanel({
 			setProofServerStatus(false);
 		} finally {
 			setCheckingProofServer(false);
-		}
-	};
-
-	const handleDeploy = async () => {
-		setDeploying(true);
-		setError("");
-		setDeployResult(null);
-
-		try {
-			const result = await deployCounterContract(walletApi);
-			setDeployResult(result);
-			setContractAddress(result.contractAddress);
-		} catch (err) {
-			setError(
-				err instanceof Error ? err.message : "Failed to deploy contract",
-			);
-		} finally {
-			setDeploying(false);
 		}
 	};
 
@@ -89,7 +70,7 @@ export function CounterContractPanel({
 
 	const handleIncrement = async () => {
 		if (!contractAddress.trim()) {
-			setError("Please deploy or join a contract first");
+			setError("Please join a contract first");
 			return;
 		}
 
@@ -140,9 +121,13 @@ export function CounterContractPanel({
 		<div className="method-panel">
 			<h2>Counter Contract</h2>
 			<p className="method-description-text">
-				Deploy, join, and interact with Counter contracts on Midnight Network.
+				Join and interact with existing Counter contracts on Midnight Network.
 				This contract maintains a public counter that can be incremented.
 			</p>
+			<div className="info-box" style={{ marginTop: "1rem", marginBottom: "1rem" }}>
+				<strong>Note:</strong> Contract deployment is not yet available in the browser environment.
+				Please use a deployed contract address to interact with existing contracts.
+			</div>
 
 			<div className="params-section">
 				<h3>Proof Server Status</h3>
@@ -190,12 +175,12 @@ export function CounterContractPanel({
 				<h3>Contract Address</h3>
 				<div className="param-input">
 					<label>
-						Contract Address (for joining existing contract)
+						Contract Address
 						<input
 							type="text"
 							value={contractAddress}
 							onChange={(e) => setContractAddress(e.target.value)}
-							placeholder="Enter contract address..."
+							placeholder="Enter deployed contract address..."
 							className="contract-address-input"
 						/>
 					</label>
@@ -207,27 +192,12 @@ export function CounterContractPanel({
 				<div className="contract-actions">
 					<button
 						type="button"
-						onClick={handleDeploy}
-						disabled={deploying}
-						className="call-button"
-					>
-						{deploying ? "Deploying..." : "Deploy New Contract"}
-					</button>
-					<button
-						type="button"
 						onClick={handleJoin}
 						disabled={joining || !contractAddress.trim()}
 						className="call-button"
+						style={{ backgroundColor: "var(--color-primary)" }}
 					>
-						{joining ? "Joining..." : "Join Existing Contract"}
-					</button>
-					<button
-						type="button"
-						onClick={handleIncrement}
-						disabled={incrementing || !contractAddress.trim()}
-						className="call-button"
-					>
-						{incrementing ? "Incrementing..." : "Increment Counter"}
+						{joining ? "Joining..." : "Join Contract"}
 					</button>
 					<button
 						type="button"
@@ -237,44 +207,16 @@ export function CounterContractPanel({
 					>
 						{viewingState ? "Loading..." : "View Counter Value"}
 					</button>
+					<button
+						type="button"
+						onClick={handleIncrement}
+						disabled={incrementing || !contractAddress.trim()}
+						className="call-button"
+					>
+						{incrementing ? "Incrementing..." : "Increment Counter"}
+					</button>
 				</div>
 			</div>
-
-			{deployResult && (
-				<div className="result-panel">
-					<h3>Deployment Result</h3>
-					<div className="deployment-info">
-						<div className="info-item">
-							<label>Contract Address:</label>
-							<span className="address-display">
-								<span className="address-full">
-									{deployResult.contractAddress}
-								</span>
-								<button
-									type="button"
-									onClick={() => {
-										navigator.clipboard.writeText(
-											deployResult.contractAddress,
-										);
-									}}
-									className="copy-button"
-									title="Copy address"
-								>
-									Copy
-								</button>
-							</span>
-						</div>
-						<div className="info-item">
-							<label>Transaction ID:</label>
-							<span>{deployResult.txId}</span>
-						</div>
-						<div className="info-item">
-							<label>Block Height:</label>
-							<span>{deployResult.blockHeight}</span>
-						</div>
-					</div>
-				</div>
-			)}
 
 			{counterValue !== null && (
 				<div className="result-panel">
@@ -296,20 +238,20 @@ export function CounterContractPanel({
 				<h3>Usage</h3>
 				<ol className="usage-list">
 					<li>
-						<strong>Deploy:</strong> Create a new Counter contract on the
-						blockchain
+						<strong>Enter Contract Address:</strong> Input the address of an
+						existing deployed Counter contract
 					</li>
 					<li>
-						<strong>Join:</strong> Connect to an existing Counter contract by
-						entering its address
-					</li>
-					<li>
-						<strong>Increment:</strong> Call the increment() function to increase
-						the counter by 1
+						<strong>Join:</strong> Connect to the Counter contract by clicking
+						"Join Contract"
 					</li>
 					<li>
 						<strong>View State:</strong> Query the current counter value from
 						the blockchain
+					</li>
+					<li>
+						<strong>Increment:</strong> Call the increment() function to increase
+						the counter by 1
 					</li>
 				</ol>
 				<div className="info-box">
@@ -317,8 +259,12 @@ export function CounterContractPanel({
 					<ul>
 						<li>Proof Server running on http://localhost:6300</li>
 						<li>Midnight.js browser integration</li>
-						<li>Compiled Counter contract code</li>
+						<li>A deployed Counter contract address</li>
 					</ul>
+					<br />
+					<strong>Contract Deployment:</strong> Contract deployment is currently
+					only available in Node.js environments. Browser-based deployment will
+					be supported in a future update.
 				</div>
 			</div>
 		</div>
