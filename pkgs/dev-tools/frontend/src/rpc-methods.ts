@@ -1,6 +1,6 @@
 /**
- * RPCメソッド定義
- * Insomniaファイルから抽出したメソッドをカテゴリ別に整理
+ * RPC Method Definitions
+ * Methods extracted from Insomnia file, organized by category
  */
 
 export interface RpcMethod {
@@ -11,83 +11,83 @@ export interface RpcMethod {
 }
 
 export const RPC_METHODS: RpcMethod[] = [
-	// System系
+	// System
 	{
 		name: "system_chain",
-		description: "チェーン名を取得",
+		description: "Get chain name",
 		category: "system",
 	},
 	{
 		name: "system_name",
-		description: "ノード名を取得",
+		description: "Get node name",
 		category: "system",
 	},
 	{
 		name: "system_version",
-		description: "ノードバージョンを取得",
+		description: "Get node version",
 		category: "system",
 	},
 	{
 		name: "system_health",
-		description: "ノードのヘルス状態を取得",
+		description: "Get node health status",
 		category: "system",
 	},
 	{
 		name: "system_peers",
-		description: "接続されているピアのリストを取得",
+		description: "Get list of connected peers",
 		category: "system",
 	},
 	{
 		name: "system_properties",
-		description: "チェーンのプロパティを取得",
+		description: "Get chain properties",
 		category: "system",
 	},
 	{
 		name: "system_chainType",
-		description: "チェーンのタイプを取得",
+		description: "Get chain type",
 		category: "system",
 	},
 	{
 		name: "system_nodeRoles",
-		description: "ノードのロールを取得",
+		description: "Get node roles",
 		category: "system",
 	},
 	{
 		name: "system_localPeerId",
-		description: "ローカルピアIDを取得",
+		description: "Get local peer ID",
 		category: "system",
 	},
 	{
 		name: "system_localListenAddresses",
-		description: "ローカルリスンアドレスを取得",
+		description: "Get local listen addresses",
 		category: "system",
 	},
 	{
 		name: "system_reservedPeers",
-		description: "予約済みピアのリストを取得",
+		description: "Get list of reserved peers",
 		category: "system",
 	},
 	{
 		name: "system_addReservedPeer",
-		description: "予約済みピアを追加",
+		description: "Add reserved peer",
 		category: "system",
 		params: [{ name: "peer", type: "string", required: true }],
 	},
 	{
 		name: "system_removeReservedPeer",
-		description: "予約済みピアを削除",
+		description: "Remove reserved peer",
 		category: "system",
 		params: [{ name: "peer", type: "string", required: true }],
 	},
 	{
 		name: "system_accountNextIndex",
-		description: "アカウントの次のインデックスを取得",
+		description: "Get account next index",
 		category: "system",
 		params: [{ name: "accountId", type: "string", required: true }],
 	},
 	{
 		name: "system_dryRun",
-		description: "トランザクションをドライラン実行",
+		description: "Dry run transaction",
 		category: "system",
 		params: [
 			{ name: "extrinsic", type: "string", required: true },
@@ -96,7 +96,7 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "system_dryRunAt",
-		description: "特定のブロックでトランザクションをドライラン実行",
+		description: "Dry run transaction at specific block",
 		category: "system",
 		params: [
 			{ name: "extrinsic", type: "string", required: true },
@@ -105,137 +105,137 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "system_addLogFilter",
-		description: "ログフィルターを追加",
+		description: "Add log filter",
 		category: "system",
 		params: [{ name: "filter", type: "string", required: true }],
 	},
 	{
 		name: "system_resetLogFilter",
-		description: "ログフィルターをリセット",
+		description: "Reset log filter",
 		category: "system",
 	},
 	{
 		name: "system_syncState",
-		description: "同期状態を取得",
+		description: "Get sync state",
 		category: "system",
 	},
 	{
 		name: "system_unstable_networkState",
-		description: "ネットワーク状態を取得（不安定API）",
+		description: "Get network state (unstable API)",
 		category: "system",
 	},
 
-	// Chain系
+	// Chain
 	{
 		name: "chain_getBlock",
-		description: "ブロックのヘッダーとボディを取得",
+		description: "Get block header and body",
 		category: "chain",
 		params: [{ name: "hash", type: "string", required: false }],
 	},
 	{
 		name: "chain_getBlockHash",
-		description: "特定のブロックのハッシュを取得",
+		description: "Get hash of specific block",
 		category: "chain",
 		params: [{ name: "blockNumber", type: "string", required: false }],
 	},
 	{
 		name: "chain_getHead",
-		description: "最新のブロックハッシュを取得",
+		description: "Get latest block hash",
 		category: "chain",
 	},
 	{
 		name: "chain_getFinalizedHead",
-		description: "最終確定されたブロックのハッシュを取得",
+		description: "Get finalized block hash",
 		category: "chain",
 	},
 	{
 		name: "chain_getFinalisedHead",
-		description: "最終確定されたブロックのハッシュを取得（英式スペル）",
+		description: "Get finalized block hash (British spelling)",
 		category: "chain",
 	},
 	{
 		name: "chain_getHeader",
-		description: "特定のブロックのヘッダーを取得",
+		description: "Get header of specific block",
 		category: "chain",
 		params: [{ name: "hash", type: "string", required: false }],
 	},
 	{
 		name: "chain_getRuntimeVersion",
-		description: "ランタイムバージョンを取得",
+		description: "Get runtime version",
 		category: "chain",
 		params: [{ name: "at", type: "string", required: false }],
 	},
 	{
 		name: "chain_subscribeNewHead",
-		description: "新しいブロックヘッダーを購読",
+		description: "Subscribe to new block headers",
 		category: "chain",
 	},
 	{
 		name: "chain_subscribeNewHeads",
-		description: "新しいブロックヘッダーを購読（複数形）",
+		description: "Subscribe to new block headers (plural)",
 		category: "chain",
 	},
 	{
 		name: "chain_subscribeAllHeads",
-		description: "すべてのブロックヘッダーを購読",
+		description: "Subscribe to all block headers",
 		category: "chain",
 	},
 	{
 		name: "chain_subscribeFinalizedHeads",
-		description: "最終確定されたブロックヘッダーを購読",
+		description: "Subscribe to finalized block headers",
 		category: "chain",
 	},
 	{
 		name: "chain_subscribeFinalisedHeads",
-		description: "最終確定されたブロックヘッダーを購読（英式スペル）",
+		description: "Subscribe to finalized block headers (British spelling)",
 		category: "chain",
 	},
 	{
 		name: "chain_subscribeRuntimeVersion",
-		description: "ランタイムバージョンの変更を購読",
+		description: "Subscribe to runtime version changes",
 		category: "chain",
 	},
 	{
 		name: "chain_unsubscribeNewHead",
-		description: "新しいブロックヘッダーの購読を解除",
+		description: "Unsubscribe from new block headers",
 		category: "chain",
 		params: [{ name: "subscriptionId", type: "string", required: true }],
 	},
 	{
 		name: "chain_unsubscribeNewHeads",
-		description: "新しいブロックヘッダーの購読を解除（複数形）",
+		description: "Unsubscribe from new block headers (plural)",
 		category: "chain",
 		params: [{ name: "subscriptionId", type: "string", required: true }],
 	},
 	{
 		name: "chain_unsubscribeAllHeads",
-		description: "すべてのブロックヘッダーの購読を解除",
+		description: "Unsubscribe from all block headers",
 		category: "chain",
 		params: [{ name: "subscriptionId", type: "string", required: true }],
 	},
 	{
 		name: "chain_unsubscribeFinalizedHeads",
-		description: "最終確定されたブロックヘッダーの購読を解除",
+		description: "Unsubscribe from finalized block headers",
 		category: "chain",
 		params: [{ name: "subscriptionId", type: "string", required: true }],
 	},
 	{
 		name: "chain_unsubscribeFinalisedHeads",
-		description: "最終確定されたブロックヘッダーの購読を解除（英式スペル）",
+		description: "Unsubscribe from finalized block headers (British spelling)",
 		category: "chain",
 		params: [{ name: "subscriptionId", type: "string", required: true }],
 	},
 	{
 		name: "chain_unsubscribeRuntimeVersion",
-		description: "ランタイムバージョンの購読を解除",
+		description: "Unsubscribe from runtime version",
 		category: "chain",
 		params: [{ name: "subscriptionId", type: "string", required: true }],
 	},
 
-	// State系
+	// State
 	{
 		name: "state_getStorage",
-		description: "ストレージエントリを取得",
+		description: "Get storage entry",
 		category: "state",
 		params: [
 			{ name: "key", type: "string", required: true },
@@ -244,7 +244,7 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "state_getStorageAt",
-		description: "特定のブロックでのストレージエントリを取得",
+		description: "Get storage entry at specific block",
 		category: "state",
 		params: [
 			{ name: "key", type: "string", required: true },
@@ -253,7 +253,7 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "state_getStorageHash",
-		description: "ストレージエントリのハッシュを取得",
+		description: "Get storage entry hash",
 		category: "state",
 		params: [
 			{ name: "key", type: "string", required: true },
@@ -262,7 +262,7 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "state_getStorageHashAt",
-		description: "特定のブロックでのストレージエントリのハッシュを取得",
+		description: "Get storage entry hash at specific block",
 		category: "state",
 		params: [
 			{ name: "key", type: "string", required: true },
@@ -271,7 +271,7 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "state_getStorageSize",
-		description: "ストレージエントリのサイズを取得",
+		description: "Get storage entry size",
 		category: "state",
 		params: [
 			{ name: "key", type: "string", required: true },
@@ -280,7 +280,7 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "state_getStorageSizeAt",
-		description: "特定のブロックでのストレージエントリのサイズを取得",
+		description: "Get storage entry size at specific block",
 		category: "state",
 		params: [
 			{ name: "key", type: "string", required: true },
@@ -289,7 +289,7 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "state_getKeys",
-		description: "ストレージキーのリストを取得",
+		description: "Get list of storage keys",
 		category: "state",
 		params: [
 			{ name: "prefix", type: "string", required: false },
@@ -298,7 +298,7 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "state_getKeysPaged",
-		description: "ページネーション付きでストレージキーのリストを取得",
+		description: "Get paginated list of storage keys",
 		category: "state",
 		params: [
 			{ name: "prefix", type: "string", required: false },
@@ -309,7 +309,7 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "state_getKeysPagedAt",
-		description: "特定のブロックでページネーション付きでストレージキーのリストを取得",
+		description: "Get paginated list of storage keys at specific block",
 		category: "state",
 		params: [
 			{ name: "prefix", type: "string", required: false },
@@ -320,7 +320,7 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "state_getPairs",
-		description: "ストレージキーと値のペアを取得",
+		description: "Get storage key-value pairs",
 		category: "state",
 		params: [
 			{ name: "prefix", type: "string", required: false },
@@ -329,19 +329,19 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "state_getMetadata",
-		description: "ランタイムメタデータを取得",
+		description: "Get runtime metadata",
 		category: "state",
 		params: [{ name: "at", type: "string", required: false }],
 	},
 	{
 		name: "state_getRuntimeVersion",
-		description: "ランタイムバージョンを取得",
+		description: "Get runtime version",
 		category: "state",
 		params: [{ name: "at", type: "string", required: false }],
 	},
 	{
 		name: "state_getReadProof",
-		description: "ストレージの読み取り証明を取得",
+		description: "Get storage read proof",
 		category: "state",
 		params: [
 			{ name: "keys", type: "array", required: true },
@@ -350,7 +350,7 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "state_getChildReadProof",
-		description: "子ストレージの読み取り証明を取得",
+		description: "Get child storage read proof",
 		category: "state",
 		params: [
 			{ name: "childStorageKey", type: "string", required: true },
@@ -360,7 +360,7 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "state_queryStorage",
-		description: "ストレージのクエリを実行",
+		description: "Query storage",
 		category: "state",
 		params: [
 			{ name: "keys", type: "array", required: true },
@@ -370,7 +370,7 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "state_queryStorageAt",
-		description: "特定のブロックでストレージのクエリを実行",
+		description: "Query storage at specific block",
 		category: "state",
 		params: [
 			{ name: "keys", type: "array", required: true },
@@ -379,30 +379,30 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "state_subscribeStorage",
-		description: "ストレージの変更を購読",
+		description: "Subscribe to storage changes",
 		category: "state",
 		params: [{ name: "keys", type: "array", required: false }],
 	},
 	{
 		name: "state_unsubscribeStorage",
-		description: "ストレージの購読を解除",
+		description: "Unsubscribe from storage",
 		category: "state",
 		params: [{ name: "subscriptionId", type: "string", required: true }],
 	},
 	{
 		name: "state_subscribeRuntimeVersion",
-		description: "ランタイムバージョンの変更を購読",
+		description: "Subscribe to runtime version changes",
 		category: "state",
 	},
 	{
 		name: "state_unsubscribeRuntimeVersion",
-		description: "ランタイムバージョンの購読を解除",
+		description: "Unsubscribe from runtime version",
 		category: "state",
 		params: [{ name: "subscriptionId", type: "string", required: true }],
 	},
 	{
 		name: "state_call",
-		description: "ランタイム関数を呼び出し",
+		description: "Call runtime function",
 		category: "state",
 		params: [
 			{ name: "method", type: "string", required: true },
@@ -412,7 +412,7 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "state_callAt",
-		description: "特定のブロックでランタイム関数を呼び出し",
+		description: "Call runtime function at specific block",
 		category: "state",
 		params: [
 			{ name: "method", type: "string", required: true },
@@ -422,7 +422,7 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "state_traceBlock",
-		description: "ブロックのトレースを取得",
+		description: "Get block trace",
 		category: "state",
 		params: [
 			{ name: "block", type: "string", required: true },
@@ -431,44 +431,44 @@ export const RPC_METHODS: RpcMethod[] = [
 		],
 	},
 
-	// Author系
+	// Author
 	{
 		name: "author_submitExtrinsic",
-		description: "extrinsicを送信",
+		description: "Submit extrinsic",
 		category: "author",
 		params: [{ name: "extrinsic", type: "string", required: true }],
 	},
 	{
 		name: "author_submitAndWatchExtrinsic",
-		description: "extrinsicを送信して監視",
+		description: "Submit and watch extrinsic",
 		category: "author",
 		params: [{ name: "extrinsic", type: "string", required: true }],
 	},
 	{
 		name: "author_pendingExtrinsics",
-		description: "保留中のextrinsicのリストを取得",
+		description: "Get list of pending extrinsics",
 		category: "author",
 	},
 	{
 		name: "author_removeExtrinsic",
-		description: "extrinsicを削除",
+		description: "Remove extrinsic",
 		category: "author",
 		params: [{ name: "extrinsics", type: "array", required: true }],
 	},
 	{
 		name: "author_unwatchExtrinsic",
-		description: "extrinsicの監視を解除",
+		description: "Unwatch extrinsic",
 		category: "author",
 		params: [{ name: "subscriptionId", type: "string", required: true }],
 	},
 	{
 		name: "author_rotateKeys",
-		description: "セッションキーをローテート",
+		description: "Rotate session keys",
 		category: "author",
 	},
 	{
 		name: "author_insertKey",
-		description: "キーを挿入",
+		description: "Insert key",
 		category: "author",
 		params: [
 			{ name: "keyType", type: "string", required: true },
@@ -478,7 +478,7 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "author_hasKey",
-		description: "キーが存在するか確認",
+		description: "Check if key exists",
 		category: "author",
 		params: [
 			{ name: "publicKey", type: "string", required: true },
@@ -487,21 +487,21 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "author_hasSessionKeys",
-		description: "セッションキーが存在するか確認",
+		description: "Check if session keys exist",
 		category: "author",
 		params: [{ name: "sessionKeys", type: "string", required: true }],
 	},
 
-	// Midnight系
+	// Midnight
 	{
 		name: "midnight_jsonBlock",
-		description: "JSONエンコードされたブロック情報を取得（extrinsicを含む）",
+		description: "Get JSON-encoded block information (including extrinsics)",
 		category: "midnight",
 		params: [{ name: "at", type: "string", required: false }],
 	},
 	{
 		name: "midnight_jsonContractState",
-		description: "JSONエンコードされたコントラクト状態を取得",
+		description: "Get JSON-encoded contract state",
 		category: "midnight",
 		params: [
 			{ name: "address", type: "string", required: true },
@@ -510,7 +510,7 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "midnight_contractState",
-		description: "生の（バイナリエンコードされた）コントラクト状態を取得",
+		description: "Get raw (binary-encoded) contract state",
 		category: "midnight",
 		params: [
 			{ name: "address", type: "string", required: true },
@@ -519,13 +519,13 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "midnight_decodeEvents",
-		description: "イベントをデコード",
+		description: "Decode events",
 		category: "midnight",
 		params: [{ name: "events", type: "string", required: true }],
 	},
 	{
 		name: "midnight_zswapChainState",
-		description: "ZSwapチェーン状態を取得",
+		description: "Get ZSwap chain state",
 		category: "midnight",
 		params: [
 			{ name: "address", type: "string", required: true },
@@ -534,14 +534,14 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "midnight_apiVersions",
-		description: "サポートされているRPC APIバージョンのリストを取得",
+		description: "Get list of supported RPC API versions",
 		category: "midnight",
 	},
 
-	// Childstate系
+	// Child State
 	{
 		name: "childstate_getStorage",
-		description: "子ストレージエントリを取得",
+		description: "Get child storage entry",
 		category: "childstate",
 		params: [
 			{ name: "childStorageKey", type: "string", required: true },
@@ -551,7 +551,7 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "childstate_getStorageHash",
-		description: "子ストレージエントリのハッシュを取得",
+		description: "Get child storage entry hash",
 		category: "childstate",
 		params: [
 			{ name: "childStorageKey", type: "string", required: true },
@@ -561,7 +561,7 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "childstate_getStorageSize",
-		description: "子ストレージエントリのサイズを取得",
+		description: "Get child storage entry size",
 		category: "childstate",
 		params: [
 			{ name: "childStorageKey", type: "string", required: true },
@@ -571,7 +571,7 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "childstate_getKeys",
-		description: "子ストレージキーのリストを取得",
+		description: "Get list of child storage keys",
 		category: "childstate",
 		params: [
 			{ name: "childStorageKey", type: "string", required: true },
@@ -581,7 +581,7 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "childstate_getKeysPaged",
-		description: "ページネーション付きで子ストレージキーのリストを取得",
+		description: "Get paginated list of child storage keys",
 		category: "childstate",
 		params: [
 			{ name: "childStorageKey", type: "string", required: true },
@@ -593,7 +593,7 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "childstate_getKeysPagedAt",
-		description: "特定のブロックでページネーション付きで子ストレージキーのリストを取得",
+		description: "Get paginated list of child storage keys at specific block",
 		category: "childstate",
 		params: [
 			{ name: "childStorageKey", type: "string", required: true },
@@ -605,7 +605,7 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "childstate_getStorageEntries",
-		description: "子ストレージエントリのリストを取得",
+		description: "Get list of child storage entries",
 		category: "childstate",
 		params: [
 			{ name: "childStorageKey", type: "string", required: true },
@@ -614,10 +614,10 @@ export const RPC_METHODS: RpcMethod[] = [
 		],
 	},
 
-	// Archive系（不安定API）
+	// Archive (Unstable API)
 	{
 		name: "archive_unstable_call",
-		description: "アーカイブノードでランタイム関数を呼び出し（不安定API）",
+		description: "Call runtime function on archive node (unstable API)",
 		category: "archive",
 		params: [
 			{ name: "method", type: "string", required: true },
@@ -627,7 +627,7 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "archive_unstable_storage",
-		description: "アーカイブノードでストレージエントリを取得（不安定API）",
+		description: "Get storage entry on archive node (unstable API)",
 		category: "archive",
 		params: [
 			{ name: "key", type: "string", required: true },
@@ -636,55 +636,55 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "archive_unstable_header",
-		description: "アーカイブノードでブロックヘッダーを取得（不安定API）",
+		description: "Get block header on archive node (unstable API)",
 		category: "archive",
 		params: [{ name: "hash", type: "string", required: true }],
 	},
 	{
 		name: "archive_unstable_body",
-		description: "アーカイブノードでブロックボディを取得（不安定API）",
+		description: "Get block body on archive node (unstable API)",
 		category: "archive",
 		params: [{ name: "hash", type: "string", required: true }],
 	},
 	{
 		name: "archive_unstable_genesisHash",
-		description: "ジェネシスブロックハッシュを取得（不安定API）",
+		description: "Get genesis block hash (unstable API)",
 		category: "archive",
 	},
 	{
 		name: "archive_unstable_hashByHeight",
-		description: "ブロック高さからブロックハッシュを取得（不安定API）",
+		description: "Get block hash by height (unstable API)",
 		category: "archive",
 		params: [{ name: "height", type: "number", required: true }],
 	},
 	{
 		name: "archive_unstable_finalizedHeight",
-		description: "最終確定されたブロック高さを取得（不安定API）",
+		description: "Get finalized block height (unstable API)",
 		category: "archive",
 	},
 
-	// ChainHead系（不安定API）
+	// ChainHead (Unstable API)
 	{
 		name: "chainHead_unstable_follow",
-		description: "チェーンヘッドをフォロー（不安定API）",
+		description: "Follow chain head (unstable API)",
 		category: "chainhead",
 		params: [{ name: "withRuntime", type: "boolean", required: false }],
 	},
 	{
 		name: "chainHead_unstable_unfollow",
-		description: "チェーンヘッドのフォローを解除（不安定API）",
+		description: "Unfollow chain head (unstable API)",
 		category: "chainhead",
 		params: [{ name: "subscriptionId", type: "string", required: true }],
 	},
 	{
 		name: "chainHead_unstable_header",
-		description: "チェーンヘッドのヘッダーを取得（不安定API）",
+		description: "Get chain head header (unstable API)",
 		category: "chainhead",
 		params: [{ name: "subscriptionId", type: "string", required: true }],
 	},
 	{
 		name: "chainHead_unstable_call",
-		description: "チェーンヘッドでランタイム関数を呼び出し（不安定API）",
+		description: "Call runtime function on chain head (unstable API)",
 		category: "chainhead",
 		params: [
 			{ name: "subscriptionId", type: "string", required: true },
@@ -694,7 +694,7 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "chainHead_unstable_storage",
-		description: "チェーンヘッドでストレージエントリを取得（不安定API）",
+		description: "Get storage entry on chain head (unstable API)",
 		category: "chainhead",
 		params: [
 			{ name: "subscriptionId", type: "string", required: true },
@@ -704,13 +704,13 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "chainHead_unstable_body",
-		description: "チェーンヘッドでブロックボディを取得（不安定API）",
+		description: "Get block body on chain head (unstable API)",
 		category: "chainhead",
 		params: [{ name: "subscriptionId", type: "string", required: true }],
 	},
 	{
 		name: "chainHead_unstable_unpin",
-		description: "チェーンヘッドのピンを解除（不安定API）",
+		description: "Unpin chain head (unstable API)",
 		category: "chainhead",
 		params: [
 			{ name: "subscriptionId", type: "string", required: true },
@@ -719,7 +719,7 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "chainHead_unstable_continue",
-		description: "チェーンヘッドの操作を継続（不安定API）",
+		description: "Continue chain head operation (unstable API)",
 		category: "chainhead",
 		params: [
 			{ name: "subscriptionId", type: "string", required: true },
@@ -728,7 +728,7 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "chainHead_unstable_stopOperation",
-		description: "チェーンヘッドの操作を停止（不安定API）",
+		description: "Stop chain head operation (unstable API)",
 		category: "chainhead",
 		params: [
 			{ name: "subscriptionId", type: "string", required: true },
@@ -736,53 +736,53 @@ export const RPC_METHODS: RpcMethod[] = [
 		],
 	},
 
-	// TransactionWatch系（不安定API）
+	// TransactionWatch (Unstable API)
 	{
 		name: "transactionWatch_unstable_submitAndWatch",
-		description: "トランザクションを送信して監視（不安定API）",
+		description: "Submit and watch transaction (unstable API)",
 		category: "transactionwatch",
 		params: [{ name: "extrinsic", type: "string", required: true }],
 	},
 	{
 		name: "transactionWatch_unstable_unwatch",
-		description: "トランザクションの監視を解除（不安定API）",
+		description: "Unwatch transaction (unstable API)",
 		category: "transactionwatch",
 		params: [{ name: "subscriptionId", type: "string", required: true }],
 	},
 
-	// Sidechain系
+	// Sidechain
 	{
 		name: "sidechain_getRegistrations",
-		description: "サイドチェーンの登録情報を取得",
+		description: "Get sidechain registration information",
 		category: "sidechain",
 	},
 	{
 		name: "sidechain_getParams",
-		description: "サイドチェーンのパラメータを取得",
+		description: "Get sidechain parameters",
 		category: "sidechain",
 	},
 	{
 		name: "sidechain_getStatus",
-		description: "サイドチェーンのステータスを取得",
+		description: "Get sidechain status",
 		category: "sidechain",
 	},
 	{
 		name: "sidechain_getEpochCommittee",
-		description: "エポック委員会を取得",
+		description: "Get epoch committee",
 		category: "sidechain",
 		params: [{ name: "epoch", type: "number", required: true }],
 	},
 	{
 		name: "sidechain_getAriadneParameters",
-		description: "Ariadneパラメータを取得",
+		description: "Get Ariadne parameters",
 		category: "sidechain",
 		params: [{ name: "epoch", type: "number", required: true }],
 	},
 
-	// Offchain系
+	// Offchain
 	{
 		name: "offchain_localStorageGet",
-		description: "オフチェーンローカルストレージから値を取得",
+		description: "Get value from offchain local storage",
 		category: "offchain",
 		params: [
 			{ name: "kind", type: "string", required: true },
@@ -791,7 +791,7 @@ export const RPC_METHODS: RpcMethod[] = [
 	},
 	{
 		name: "offchain_localStorageSet",
-		description: "オフチェーンローカルストレージに値を設定",
+		description: "Set value in offchain local storage",
 		category: "offchain",
 		params: [
 			{ name: "kind", type: "string", required: true },
@@ -800,26 +800,26 @@ export const RPC_METHODS: RpcMethod[] = [
 		],
 	},
 
-	// Grandpa系
+	// Grandpa
 	{
 		name: "grandpa_subscribeJustifications",
-		description: "Grandpaの正当化を購読",
+		description: "Subscribe to Grandpa justifications",
 		category: "grandpa",
 	},
 	{
 		name: "grandpa_unsubscribeJustifications",
-		description: "Grandpaの正当化の購読を解除",
+		description: "Unsubscribe from Grandpa justifications",
 		category: "grandpa",
 		params: [{ name: "subscriptionId", type: "string", required: true }],
 	},
 	{
 		name: "grandpa_roundState",
-		description: "Grandpaのラウンド状態を取得",
+		description: "Get Grandpa round state",
 		category: "grandpa",
 	},
 	{
 		name: "grandpa_proveFinality",
-		description: "最終性の証明を取得",
+		description: "Get finality proof",
 		category: "grandpa",
 		params: [
 			{ name: "block", type: "string", required: true },
@@ -827,33 +827,33 @@ export const RPC_METHODS: RpcMethod[] = [
 		],
 	},
 
-	// その他
+	// Other
 	{
 		name: "rpc_methods",
-		description: "利用可能なRPCメソッドのリストを取得",
+		description: "Get list of available RPC methods",
 		category: "other",
 	},
 	{
 		name: "account_nextIndex",
-		description: "アカウントの次のインデックスを取得（非推奨）",
+		description: "Get account next index (deprecated)",
 		category: "other",
 		params: [{ name: "accountId", type: "string", required: true }],
 	},
 	{
 		name: "subscribe_newHead",
-		description: "新しいブロックヘッダーを購読（非推奨）",
+		description: "Subscribe to new block headers (deprecated)",
 		category: "other",
 	},
 	{
 		name: "unsubscribe_newHead",
-		description: "新しいブロックヘッダーの購読を解除（非推奨）",
+		description: "Unsubscribe from new block headers (deprecated)",
 		category: "other",
 		params: [{ name: "subscriptionId", type: "string", required: true }],
 	},
 ];
 
 /**
- * カテゴリ別にメソッドをグループ化
+ * Group methods by category
  */
 export function getMethodsByCategory(): Record<string, RpcMethod[]> {
 	const grouped: Record<string, RpcMethod[]> = {};
@@ -867,7 +867,7 @@ export function getMethodsByCategory(): Record<string, RpcMethod[]> {
 }
 
 /**
- * カテゴリ名の日本語表示
+ * Category name display
  */
 export const CATEGORY_NAMES: Record<string, string> = {
 	system: "System",

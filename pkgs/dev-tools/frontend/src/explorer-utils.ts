@@ -1,32 +1,32 @@
 /**
- * Explorer URL生成ユーティリティ
- * Polkadot.js.orgのexplorerへのリンクを生成
+ * Explorer URL Generation Utility
+ * Generate links to Polkadot.js.org explorer
  */
 
 const EXPLORER_BASE_URL =
 	"https://polkadot.js.org/apps/?rpc=wss://rpc.testnet-02.midnight.network#/explorer/query";
 
 /**
- * ブロックハッシュからexplorer URLを生成
+ * Generate explorer URL from block hash
  */
 export function getBlockExplorerUrl(blockHash: string): string {
 	if (!blockHash) {
 		return "";
 	}
-	// ブロックハッシュが0xで始まらない場合は追加
+	// Add 0x prefix if block hash doesn't start with it
 	const hash = blockHash.startsWith("0x") ? blockHash : `0x${blockHash}`;
 	return `${EXPLORER_BASE_URL}/${hash}`;
 }
 
 /**
- * ブロック番号からexplorer URLを生成
- * 注意: ブロック番号の場合は、まずブロックハッシュを取得する必要があります
+ * Generate explorer URL from block number
+ * Note: For block numbers, you need to get the block hash first
  */
 export function getBlockNumberExplorerUrl(blockNumber: number | string): string {
 	if (blockNumber === undefined || blockNumber === null) {
 		return "";
 	}
-	// ブロック番号を16進数に変換
+	// Convert block number to hexadecimal
 	const hexNumber =
 		typeof blockNumber === "string"
 			? blockNumber.startsWith("0x")
@@ -37,7 +37,7 @@ export function getBlockNumberExplorerUrl(blockNumber: number | string): string 
 }
 
 /**
- * JSONレスポンスからブロックハッシュを抽出してexplorer URLを生成
+ * Extract block hash from JSON response and generate explorer URL
  */
 export function extractBlockHashFromResult(result: unknown): string | null {
 	if (!result || typeof result !== "object") {
@@ -46,12 +46,12 @@ export function extractBlockHashFromResult(result: unknown): string | null {
 
 	const obj = result as Record<string, unknown>;
 
-	// 直接ブロックハッシュが返される場合
+	// Direct block hash returned
 	if (typeof obj === "string" && obj.startsWith("0x")) {
 		return obj as string;
 	}
 
-	// block.block.header.hash または block.header.hash
+	// block.block.header.hash or block.header.hash
 	if (obj.block) {
 		const block = obj.block as Record<string, unknown>;
 		if (block.header) {
@@ -70,7 +70,7 @@ export function extractBlockHashFromResult(result: unknown): string | null {
 		}
 	}
 
-	// 直接hashプロパティ
+	// Direct hash property
 	if (typeof obj.hash === "string") {
 		return obj.hash;
 	}
@@ -79,7 +79,7 @@ export function extractBlockHashFromResult(result: unknown): string | null {
 }
 
 /**
- * JSONレスポンスからブロック番号を抽出
+ * Extract block number from JSON response
  */
 export function extractBlockNumberFromResult(result: unknown): number | null {
 	if (!result || typeof result !== "object") {
@@ -96,7 +96,7 @@ export function extractBlockNumberFromResult(result: unknown): number | null {
 			if (header.number) {
 				const numberStr =
 					typeof header.number === "string" ? header.number : String(header.number);
-				// 16進数の場合は10進数に変換
+				// Convert from hexadecimal if needed
 				if (numberStr.startsWith("0x")) {
 					return parseInt(numberStr, 16);
 				}
@@ -118,7 +118,7 @@ export function extractBlockNumberFromResult(result: unknown): number | null {
 		}
 	}
 
-	// 直接numberプロパティ
+	// Direct number property
 	if (obj.number !== undefined) {
 		const numberStr = typeof obj.number === "string" ? obj.number : String(obj.number);
 		if (numberStr.startsWith("0x")) {

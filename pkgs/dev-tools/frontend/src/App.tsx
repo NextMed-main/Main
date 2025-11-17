@@ -43,16 +43,16 @@ function App() {
 
 	const selectedMethodInfo = RPC_METHODS.find((m) => m.name === selectedMethod);
 
-	// フィルタリングされたメソッドリスト
+	// Filtered method list
 	const filteredMethods = useMemo(() => {
 		let methods = RPC_METHODS;
 
-		// カテゴリでフィルタ
+		// Filter by category
 		if (selectedCategory !== "all") {
 			methods = methods.filter((m) => m.category === selectedCategory);
 		}
 
-		// 検索クエリでフィルタ
+		// Filter by search query
 		if (searchQuery.trim()) {
 			const query = searchQuery.toLowerCase();
 			methods = methods.filter(
@@ -65,7 +65,7 @@ function App() {
 		return methods;
 	}, [selectedCategory, searchQuery]);
 
-	// ブロック情報のexplorerリンク
+	// Block explorer link
 	const blockExplorerUrl = useMemo(() => {
 		if (!resultData) {
 			return null;
@@ -133,7 +133,7 @@ function App() {
 
 	const handleSearchTx = async () => {
 		if (!txHash.trim()) {
-			setError("トランザクションハッシュを入力してください");
+			setError("Please enter a transaction hash");
 			return;
 		}
 
@@ -153,7 +153,7 @@ function App() {
 			if (result) {
 				setSearchResults(result);
 			} else {
-				setError("トランザクションが見つかりませんでした");
+				setError("Transaction not found");
 			}
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Unknown error occurred");
@@ -164,7 +164,7 @@ function App() {
 
 	const handleSearchAccount = async () => {
 		if (!accountAddress.trim()) {
-			setError("アカウントアドレスを入力してください");
+			setError("Please enter an account address");
 			return;
 		}
 
@@ -244,18 +244,18 @@ function App() {
 						<>
 							<h2>RPC Methods</h2>
 
-							{/* 検索バー */}
+							{/* Search bar */}
 							<div className="search-bar">
 								<input
 									type="text"
-									placeholder="メソッド名または説明で検索..."
+									placeholder="Search by method name or description..."
 									value={searchQuery}
 									onChange={(e) => setSearchQuery(e.target.value)}
 									className="search-input"
 								/>
 							</div>
 
-							{/* カテゴリフィルター */}
+							{/* Category filter */}
 							<div className="category-filter">
 								<button
 									type="button"
@@ -283,7 +283,7 @@ function App() {
 							<div className="method-list">
 								{filteredMethods.length === 0 ? (
 									<div className="no-results">
-										メソッドが見つかりませんでした
+										No methods found
 									</div>
 								) : (
 									filteredMethods.map((method) => (
@@ -372,7 +372,7 @@ function App() {
 												rel="noopener noreferrer"
 												className="explorer-link"
 											>
-												🔗 Explorerで開く
+												🔗 Open in Explorer
 											</a>
 										)}
 									</div>
@@ -384,15 +384,15 @@ function App() {
 
 					{activeTab === "search-tx" && (
 						<div className="method-panel">
-							<h2>トランザクションハッシュで検索</h2>
+							<h2>Search by Transaction Hash</h2>
 							<p className="method-description-text">
-								トランザクションハッシュを入力して、トランザクションを検索します。
+								Enter a transaction hash to search for the transaction.
 							</p>
 
 							<div className="params-section">
 								<div className="param-input">
 									<label>
-										トランザクションハッシュ
+										Transaction Hash
 										<span className="required">*</span>
 										<input
 											type="text"
@@ -404,29 +404,29 @@ function App() {
 								</div>
 								<div className="param-input">
 									<label>
-										検索開始ブロック番号（オプション）
+										Start Block Number (Optional)
 										<input
 											type="number"
 											value={searchStartBlock}
 											onChange={(e) => setSearchStartBlock(e.target.value)}
-											placeholder="例: 1000"
+											placeholder="e.g., 1000"
 										/>
 									</label>
 								</div>
 								<div className="param-input">
 									<label>
-										検索終了ブロック番号（オプション）
+										End Block Number (Optional)
 										<input
 											type="number"
 											value={searchEndBlock}
 											onChange={(e) => setSearchEndBlock(e.target.value)}
-											placeholder="例: 2000"
+											placeholder="e.g., 2000"
 										/>
 									</label>
 								</div>
 								<div className="param-input">
 									<label>
-										最大検索ブロック数（デフォルト: 1000）
+										Max Blocks to Search (Default: 1000)
 										<input
 											type="number"
 											value={maxBlocks}
@@ -443,7 +443,7 @@ function App() {
 								disabled={loading}
 								className="call-button"
 							>
-								{loading ? "検索中..." : "検索"}
+								{loading ? "Searching..." : "Search"}
 							</button>
 
 							{error && (
@@ -456,7 +456,7 @@ function App() {
 							{searchResults && (
 								<div className="result-panel">
 									<div className="result-header">
-										<h3>検索結果</h3>
+										<h3>Search Results</h3>
 										{!Array.isArray(searchResults) &&
 											searchResults.blockHash && (
 												<a
@@ -465,7 +465,7 @@ function App() {
 													rel="noopener noreferrer"
 													className="explorer-link"
 												>
-													🔗 Explorerで開く
+													🔗 Open in Explorer
 												</a>
 											)}
 									</div>
@@ -477,15 +477,15 @@ function App() {
 
 					{activeTab === "search-account" && (
 						<div className="method-panel">
-							<h2>アカウントアドレスで検索</h2>
+							<h2>Search by Account Address</h2>
 							<p className="method-description-text">
-								アカウントアドレスを入力して、関連するトランザクションを検索します。
+								Enter an account address to search for related transactions.
 							</p>
 
 							<div className="params-section">
 								<div className="param-input">
 									<label>
-										アカウントアドレス
+										Account Address
 										<span className="required">*</span>
 										<input
 											type="text"
@@ -497,29 +497,29 @@ function App() {
 								</div>
 								<div className="param-input">
 									<label>
-										検索開始ブロック番号（オプション）
+										Start Block Number (Optional)
 										<input
 											type="number"
 											value={searchStartBlock}
 											onChange={(e) => setSearchStartBlock(e.target.value)}
-											placeholder="例: 1000"
+											placeholder="e.g., 1000"
 										/>
 									</label>
 								</div>
 								<div className="param-input">
 									<label>
-										検索終了ブロック番号（オプション）
+										End Block Number (Optional)
 										<input
 											type="number"
 											value={searchEndBlock}
 											onChange={(e) => setSearchEndBlock(e.target.value)}
-											placeholder="例: 2000"
+											placeholder="e.g., 2000"
 										/>
 									</label>
 								</div>
 								<div className="param-input">
 									<label>
-										最大検索ブロック数（デフォルト: 100）
+										Max Blocks to Search (Default: 100)
 										<input
 											type="number"
 											value={maxBlocks}
@@ -536,7 +536,7 @@ function App() {
 								disabled={loading}
 								className="call-button"
 							>
-								{loading ? "検索中..." : "検索"}
+								{loading ? "Searching..." : "Search"}
 							</button>
 
 							{error && (
@@ -548,13 +548,13 @@ function App() {
 
 							{searchResults && Array.isArray(searchResults) && (
 								<div className="result-panel">
-									<h3>検索結果 ({searchResults.length}件)</h3>
+									<h3>Search Results ({searchResults.length} found)</h3>
 									<div className="search-results-list">
 										{searchResults.map((result, index) => (
 											<div key={index} className="search-result-item">
 												<div className="result-item-header">
 													<span>
-														ブロック #{result.blockNumber} (Index:{" "}
+														Block #{result.blockNumber} (Index:{" "}
 														{result.extrinsicIndex})
 													</span>
 													<a

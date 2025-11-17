@@ -275,7 +275,7 @@ pre {
 	color: #ff6b6b;
 }
 
-/* 検索バー */
+/* Search bar */
 .search-bar {
 	margin-bottom: 1rem;
 }
@@ -293,7 +293,7 @@ pre {
 	border-color: #007bff;
 }
 
-/* カテゴリフィルター */
+/* Category filter */
 .category-filter {
 	display: flex;
 	flex-wrap: wrap;
@@ -326,14 +326,14 @@ pre {
 	border-color: #007bff;
 }
 
-/* メソッドカテゴリ表示 */
+/* Method category display */
 .method-category {
 	font-size: 0.75rem;
 	color: #999;
 	margin-top: 0.25rem;
 }
 
-/* 検索結果なし */
+/* No results */
 .no-results {
 	padding: 2rem;
 	text-align: center;
@@ -341,7 +341,7 @@ pre {
 	font-style: italic;
 }
 
-/* 結果ヘッダー */
+/* Result header */
 .result-header {
 	display: flex;
 	justify-content: space-between;
@@ -379,7 +379,7 @@ pre {
 	color: white;
 }
 
-/* 検索結果リスト */
+/* Search results list */
 .search-results-list {
 	display: flex;
 	flex-direction: column;
