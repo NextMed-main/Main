@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect, type ReactElement } from "react";
 import { GraphQLClient } from "../clients/graphql-client";
+import { RpcClient } from "../clients/rpc-client";
 import {
 	buildLatestBlockQuery,
 	buildBlockWithTransactionsQuery,
@@ -11,6 +12,7 @@ import "../App.css";
 
 const DEFAULT_INDEXER_URL =
 	"https://indexer.testnet-02.midnight.network/api/v1/graphql";
+const DEFAULT_RPC_URL = "https://rpc.testnet-02.midnight.network/";
 
 type TabType = "blocks" | "transactions" | "search" | "custom" | "schema";
 
@@ -59,6 +61,7 @@ interface Transaction {
 
 export function IndexerExplorer() {
 	const [indexerUrl, setIndexerUrl] = useState(DEFAULT_INDEXER_URL);
+	const [rpcUrl, setRpcUrl] = useState(DEFAULT_RPC_URL);
 	
 	// Get initial tab from URL search params, default to "blocks"
 	const getInitialTab = (): TabType => {
@@ -94,7 +97,7 @@ export function IndexerExplorer() {
 
 	// Search states
 	const [searchTxHash, setSearchTxHash] = useState<string>("");
-	const [searchResult, setSearchResult] = useState<unknown>(null);
+	const [searchResult, setSearchResult] = useState<Transaction | null>(null);
 
 	// Custom query states
 	const [customQuery, setCustomQuery] = useState<string>(
@@ -110,7 +113,116 @@ export function IndexerExplorer() {
 	const [schemaResult, setSchemaResult] = useState<string>("");
 	const [schemaLoading, setSchemaLoading] = useState(false);
 
-	const client = new GraphQLClient({ endpoint: indexerUrl, timeout: 30000 });
+	// Decoded state cache: key is "address:state" or "address:chainState"
+	const [decodedStates, setDecodedStates] = useState<Record<string, string>>({});
+	const [decodingStates, setDecodingStates] = useState<Set<string>>(new Set());
+	// Show raw data mode: key is "address:state" or "address:chainState", default is false (show decoded)
+	const [showRawData, setShowRawData] = useState<Record<string, boolean>>({});
+
+	const client = useMemo(
+		() => new GraphQLClient({ endpoint: indexerUrl, timeout: 30000 }),
+		[indexerUrl],
+	);
+	const rpcClient = useMemo(
+		() => new RpcClient({ endpoint: rpcUrl, timeout: 30000 }),
+		[rpcUrl],
+	);
+
+	// Auto-decode states when txResult or searchResult changes
+	useEffect(() => {
+		const allContractActions: Array<{ address?: string; state?: string; chainState?: string }> = [];
+		
+		if (txResult) {
+			txResult.forEach((tx) => {
+				if (tx.contractActions) {
+					allContractActions.push(...tx.contractActions);
+				}
+			});
+		}
+		
+		if (searchResult && searchResult.contractActions) {
+			allContractActions.push(...searchResult.contractActions);
+		}
+
+		allContractActions.forEach((action) => {
+			const address = action.address;
+			if (!address || address === "unknown") {
+				return;
+			}
+
+			// Decode state if present
+			if (action.state) {
+				const stateCacheKey = `${address}:state`;
+				
+				// Skip if already decoded or decoding
+				if (decodedStates[stateCacheKey] || decodingStates.has(stateCacheKey)) {
+					return;
+				}
+
+				setDecodingStates((prev) => new Set(prev).add(stateCacheKey));
+
+				rpcClient.call<string>(
+					"midnight_jsonContractState",
+					[address],
+				).then((decodedState) => {
+					setDecodedStates((prev) => ({
+						...prev,
+						[stateCacheKey]: decodedState,
+					}));
+				}).catch((err) => {
+					// Silently fail - we'll show raw data if decode fails
+					console.warn(`Failed to decode state for ${address}:`, err);
+				}).finally(() => {
+					setDecodingStates((prev) => {
+						const next = new Set(prev);
+						next.delete(stateCacheKey);
+						return next;
+					});
+				});
+			}
+
+			// Decode chainState if present
+			if (action.chainState) {
+				const chainStateCacheKey = `${address}:chainState`;
+				
+				// Skip if already decoded or decoding
+				if (decodedStates[chainStateCacheKey] || decodingStates.has(chainStateCacheKey)) {
+					return;
+				}
+
+				setDecodingStates((prev) => new Set(prev).add(chainStateCacheKey));
+
+				rpcClient.call<string>(
+					"midnight_jsonContractState",
+					[address],
+				).then((decodedState) => {
+					setDecodedStates((prev) => ({
+						...prev,
+						[chainStateCacheKey]: decodedState,
+					}));
+				}).catch((err) => {
+					// Silently fail - we'll show raw data if decode fails
+					console.warn(`Failed to decode chainState for ${address}:`, err);
+				}).finally(() => {
+					setDecodingStates((prev) => {
+						const next = new Set(prev);
+						next.delete(chainStateCacheKey);
+						return next;
+					});
+				});
+			}
+		});
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [txResult, searchResult, rpcUrl]);
+
+	// Toggle between raw and decoded data
+	const toggleRawData = (address: string, stateType: "state" | "chainState") => {
+		const cacheKey = `${address}:${stateType}`;
+		setShowRawData((prev) => ({
+			...prev,
+			[cacheKey]: !prev[cacheKey],
+		}));
+	};
 
 	const handleIntrospectSchema = async () => {
 		setSchemaLoading(true);
@@ -386,11 +498,134 @@ export function IndexerExplorer() {
 		}
 	};
 
+	// Helper component to render contract actions with decode functionality
+	const renderContractActions = (contractActions?: Array<{
+		__typename?: string;
+		address?: string;
+		state?: string;
+		chainState?: string;
+		transaction?: {
+			hash: string;
+		};
+	}>): ReactElement | null => {
+		if (!contractActions || contractActions.length === 0) {
+			return null;
+		}
+
+		return (
+			<div style={{ marginTop: "1rem", padding: "1rem", border: "1px solid var(--color-border)", borderRadius: "4px" }}>
+				<h4 style={{ marginTop: 0, marginBottom: "0.5rem" }}>Contract Actions ({contractActions.length})</h4>
+				{contractActions.map((action, idx) => {
+					const address = action.address || "unknown";
+					const stateCacheKey = `${address}:state`;
+					const chainStateCacheKey = `${address}:chainState`;
+					const isDecodingState = decodingStates.has(stateCacheKey);
+					const isDecodingChainState = decodingStates.has(chainStateCacheKey);
+					const decodedState = decodedStates[stateCacheKey];
+					const decodedChainState = decodedStates[chainStateCacheKey];
+					const showRawState = showRawData[stateCacheKey] ?? false;
+					const showRawChainState = showRawData[chainStateCacheKey] ?? false;
+
+					return (
+						<div key={idx} style={{ marginBottom: "1rem", padding: "0.75rem", backgroundColor: "var(--color-bg-secondary)", borderRadius: "4px" }}>
+							<div style={{ marginBottom: "0.5rem" }}>
+								<strong>Address:</strong> <code style={{ fontSize: "0.875rem" }}>{address}</code>
+								{action.__typename && (
+									<span style={{ marginLeft: "0.5rem", color: "var(--color-text-secondary)" }}>
+										({action.__typename})
+									</span>
+								)}
+							</div>
+							
+							{action.state && (
+								<div style={{ marginBottom: "0.75rem" }}>
+									<div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem" }}>
+										<strong>State:</strong>
+										{isDecodingState && (
+											<span style={{ fontSize: "0.75rem", color: "var(--color-text-secondary)" }}>Decoding...</span>
+										)}
+										{decodedState && (
+											<button
+												type="button"
+												onClick={() => toggleRawData(address, "state")}
+												style={{
+													padding: "0.25rem 0.5rem",
+													fontSize: "0.75rem",
+													border: "1px solid var(--color-border)",
+													borderRadius: "2px",
+													backgroundColor: "var(--color-bg)",
+													cursor: "pointer",
+												}}
+											>
+												{showRawState ? "Show Decoded" : "Show Raw Data"}
+											</button>
+										)}
+									</div>
+									{decodedState && !showRawState ? (
+										<pre style={{ margin: 0, padding: "0.5rem", backgroundColor: "var(--color-surface)", color: "var(--color-text)", borderRadius: "2px", fontSize: "0.75rem", overflow: "auto", maxHeight: "300px", border: "1px solid var(--color-border)" }}>
+											{decodedState}
+										</pre>
+									) : (
+										<pre style={{ margin: 0, padding: "0.5rem", backgroundColor: "var(--color-surface)", color: "var(--color-text)", borderRadius: "2px", fontSize: "0.75rem", overflow: "auto", maxHeight: "150px", wordBreak: "break-all", border: "1px solid var(--color-border)" }}>
+											{action.state}
+										</pre>
+									)}
+								</div>
+							)}
+
+							{action.chainState && (
+								<div style={{ marginBottom: "0.75rem" }}>
+									<div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem" }}>
+										<strong>Chain State:</strong>
+										{isDecodingChainState && (
+											<span style={{ fontSize: "0.75rem", color: "var(--color-text-secondary)" }}>Decoding...</span>
+										)}
+										{decodedChainState && (
+											<button
+												type="button"
+												onClick={() => toggleRawData(address, "chainState")}
+												style={{
+													padding: "0.25rem 0.5rem",
+													fontSize: "0.75rem",
+													border: "1px solid var(--color-border)",
+													borderRadius: "2px",
+													backgroundColor: "var(--color-bg)",
+													cursor: "pointer",
+												}}
+											>
+												{showRawChainState ? "Show Decoded" : "Show Raw Data"}
+											</button>
+										)}
+									</div>
+									{decodedChainState && !showRawChainState ? (
+										<pre style={{ margin: 0, padding: "0.5rem", backgroundColor: "var(--color-surface)", color: "var(--color-text)", borderRadius: "2px", fontSize: "0.75rem", overflow: "auto", maxHeight: "300px", border: "1px solid var(--color-border)" }}>
+											{decodedChainState}
+										</pre>
+									) : (
+										<pre style={{ margin: 0, padding: "0.5rem", backgroundColor: "var(--color-surface)", color: "var(--color-text)", borderRadius: "2px", fontSize: "0.75rem", overflow: "auto", maxHeight: "150px", wordBreak: "break-all", border: "1px solid var(--color-border)" }}>
+											{action.chainState}
+										</pre>
+									)}
+								</div>
+							)}
+
+							{action.transaction?.hash && (
+								<div style={{ fontSize: "0.875rem", color: "var(--color-text-secondary)" }}>
+									<strong>Transaction:</strong> <code>{action.transaction.hash}</code>
+								</div>
+							)}
+						</div>
+					);
+				})}
+			</div>
+		);
+	};
+
 	return (
 		<div className="app">
 			<header className="header">
 				<h1>Midnight Network Indexer Explorer</h1>
-				<div className="endpoint-config">
+				<div className="endpoint-config" style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
 					<label>
 						Indexer URL:
 						<input
@@ -398,6 +633,16 @@ export function IndexerExplorer() {
 							value={indexerUrl}
 							onChange={(e) => setIndexerUrl(e.target.value)}
 							className="endpoint-input"
+						/>
+					</label>
+					<label>
+						RPC URL:
+						<input
+							type="text"
+							value={rpcUrl}
+							onChange={(e) => setRpcUrl(e.target.value)}
+							className="endpoint-input"
+							placeholder={DEFAULT_RPC_URL}
 						/>
 					</label>
 				</div>
@@ -564,9 +809,12 @@ export function IndexerExplorer() {
 															` (Index: ${tx.extrinsicIndex})`}
 													</span>
 												</div>
-												<pre className="result-item-content">
-													{JSON.stringify(tx, null, 2)}
-												</pre>
+												<div className="result-item-content">
+													{renderContractActions(tx.contractActions)}
+													<pre style={{ marginTop: tx.contractActions && tx.contractActions.length > 0 ? "1rem" : 0 }}>
+														{JSON.stringify(tx, null, 2)}
+													</pre>
+												</div>
 											</div>
 										))}
 									</div>
@@ -615,7 +863,12 @@ export function IndexerExplorer() {
 							{searchResult && (
 								<div className="result-panel">
 									<h3>Search Results</h3>
-									<pre>{String(JSON.stringify(searchResult, null, 2))}</pre>
+									{searchResult.contractActions && renderContractActions(searchResult.contractActions) && (
+										<div>{renderContractActions(searchResult.contractActions)}</div>
+									)}
+									<pre style={{ marginTop: searchResult.contractActions && searchResult.contractActions.length > 0 ? "1rem" : 0 }}>
+										{String(JSON.stringify(searchResult, null, 2))}
+									</pre>
 								</div>
 							)}
 						</div>
