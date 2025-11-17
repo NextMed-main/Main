@@ -42,7 +42,10 @@ function App() {
 	return (
 		<div className="app-router">
 			<nav className="app-nav">
-				<div className="app-nav-title">Midnight DevTools</div>
+				<div className="app-nav-title">
+					<img src="/midnight.png" alt="Midnight" className="app-nav-logo" />
+					Midnight DevTools
+				</div>
 				<div className="app-nav-buttons">
 					{TOOLS.map((tool) => (
 						<button
