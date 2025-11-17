@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { WalletConnection } from "./WalletConnection";
-import { CounterContractPanel } from "./CounterContractPanel";
+// Contract操作系は一旦無効化（WASM関連のビルドエラー回避のため）
+// import { CounterContractPanel } from "./CounterContractPanel";
 import { AddressesPanel } from "./AddressesPanel";
 import { SignDataPanel } from "./SignDataPanel";
 import { TransactionHistoryPanel } from "./TransactionHistoryPanel";
@@ -11,7 +12,7 @@ import "../App.css";
 
 type TabType =
 	| "connection"
-	| "counter"
+	// | "counter" // Contract操作系は一旦無効化
 	| "addresses"
 	| "sign-data"
 	| "tx-history"
@@ -78,7 +79,8 @@ export function WalletApp() {
 
 	const tabs: Array<{ id: TabType; label: string; disabled?: boolean }> = [
 		{ id: "connection", label: "Connection" },
-		{ id: "counter", label: "Counter Contract", disabled: !walletApi },
+		// Contract操作系は一旦無効化（WASM関連のビルドエラー回避のため）
+		// { id: "counter", label: "Counter Contract", disabled: !walletApi },
 		{ id: "addresses", label: "Addresses", disabled: !walletApi },
 		{ id: "sign-data", label: "Sign Data", disabled: !walletApi },
 		{ id: "tx-history", label: "Transaction History", disabled: !walletApi },
@@ -163,13 +165,14 @@ export function WalletApp() {
 							onBalanceUpdate={handleBalanceUpdate}
 						/>
 					)}
-					{activeTab === "counter" && walletApi && (
+					{/* Contract操作系は一旦無効化（WASM関連のビルドエラー回避のため） */}
+					{/* {activeTab === "counter" && walletApi && (
 						<CounterContractPanel
 							walletApi={walletApi}
 							walletName={walletName}
 							address={address}
 						/>
-					)}
+					)} */}
 					{activeTab === "addresses" && walletApi && (
 						<AddressesPanel walletApi={walletApi} />
 					)}
