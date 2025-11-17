@@ -38,16 +38,13 @@ export function WalletConnection() {
 	const [error, setError] = useState<string>("");
 	const [refreshing, setRefreshing] = useState(false);
 
-	// ページ読み込み時に保存された接続情報を確認
 	useEffect(() => {
 		const saved = loadConnection();
 		if (saved) {
-			// 保存された接続情報がある場合、自動再接続はしない
-			// ユーザーが明示的に接続ボタンを押す必要がある
+			// Do not auto-reconnect, user must explicitly connect
 		}
 	}, []);
 
-	// ウォレットの検出を定期的に更新
 	useEffect(() => {
 		const interval = setInterval(() => {
 			setWallets(getAvailableWallets());
@@ -136,14 +133,13 @@ export function WalletConnection() {
 
 	return (
 		<div className="method-panel">
-			<h2>ウォレット接続確認</h2>
+			<h2>Wallet Connection</h2>
 			<p className="method-description-text">
-				Midnight Network対応ウォレットに接続して、アドレスや残高を確認できます。
+				Connect to a Midnight Network compatible wallet to verify address and balance.
 			</p>
 
-			{/* ウォレット一覧 */}
 			<div className="params-section">
-				<h3>利用可能なウォレット</h3>
+				<h3>Available Wallets</h3>
 				<div className="wallet-list">
 					{wallets.map((wallet) => (
 						<div key={wallet.name} className="wallet-item">
@@ -156,7 +152,7 @@ export function WalletConnection() {
 										wallet.installed ? "installed" : "not-installed"
 									}`}
 								>
-									{wallet.installed ? "✓ インストール済み" : "✗ 未インストール"}
+									{wallet.installed ? "✓ Installed" : "✗ Not Installed"}
 								</div>
 							</div>
 							{wallet.installed ? (
@@ -172,8 +168,8 @@ export function WalletConnection() {
 								>
 									{status.connected &&
 									status.walletName === wallet.name
-										? "接続済み"
-										: "接続"}
+										? "Connected"
+										: "Connect"}
 								</button>
 							) : (
 								<button
@@ -188,7 +184,7 @@ export function WalletConnection() {
 									}}
 									className="wallet-install-button"
 								>
-									インストール
+									Install
 								</button>
 							)}
 						</div>
@@ -196,17 +192,16 @@ export function WalletConnection() {
 				</div>
 			</div>
 
-			{/* 接続状態 */}
 			{status.connected && (
 				<div className="params-section">
-					<h3>接続情報</h3>
+					<h3>Connection Info</h3>
 					<div className="connection-info">
 						<div className="info-item">
-							<label>ウォレット:</label>
+							<label>Wallet:</label>
 							<span>{status.walletName}</span>
 						</div>
 						<div className="info-item">
-							<label>アドレス:</label>
+							<label>Address:</label>
 							<div className="address-display">
 								<span className="address-full">{status.address}</span>
 								<span className="address-short">
@@ -222,16 +217,16 @@ export function WalletConnection() {
 										}
 									}}
 									className="copy-button"
-									title="アドレスをコピー"
+									title="Copy address"
 								>
 									📋
 								</button>
 							</div>
 						</div>
 						<div className="info-item">
-							<label>残高:</label>
+							<label>Balance:</label>
 							<span className="balance-display">
-								{status.balance || "取得中..."}
+								{status.balance || "Loading..."}
 							</span>
 						</div>
 						<div className="connection-actions">
@@ -241,47 +236,45 @@ export function WalletConnection() {
 								disabled={refreshing}
 								className="refresh-button"
 							>
-								{refreshing ? "更新中..." : "🔄 更新"}
+								{refreshing ? "Refreshing..." : "🔄 Refresh"}
 							</button>
 							<button
 								type="button"
 								onClick={handleDisconnect}
 								className="disconnect-button"
 							>
-								切断
+								Disconnect
 							</button>
 						</div>
 					</div>
 				</div>
 			)}
 
-			{/* エラー表示 */}
 			{error && (
 				<div className="error-panel">
-					<h3>エラー</h3>
+					<h3>Error</h3>
 					<pre>{error}</pre>
 				</div>
 			)}
 
-			{/* 使用方法 */}
 			<div className="params-section">
-				<h3>使用方法</h3>
+				<h3>Usage</h3>
 				<ol className="usage-list">
 					<li>
-						ウォレット拡張機能（Lace、Yoroi、Eternlなど）をブラウザにインストールします
+						Install a wallet extension (Lace, Yoroi, Eternl, etc.) in your browser
 					</li>
 					<li>
-						ウォレットを作成またはインポートし、テストネットトークン（tDUST）を取得します
+						Create or import a wallet and obtain testnet tokens (tDUST)
 					</li>
 					<li>
-						このページで「接続」ボタンをクリックしてウォレットに接続します
+						Click the "Connect" button on this page to connect your wallet
 					</li>
 					<li>
-						接続後、アドレスや残高が表示されます
+						After connection, your address and balance will be displayed
 					</li>
 				</ol>
 				<div className="info-box">
-					<strong>注意:</strong> Proof Serverが起動している必要があります。
+					<strong>Note:</strong> Proof Server must be running.
 					<br />
 					<code>
 						docker run -p 6300:6300 midnightnetwork/proof-server:latest
@@ -291,4 +284,3 @@ export function WalletConnection() {
 		</div>
 	);
 }
-

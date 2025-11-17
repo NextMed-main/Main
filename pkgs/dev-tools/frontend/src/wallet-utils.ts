@@ -234,11 +234,11 @@ export function clearConnection(): void {
  */
 export function getErrorMessage(code: string): string {
 	const messages: Record<string, string> = {
-		WALLET_NOT_INSTALLED: "ウォレットがインストールされていません",
-		CONNECTION_REJECTED: "接続が拒否されました",
-		CONNECTION_FAILED: "ウォレットへの接続に失敗しました",
-		NETWORK_ERROR: "ネットワークエラーが発生しました",
-		UNKNOWN_ERROR: "予期しないエラーが発生しました",
+		WALLET_NOT_INSTALLED: "Wallet is not installed",
+		CONNECTION_REJECTED: "Connection was rejected",
+		CONNECTION_FAILED: "Failed to connect to wallet",
+		NETWORK_ERROR: "Network error occurred",
+		UNKNOWN_ERROR: "An unexpected error occurred",
 	};
 
 	return messages[code] || messages.UNKNOWN_ERROR;

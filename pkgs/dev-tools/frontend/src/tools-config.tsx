@@ -4,71 +4,71 @@ import { WalletApp } from "./WalletApp";
 
 export interface ToolConfig {
 	/**
-	 * ツールの一意のID（URLハッシュで使用）
+	 * Unique tool ID (used in URL hash)
 	 */
 	id: string;
 
 	/**
-	 * ツールの表示名
+	 * Tool display name
 	 */
 	name: string;
 
 	/**
-	 * ツールの説明（オプション）
+	 * Tool description (optional)
 	 */
 	description?: string;
 
 	/**
-	 * ツールのコンポーネント
+	 * Tool component
 	 */
 	component: ComponentType;
 
 	/**
-	 * ツールのアイコン（オプション、将来の拡張用）
+	 * Tool icon (optional, for future expansion)
 	 */
 	icon?: string;
 }
 
 /**
- * 利用可能なツールの設定
- * 新しいツールを追加する場合は、ここに設定を追加するだけ
+ * Available tools configuration
+ * To add a new tool, simply add its configuration here
  */
 export const TOOLS: ToolConfig[] = [
 	{
 		id: "rpc",
 		name: "RPC Explorer",
-		description: "Midnight NetworkのRPCメソッドを探索・実行",
+		description: "Explore and execute Midnight Network RPC methods",
 		component: RpcExplorer,
 	},
 	{
 		id: "wallet",
 		name: "Wallet Connection",
-		description: "Midnight Network対応ウォレットに接続して確認",
+		description: "Connect and verify Midnight Network compatible wallets",
 		component: WalletApp,
 	},
-	// 新しいツールを追加する場合は、ここに設定を追加
+	// To add a new tool, add its configuration here
 	// {
 	//   id: "new-tool",
 	//   name: "New Tool",
-	//   description: "新しいツールの説明",
+	//   description: "Description of the new tool",
 	//   component: NewToolComponent,
 	// },
 ];
 
 /**
- * デフォルトのツールID
+ * Default tool ID
  */
 export const DEFAULT_TOOL_ID = "rpc";
 
 /**
- * ツールIDからツール設定を取得
+ * Get tool configuration by ID
  */
 export function getToolById(id: string): ToolConfig | undefined {
 	return TOOLS.find((tool) => tool.id === id);
 }
 
 /**
- * デフォルトのツール設定を取得
+ * Get default tool configuration
  */
 export function getDefaultTool(): ToolConfig {
 	return getToolById(DEFAULT_TOOL_ID) ?? TOOLS[0];

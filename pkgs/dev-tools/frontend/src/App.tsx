@@ -6,7 +6,7 @@ function App() {
 	const [currentTool, setCurrentTool] = useState<ToolConfig>(getDefaultTool());
 
 	useEffect(() => {
-		// URLハッシュからツールを判定
+		// Determine tool from URL hash
 		const hash = window.location.hash.slice(1);
 		const tool = hash ? getToolById(hash) : null;
 		
@@ -16,7 +16,7 @@ function App() {
 			setCurrentTool(getDefaultTool());
 		}
 
-		// ハッシュ変更を監視
+		// Watch for hash changes
 		const handleHashChange = () => {
 			const newHash = window.location.hash.slice(1);
 			const newTool = newHash ? getToolById(newHash) : null;
