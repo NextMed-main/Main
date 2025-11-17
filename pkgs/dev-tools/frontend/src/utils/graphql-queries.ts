@@ -137,6 +137,59 @@ export function buildBlockByHashQuery(blockHash: string): string {
 }
 
 /**
+ * Query a block with its transactions
+ */
+export function buildBlockWithTransactionsQuery(height?: number): string {
+	if (height !== undefined) {
+		return `
+      query {
+        block(offset: { height: ${height} }) {
+          hash
+          height
+          timestamp
+          protocolVersion
+          author
+          transactions {
+            hash
+            protocolVersion
+            applyStage
+            identifiers
+            block {
+              hash
+              height
+              timestamp
+            }
+          }
+        }
+      }
+    `;
+	}
+	
+	return `
+    query {
+      block {
+        hash
+        height
+        timestamp
+        protocolVersion
+        author
+        transactions {
+          hash
+          protocolVersion
+          applyStage
+          identifiers
+          block {
+            hash
+            height
+            timestamp
+          }
+        }
+      }
+    }
+  `;
+}
+
+/**
  * Maximum recursion depth for parent chain queries
  * GraphQL servers typically limit recursion depth to prevent abuse
  * Actual limit from the indexer: 13 (14+ causes "Query is nested too deep" error)
@@ -216,32 +269,6 @@ export function buildLatestBlockWithTransactionsQuery(): string {
 }
 
 /**
- * Query blocks by getting transactions and extracting unique blocks
- * Note: The schema doesn't have a blocks query, so we use transactions to get blocks
- * This uses the latest block's transactions as a starting point
- */
-export function buildBlocksViaTransactionsQuery(
-	identifierHex: string,
-): string {
-	// Use identifier-based offset for transactions (must be hex-encoded)
-	// Note: identifier should be a valid transaction identifier, not just zeros
-	return `
-    query {
-      transactions(offset: { identifier: "${identifierHex}" }) {
-        hash
-        block {
-          hash
-          height
-          timestamp
-          protocolVersion
-          author
-        }
-      }
-    }
-  `;
-}
-
-/**
  * Query transactions with offset (offset is required)
  * TransactionOffset: { hash?: HexEncoded, identifier?: HexEncoded }
  * identifier must be a hex-encoded 32-byte value (64 hex chars with 0x prefix)
@@ -268,11 +295,38 @@ export function buildTransactionsQuery(
 
 /**
  * Query transactions by hash
+ * Hash must be a hex-encoded string (with or without 0x prefix)
+ * Transaction hash should be 64 hex characters (32 bytes)
  */
 export function buildTransactionsByHashQuery(txHash: string): string {
+	// Normalize hash: ensure it has 0x prefix and is valid hex
+	let normalizedHash = txHash.trim();
+	
+	// Remove 0x prefix if present for validation
+	let cleanHash = normalizedHash.startsWith("0x") 
+		? normalizedHash.slice(2) 
+		: normalizedHash;
+	
+	// Validate hex format
+	if (!/^[0-9a-fA-F]+$/.test(cleanHash)) {
+		throw new Error(`Invalid hash format: ${txHash}`);
+	}
+	
+	// Transaction hash should be exactly 64 hex characters (32 bytes)
+	// If longer, truncate to 64 characters (take first 64)
+	// If shorter, pad with zeros (though this is unusual)
+	if (cleanHash.length > 64) {
+		cleanHash = cleanHash.slice(0, 64);
+	} else if (cleanHash.length < 64) {
+		cleanHash = cleanHash.padStart(64, "0");
+	}
+	
+	// Add 0x prefix
+	normalizedHash = `0x${cleanHash}`;
+	
 	return `
     query {
-      transactions(offset: { hash: "${txHash}" }) {
+      transactions(offset: { hash: "${normalizedHash}" }) {
         hash
         protocolVersion
         applyStage
@@ -303,6 +357,51 @@ export function buildTransactionsByIdentifierQuery(identifierHex: string): strin
           hash
           height
           timestamp
+        }
+      }
+    }
+  `;
+}
+
+/**
+ * Query contract actions by address
+ * Address must be a hex-encoded string (with or without 0x prefix)
+ */
+export function buildContractActionQuery(address: string): string {
+	// Normalize address: ensure it has 0x prefix and is valid hex
+	let normalizedAddress = address.trim();
+	
+	// Remove 0x prefix if present for validation
+	const cleanAddress = normalizedAddress.startsWith("0x") 
+		? normalizedAddress.slice(2) 
+		: normalizedAddress;
+	
+	// Validate hex format
+	if (!/^[0-9a-fA-F]+$/.test(cleanAddress)) {
+		throw new Error(`Invalid address format: ${address}`);
+	}
+	
+	// Add 0x prefix if not present
+	if (!normalizedAddress.startsWith("0x")) {
+		normalizedAddress = `0x${normalizedAddress}`;
+	}
+	
+	return `
+    query {
+      contractAction(address: "${normalizedAddress}") {
+        address
+        state
+        chainState
+        transaction {
+          hash
+          protocolVersion
+          applyStage
+          identifiers
+          block {
+            hash
+            height
+            timestamp
+          }
         }
       }
     }

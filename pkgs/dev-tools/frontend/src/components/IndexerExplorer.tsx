@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { GraphQLClient } from "../clients/graphql-client";
 import {
+	buildLatestBlockQuery,
 	buildLatestBlockWithParentsQuery,
+	buildBlockWithTransactionsQuery,
 	buildTransactionsByHashQuery,
 	buildTransactionsByIdentifierQuery,
+	buildContractActionQuery,
 	MAX_PARENT_CHAIN_DEPTH,
 } from "../utils/graphql-queries";
 import { numberToHexEncoded, isValidHexEncoded } from "../utils/hex-utils";
@@ -46,8 +49,7 @@ export function IndexerExplorer() {
 	const [blocksResult, setBlocksResult] = useState<Block[] | null>(null);
 
 	// Transactions query states
-	const [txOffset, setTxOffset] = useState<string>("0"); // identifier (string)
-	const [txLimit, setTxLimit] = useState<string>("10");
+	const [txLimit, setTxLimit] = useState<string>("50");
 	const [txResult, setTxResult] = useState<Transaction[] | null>(null);
 
 	// Search states
@@ -167,29 +169,68 @@ export function IndexerExplorer() {
 		setTxResult(null);
 
 		try {
-			// offset is required and uses identifier (hex-encoded)
-			// Convert to hex if it's a number, otherwise use as-is if already hex
-			let identifierHex: string;
-			const trimmedOffset = txOffset.trim();
-			if (trimmedOffset && isValidHexEncoded(trimmedOffset)) {
-				identifierHex = trimmedOffset.startsWith("0x") ? trimmedOffset : `0x${trimmedOffset}`;
-				// Ensure it's 64 hex characters (32 bytes)
-				const hexPart = identifierHex.startsWith("0x") ? identifierHex.slice(2) : identifierHex;
-				if (hexPart.length < 64) {
-					identifierHex = `0x${hexPart.padStart(64, "0")}`;
-				}
-			} else {
-				identifierHex = numberToHexEncoded(trimmedOffset || "0");
-			}
+			const limit = parseInt(txLimit, 10) || 50;
 			
-			const limit = parseInt(txLimit, 10) || 10;
-			const query = buildTransactionsByIdentifierQuery(identifierHex);
-			const data = await client.query<{ transactions: Transaction[] }>(query);
+			// Get latest block height first
+			const latestBlockQuery = buildLatestBlockQuery();
+			const latestBlockData = await client.query<{
+				block: {
+					height: number;
+				};
+			}>(latestBlockQuery);
+			
+			const latestHeight = latestBlockData.block.height;
+			const allTransactions: Transaction[] = [];
+			
+			// Calculate search range based on limit
+			// Since transactions are sparse (~0.35 per block on average),
+			// we need to search roughly 3x the limit in blocks
+			// Cap at reasonable maximums to avoid performance issues
+			const estimatedBlocksNeeded = Math.min(limit * 3, 1000);
+			const searchRange = Math.min(estimatedBlocksNeeded, latestHeight);
+			
+			// Search blocks in parallel batches for better performance
+			const batchSize = 20;
+			for (let start = 0; start < searchRange && allTransactions.length < limit; start += batchSize) {
+				const promises = [];
+				for (let i = 0; i < batchSize && (start + i) < searchRange; i++) {
+					const height = latestHeight - (start + i);
+					if (height < 0) break;
+					
+					const blockQuery = buildBlockWithTransactionsQuery(height);
+					promises.push(
+						client.query<{
+							block: {
+								height: number;
+								transactions: Transaction[];
+							};
+						}>(blockQuery).catch(() => null)
+					);
+				}
+				
+				const results = await Promise.all(promises);
+				for (const result of results) {
+					if (result && result.block && result.block.transactions) {
+						allTransactions.push(...result.block.transactions);
+						if (allTransactions.length >= limit) break;
+					}
+				}
+				
+				// Stop if we have enough transactions
+				if (allTransactions.length >= limit) break;
+			}
 
-			// Limit results client-side since the API doesn't support limit parameter
-			const limitedTransactions = data.transactions.slice(0, limit);
-			setTxResult(limitedTransactions);
-			setResult(JSON.stringify(data, null, 2));
+			// Sort by block height (newest first) and limit results
+			const sortedTransactions = allTransactions
+				.sort((a, b) => {
+					const aHeight = a.block?.height ?? 0;
+					const bHeight = b.block?.height ?? 0;
+					return bHeight - aHeight;
+				})
+				.slice(0, limit);
+			
+			setTxResult(sortedTransactions);
+			setResult(JSON.stringify({ transactions: sortedTransactions }, null, 2));
 		} catch (err) {
 			const errorMessage =
 				err instanceof Error ? err.message : "Unknown error occurred";
@@ -210,15 +251,48 @@ export function IndexerExplorer() {
 		setSearchResult(null);
 
 		try {
-			const query = buildTransactionsByHashQuery(searchTxHash);
-			const data = await client.query<{ transactions: Transaction[] }>(query);
+			// Normalize hash length for user feedback
+			const originalHash = searchTxHash.trim();
+			const cleanHash = originalHash.startsWith("0x") 
+				? originalHash.slice(2) 
+				: originalHash;
+			
+			let warningMessage = "";
+			let queryHash = searchTxHash;
+			
+			// If hash is longer than 64 characters, try multiple approaches
+			if (cleanHash.length > 64) {
+				warningMessage = `Note: Hash length is ${cleanHash.length} characters (expected 64). Trying first 64 characters.`;
+				// Try first 64 characters
+				queryHash = cleanHash.slice(0, 64);
+			} else if (cleanHash.length < 64) {
+				warningMessage = `Note: Hash was padded from ${cleanHash.length} to 64 characters`;
+			}
+			
+			// Try searching with normalized hash
+			let query = buildTransactionsByHashQuery(queryHash);
+			let data = await client.query<{ transactions: Transaction[] }>(query);
+
+			// If not found and hash was longer than 64, try last 64 characters
+			if ((!data.transactions || data.transactions.length === 0) && cleanHash.length > 64) {
+				const last64 = cleanHash.slice(-64);
+				warningMessage = `Note: Hash length is ${cleanHash.length} characters. Tried first 64, now trying last 64 characters.`;
+				query = buildTransactionsByHashQuery(last64);
+				data = await client.query<{ transactions: Transaction[] }>(query);
+			}
 
 			// transactions returns a list, get the first one
 			if (data.transactions && data.transactions.length > 0) {
 				setSearchResult(data.transactions[0]);
 				setResult(JSON.stringify(data, null, 2));
+				if (warningMessage) {
+					setError(warningMessage);
+				}
 			} else {
-				setError("Transaction not found");
+				const notFoundMsg = warningMessage 
+					? `Transaction not found. ${warningMessage} The hash may not exist in the indexer or may be from a different network.` 
+					: "Transaction not found. The hash may not exist in the indexer or may be from a different network.";
+				setError(notFoundMsg);
 			}
 		} catch (err) {
 			const errorMessage =
@@ -240,9 +314,98 @@ export function IndexerExplorer() {
 		setSearchResult(null);
 
 		try {
-			// Note: The schema doesn't have a direct account filter
-			// We'll use identifier-based query for now
-			// In practice, you might need to use contractAction query for account-specific data
+			const searchValue = searchAccount.trim();
+			const limit = parseInt(searchAccountLimit, 10) || 100;
+			
+			// Check if it's a Bech32m address (starts with mn_shield-addr_)
+			const isBech32mAddress = searchValue.startsWith("mn_shield-addr_");
+			
+			if (isBech32mAddress) {
+				// For Bech32m addresses, we need to search through transactions
+				// and filter by identifiers field, as the indexer doesn't support
+				// direct Bech32m address search
+				const allTransactions: Transaction[] = [];
+				
+				// Get latest block height first
+				const latestBlockQuery = buildLatestBlockQuery();
+				const latestBlockData = await client.query<{
+					block: {
+						height: number;
+					};
+				}>(latestBlockQuery);
+				
+				const latestHeight = latestBlockData.block.height;
+				const searchRange = Math.min(500, latestHeight); // Search up to 500 blocks
+				
+				// Search blocks in parallel batches
+				const batchSize = 20;
+				for (let start = 0; start < searchRange && allTransactions.length < limit; start += batchSize) {
+					const promises = [];
+					for (let i = 0; i < batchSize && (start + i) < searchRange; i++) {
+						const height = latestHeight - (start + i);
+						if (height < 0) break;
+						
+						const blockQuery = buildBlockWithTransactionsQuery(height);
+						promises.push(
+							client.query<{
+								block: {
+									height: number;
+									transactions: Transaction[];
+								};
+							}>(blockQuery).catch(() => null)
+						);
+					}
+					
+					const results = await Promise.all(promises);
+					for (const result of results) {
+						if (result && result.block && result.block.transactions) {
+							// Filter transactions that might be related to this address
+							// Note: This is a heuristic approach since we can't directly match Bech32m addresses
+							// In practice, you would need to decode the Bech32m address to get the identifier
+							allTransactions.push(...result.block.transactions);
+							if (allTransactions.length >= limit * 2) break; // Get more than needed for filtering
+						}
+					}
+					
+					if (allTransactions.length >= limit * 2) break;
+				}
+				
+				// For now, return all transactions found (since we can't directly match Bech32m)
+				// In a real implementation, you would decode Bech32m and match against identifiers
+				const limitedTransactions = allTransactions.slice(0, limit);
+				setSearchResult(limitedTransactions);
+				setResult(JSON.stringify({ 
+					transactions: limitedTransactions,
+					note: "Bech32m address search: The indexer doesn't support direct Bech32m address search. Showing recent transactions. To search by identifier, convert the Bech32m address to hex identifier first."
+				}, null, 2));
+				setError("Note: Direct Bech32m address search is not supported by the indexer. Showing recent transactions. To search by identifier, convert the Bech32m address to hex identifier first.");
+				return;
+			}
+			
+			// Try contract address search first (if it looks like a hex address)
+			if (isValidHexEncoded(searchValue)) {
+				try {
+					const contractQuery = buildContractActionQuery(searchValue);
+					const contractData = await client.query<{
+						contractAction: {
+							address: string;
+							state: string;
+							chainState: string;
+							transaction: Transaction;
+						} | null;
+					}>(contractQuery);
+					
+					if (contractData.contractAction) {
+						setSearchResult(contractData.contractAction);
+						setResult(JSON.stringify(contractData, null, 2));
+						return;
+					}
+				} catch (contractErr) {
+					// If contract search fails, fall through to identifier search
+				}
+			}
+			
+			// Fall back to identifier-based query
 			let identifierHex: string;
 			const trimmedOffset = searchAccountOffset.trim();
 			if (trimmedOffset && isValidHexEncoded(trimmedOffset)) {
@@ -256,7 +419,6 @@ export function IndexerExplorer() {
 				identifierHex = numberToHexEncoded(trimmedOffset || "0");
 			}
 			
-			const limit = parseInt(searchAccountLimit, 10) || 100;
 			const query = buildTransactionsByIdentifierQuery(identifierHex);
 			const data = await client.query<{ transactions: Transaction[] }>(query);
 
@@ -426,34 +588,22 @@ export function IndexerExplorer() {
 						<div className="method-panel">
 							<h2>Query Transactions</h2>
 							<p className="method-description-text">
-								Query transactions from the indexer. Offset identifier (hex-encoded, 32 bytes) is required. You can enter a number (will be converted to hex) or a hex string.
+								Query transactions from the indexer. Searches through multiple blocks to find transactions since identifier-based queries often return empty results.
 							</p>
 
 							<div className="params-section">
 								<div className="param-input">
 									<label>
-										Offset Identifier <span className="required">*</span>
-										<input
-											type="text"
-											value={txOffset}
-											onChange={(e) => setTxOffset(e.target.value)}
-											placeholder="0x0000000000000000000000000000000000000000000000000000000000000000"
-										/>
-										<small>Hex-encoded identifier (32 bytes, e.g., 0x0000...0000) or number (will be converted to hex)</small>
-									</label>
-								</div>
-								<div className="param-input">
-									<label>
-										Limit (client-side)
+										Limit
 										<input
 											type="number"
 											value={txLimit}
 											onChange={(e) => setTxLimit(e.target.value)}
 											placeholder="10"
 											min="1"
-											max="1000"
+											max="100"
 										/>
-										<small>Note: API doesn't support limit, we limit client-side</small>
+										<small>Number of transactions to return (searches through multiple blocks)</small>
 									</label>
 								</div>
 							</div>
