@@ -16,7 +16,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { type ContractAddress } from '@midnight-ntwrk/compact-runtime';
-import { Counter, type CounterPrivateState, witnesses } from '../../contract/dist/index.js';
+import {
+	Counter,
+	type CounterPrivateState,
+	witnesses,
+	PatientRegistry,
+} from '../../contract/dist/index.js';
 import { type CoinInfo, nativeToken, Transaction, type TransactionId } from '@midnight-ntwrk/ledger';
 import { deployContract, findDeployedContract } from '@midnight-ntwrk/midnight-js-contracts';
 import { httpClientProofProvider } from '@midnight-ntwrk/midnight-js-http-client-proof-provider';
@@ -42,8 +47,12 @@ import {
   type CounterPrivateStateId,
   type CounterProviders,
   type DeployedCounterContract,
+  type PatientRegistryContract,
+  type PatientRegistryPrivateStateId,
+  type PatientRegistryProviders,
+  type DeployedPatientRegistryContract,
 } from './utils/common-types';
-import { type Config, contractConfig } from './config';
+import { type Config, contractConfig, patientRegistryConfig } from './config';
 import { levelPrivateStateProvider } from '@midnight-ntwrk/midnight-js-level-private-state-provider';
 import { assertIsContractAddress, toHex } from '@midnight-ntwrk/midnight-js-utils';
 import { getLedgerNetworkId, getZswapNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
@@ -71,6 +80,9 @@ export const getCounterLedgerState = async (
 
 export const counterContractInstance: CounterContract = new Counter.Contract(witnesses);
 
+// Patient Registry contract instance
+export const patientRegistryContractInstance: PatientRegistryContract = new PatientRegistry.Contract({});
+
 export const joinContract = async (
   providers: CounterProviders,
   contractAddress: string,
@@ -97,6 +109,57 @@ export const deploy = async (
   });
   logger.info(`Deployed contract at address: ${counterContract.deployTxData.public.contractAddress}`);
   return counterContract;
+};
+
+// Patient Registry functions
+export const getPatientRegistryLedgerState = async (
+  providers: PatientRegistryProviders,
+  contractAddress: ContractAddress,
+): Promise<PatientRegistry.Ledger | null> => {
+  assertIsContractAddress(contractAddress);
+  logger.info('Checking Patient Registry contract ledger state...');
+  const state = await providers.publicDataProvider
+    .queryContractState(contractAddress)
+    .then((contractState) => (contractState != null ? PatientRegistry.ledger(contractState.data) : null));
+  if (state !== null) {
+    logger.info(
+      `Ledger state: registrationCount=${state.registrationCount}, maleCount=${state.maleCount}, femaleCount=${state.femaleCount}, otherCount=${state.otherCount}`,
+    );
+  } else {
+    logger.info('No ledger state found');
+  }
+  return state;
+};
+
+export const deployPatientRegistry = async (
+  providers: PatientRegistryProviders,
+): Promise<DeployedPatientRegistryContract> => {
+  logger.info('Deploying Patient Registry contract...');
+  const patientRegistryContract = await deployContract(providers, {
+    contract: patientRegistryContractInstance,
+    privateStateId: 'patientRegistryPrivateState',
+    initialPrivateState: {},
+  });
+  logger.info(
+    `Deployed Patient Registry contract at address: ${patientRegistryContract.deployTxData.public.contractAddress}`,
+  );
+  return patientRegistryContract;
+};
+
+export const joinPatientRegistryContract = async (
+  providers: PatientRegistryProviders,
+  contractAddress: string,
+): Promise<DeployedPatientRegistryContract> => {
+  const patientRegistryContract = await findDeployedContract(providers, {
+    contractAddress,
+    contract: patientRegistryContractInstance,
+    privateStateId: 'patientRegistryPrivateState',
+    initialPrivateState: {},
+  });
+  logger.info(
+    `Joined Patient Registry contract at address: ${patientRegistryContract.deployTxData.public.contractAddress}`,
+  );
+  return patientRegistryContract;
 };
 
 export const increment = async (counterContract: DeployedCounterContract): Promise<FinalizedTxData> => {
@@ -327,6 +390,23 @@ export const configureProviders = async (wallet: Wallet & Resource, config: Conf
     }),
     publicDataProvider: indexerPublicDataProvider(config.indexer, config.indexerWS),
     zkConfigProvider: new NodeZkConfigProvider<'increment'>(contractConfig.zkConfigPath),
+    proofProvider: httpClientProofProvider(config.proofServer),
+    walletProvider: walletAndMidnightProvider,
+    midnightProvider: walletAndMidnightProvider,
+  };
+};
+
+export const configurePatientRegistryProviders = async (
+  wallet: Wallet & Resource,
+  config: Config,
+): Promise<PatientRegistryProviders> => {
+  const walletAndMidnightProvider = await createWalletAndMidnightProvider(wallet);
+  return {
+    privateStateProvider: levelPrivateStateProvider<typeof PatientRegistryPrivateStateId>({
+      privateStateStoreName: patientRegistryConfig.privateStateStoreName,
+    }),
+    publicDataProvider: indexerPublicDataProvider(config.indexer, config.indexerWS),
+    zkConfigProvider: new NodeZkConfigProvider<'registerPatient'>(patientRegistryConfig.zkConfigPath),
     proofProvider: httpClientProofProvider(config.proofServer),
     walletProvider: walletAndMidnightProvider,
     midnightProvider: walletAndMidnightProvider,
