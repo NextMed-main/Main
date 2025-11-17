@@ -50,7 +50,7 @@ export const TOOLS: ToolConfig[] = [
 	{
 		id: "wallet",
 		name: "Wallet Connection",
-		description: "Connect and verify Midnight Network compatible wallets",
+		description: "Test and verify Midnight Network compatible wallet connections",
 		component: WalletApp,
 	},
 	// To add a new tool, add its configuration here

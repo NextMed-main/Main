@@ -56,7 +56,7 @@ export function WalletApp() {
 	return (
 		<div className="app">
 			<header className="header">
-				<h1>Midnight Network Wallet Tools</h1>
+				<h1>Midnight Network Wallet Connection Tester</h1>
 			</header>
 
 			<main className="main">
