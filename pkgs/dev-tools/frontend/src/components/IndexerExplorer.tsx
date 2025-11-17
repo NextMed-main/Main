@@ -2,14 +2,13 @@ import { useState } from "react";
 import { GraphQLClient } from "../clients/graphql-client";
 import {
 	buildLatestBlockQuery,
-	buildLatestBlockWithParentsQuery,
 	buildBlockWithTransactionsQuery,
 	buildTransactionsByHashQuery,
 	buildTransactionsByIdentifierQuery,
 	buildContractActionQuery,
-	MAX_PARENT_CHAIN_DEPTH,
 } from "../utils/graphql-queries";
 import { numberToHexEncoded, isValidHexEncoded } from "../utils/hex-utils";
+import { bech32mToHexIdentifier } from "../utils/bech32-utils";
 import { introspectSchema } from "../utils/indexer-schema";
 import "../App.css";
 
@@ -28,6 +27,9 @@ interface Block {
 
 interface Transaction {
 	hash: string;
+	protocolVersion?: number;
+	applyStage?: string;
+	identifiers?: string[];
 	blockNumber?: number;
 	blockHeight?: number;
 	extrinsicIndex?: number;
@@ -39,7 +41,27 @@ interface Transaction {
 
 export function IndexerExplorer() {
 	const [indexerUrl, setIndexerUrl] = useState(DEFAULT_INDEXER_URL);
-	const [activeTab, setActiveTab] = useState<TabType>("blocks");
+	
+	// Get initial tab from URL search params, default to "blocks"
+	const getInitialTab = (): TabType => {
+		const params = new URLSearchParams(window.location.search);
+		const tab = params.get("tab") as TabType | null;
+		if (tab && ["blocks", "transactions", "search", "custom", "schema"].includes(tab)) {
+			return tab;
+		}
+		return "blocks";
+	};
+	
+	const [activeTab, setActiveTab] = useState<TabType>(getInitialTab());
+	
+	// Update URL search params when tab changes
+	const handleTabChange = (tab: TabType) => {
+		setActiveTab(tab);
+		const url = new URL(window.location.href);
+		url.searchParams.set("tab", tab);
+		window.history.replaceState({}, "", url.toString());
+	};
+	
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string>("");
 	const [result, setResult] = useState<string>("");
@@ -92,68 +114,72 @@ export function IndexerExplorer() {
 		}
 	};
 
-	// Helper function to extract blocks from parent chain recursively
-	const extractBlocksFromParentChain = (
-		block: any,
-		blocksMap: Map<number, Block>,
-	): void => {
-		if (!block) {
-			return;
-		}
-
-		blocksMap.set(block.height, {
-			height: block.height,
-			hash: block.hash,
-			timestamp: block.timestamp
-				? new Date(block.timestamp).toISOString()
-				: undefined,
-			protocolVersion: block.protocolVersion?.toString(),
-			author: block.author,
-		});
-
-		// Recursively process parent blocks
-		if (block.parent) {
-			extractBlocksFromParentChain(block.parent, blocksMap);
-		}
-	};
-
 	const handleQueryBlocks = async () => {
 		setLoading(true);
 		setError("");
 		setBlocksResult(null);
 
 		try {
-			let limit = parseInt(blocksLimit, 10) || 10;
+			const limit = parseInt(blocksLimit, 10) || 10;
 			
-			// Cap limit at maximum recursion depth
-			if (limit > MAX_PARENT_CHAIN_DEPTH) {
-				limit = MAX_PARENT_CHAIN_DEPTH;
-				setBlocksLimit(MAX_PARENT_CHAIN_DEPTH.toString());
-			}
-			
-			// Get latest block with parent chain to get multiple blocks
-			const query = buildLatestBlockWithParentsQuery(limit);
-			const data = await client.query<{
+			// Get latest block height first
+			const latestBlockQuery = buildLatestBlockQuery();
+			const latestBlockData = await client.query<{
 				block: {
-					hash: string;
 					height: number;
-					timestamp: number;
-					protocolVersion: number;
-					author?: string;
-					parent?: any;
 				};
-			}>(query);
+			}>(latestBlockQuery);
+			
+			const latestHeight = latestBlockData.block.height;
+			const blocks: Block[] = [];
+			
+			// Fetch blocks in parallel batches for better performance
+			const batchSize = 20;
+			for (let start = 0; start < limit; start += batchSize) {
+				const promises = [];
+				for (let i = 0; i < batchSize && (start + i) < limit; i++) {
+					const height = latestHeight - (start + i);
+					if (height < 0) break;
+					
+					const blockQuery = buildBlockWithTransactionsQuery(height);
+					promises.push(
+						client.query<{
+							block: {
+								height: number;
+								hash: string;
+								timestamp?: number;
+								protocolVersion?: number;
+								author?: string;
+							};
+						}>(blockQuery).catch(() => null)
+					);
+				}
+				
+				const results = await Promise.all(promises);
+				for (const result of results) {
+					if (result && result.block) {
+						blocks.push({
+							height: result.block.height,
+							hash: result.block.hash,
+							timestamp: result.block.timestamp
+								? new Date(result.block.timestamp).toISOString()
+								: undefined,
+							protocolVersion: result.block.protocolVersion?.toString(),
+							author: result.block.author,
+						});
+					}
+				}
+				
+				if (blocks.length >= limit) break;
+			}
 
-			// Extract blocks from the chain (latest block + parent chain)
-			const blocksMap = new Map<number, Block>();
-			extractBlocksFromParentChain(data.block, blocksMap);
-
-			const uniqueBlocks = Array.from(blocksMap.values())
+			// Sort by height (newest first) and limit results
+			const sortedBlocks = blocks
 				.sort((a, b) => b.height - a.height)
 				.slice(0, limit);
 
-			setBlocksResult(uniqueBlocks);
-			setResult(JSON.stringify(data, null, 2));
+			setBlocksResult(sortedBlocks);
+			setResult(JSON.stringify(sortedBlocks, null, 2));
 		} catch (err) {
 			const errorMessage =
 				err instanceof Error ? err.message : "Unknown error occurred";
@@ -240,6 +266,7 @@ export function IndexerExplorer() {
 		}
 	};
 
+
 	const handleSearchTransaction = async () => {
 		if (!searchTxHash.trim()) {
 			setError("Please enter a transaction hash");
@@ -321,65 +348,149 @@ export function IndexerExplorer() {
 			const isBech32mAddress = searchValue.startsWith("mn_shield-addr_");
 			
 			if (isBech32mAddress) {
-				// For Bech32m addresses, we need to search through transactions
-				// and filter by identifiers field, as the indexer doesn't support
-				// direct Bech32m address search
-				const allTransactions: Transaction[] = [];
+				// Try to decode Bech32m address to get coinPublicKey
+				console.log("Attempting to decode Bech32m address:", searchValue.substring(0, 50));
+				const hexIdentifier = bech32mToHexIdentifier(searchValue);
+				console.log("Decoded coinPublicKey:", hexIdentifier);
 				
-				// Get latest block height first
-				const latestBlockQuery = buildLatestBlockQuery();
-				const latestBlockData = await client.query<{
-					block: {
-						height: number;
-					};
-				}>(latestBlockQuery);
-				
-				const latestHeight = latestBlockData.block.height;
-				const searchRange = Math.min(500, latestHeight); // Search up to 500 blocks
-				
-				// Search blocks in parallel batches
-				const batchSize = 20;
-				for (let start = 0; start < searchRange && allTransactions.length < limit; start += batchSize) {
-					const promises = [];
-					for (let i = 0; i < batchSize && (start + i) < searchRange; i++) {
-						const height = latestHeight - (start + i);
-						if (height < 0) break;
-						
-						const blockQuery = buildBlockWithTransactionsQuery(height);
-						promises.push(
-							client.query<{
-								block: {
-									height: number;
-									transactions: Transaction[];
-								};
-							}>(blockQuery).catch(() => null)
-						);
-					}
+				if (hexIdentifier) {
+					// Remove 0x prefix for searching
+					const coinPublicKeyHex = hexIdentifier.startsWith("0x") ? hexIdentifier.slice(2) : hexIdentifier;
 					
-					const results = await Promise.all(promises);
-					for (const result of results) {
-						if (result && result.block && result.block.transactions) {
-							// Filter transactions that might be related to this address
-							// Note: This is a heuristic approach since we can't directly match Bech32m addresses
-							// In practice, you would need to decode the Bech32m address to get the identifier
-							allTransactions.push(...result.block.transactions);
-							if (allTransactions.length >= limit * 2) break; // Get more than needed for filtering
+					// Search through transactions and filter by identifiers field
+					// identifiers contain coinPublicKey as part of a 72-character hex string
+					const allTransactions: Transaction[] = [];
+					
+					// Get latest block height first
+					const latestBlockQuery = buildLatestBlockQuery();
+					const latestBlockData = await client.query<{
+						block: {
+							height: number;
+						};
+					}>(latestBlockQuery);
+					
+					const latestHeight = latestBlockData.block.height;
+					const searchRange = Math.min(1000, latestHeight); // Search up to 1000 blocks
+					
+					// Search blocks in parallel batches
+					const batchSize = 20;
+					for (let start = 0; start < searchRange && allTransactions.length < limit; start += batchSize) {
+						const promises = [];
+						for (let i = 0; i < batchSize && (start + i) < searchRange; i++) {
+							const height = latestHeight - (start + i);
+							if (height < 0) break;
+							
+							const blockQuery = buildBlockWithTransactionsQuery(height);
+							promises.push(
+								client.query<{
+									block: {
+										height: number;
+										transactions: Transaction[];
+									};
+								}>(blockQuery).catch(() => null)
+							);
 						}
+						
+						const results = await Promise.all(promises);
+						for (const result of results) {
+							if (result && result.block && result.block.transactions) {
+								// Filter transactions that contain the coinPublicKey in identifiers
+								// identifiers are 72-character hex strings: 8-char prefix + 64-char data
+								// coinPublicKey (64 chars) may be in the data part (positions 8-72)
+								const matchingTransactions = result.block.transactions.filter((tx) => {
+									if (!tx.identifiers || tx.identifiers.length === 0) return false;
+									// Check if any identifier's data part (8-72) matches the coinPublicKey
+									return tx.identifiers.some((id: string) => {
+										if (id.length < 72) return false;
+										// Check if coinPublicKey matches the data part (positions 8-72)
+										const dataPart = id.slice(8, 72).toLowerCase();
+										return dataPart === coinPublicKeyHex.toLowerCase();
+									});
+								});
+								allTransactions.push(...matchingTransactions);
+								if (allTransactions.length >= limit) break;
+							}
+						}
+						
+						if (allTransactions.length >= limit) break;
 					}
 					
-					if (allTransactions.length >= limit * 2) break;
+					// Sort by block height (newest first) and limit results
+					const sortedTransactions = allTransactions
+						.sort((a, b) => {
+							const aHeight = a.block?.height ?? 0;
+							const bHeight = b.block?.height ?? 0;
+							return bHeight - aHeight;
+						})
+						.slice(0, limit);
+					
+					setSearchResult(sortedTransactions);
+					setResult(JSON.stringify({ transactions: sortedTransactions }, null, 2));
+					if (sortedTransactions.length === 0) {
+						setError(`No transactions found for Bech32m address. Searched ${searchRange} blocks. The address may not have any transactions.`);
+					} else {
+						setError(""); // Clear any previous errors
+					}
+					return;
+				} else {
+					console.error("Failed to decode Bech32m address, falling back to transaction search");
+					// If decoding fails, search through transactions and filter by identifiers
+					// This is a fallback approach since direct Bech32m decoding may not work
+					const allTransactions: Transaction[] = [];
+					
+					// Get latest block height first
+					const latestBlockQuery = buildLatestBlockQuery();
+					const latestBlockData = await client.query<{
+						block: {
+							height: number;
+						};
+					}>(latestBlockQuery);
+					
+					const latestHeight = latestBlockData.block.height;
+					const searchRange = Math.min(1000, latestHeight); // Search up to 1000 blocks
+					
+					// Search blocks in parallel batches
+					const batchSize = 20;
+					for (let start = 0; start < searchRange && allTransactions.length < limit * 2; start += batchSize) {
+						const promises = [];
+						for (let i = 0; i < batchSize && (start + i) < searchRange; i++) {
+							const height = latestHeight - (start + i);
+							if (height < 0) break;
+							
+							const blockQuery = buildBlockWithTransactionsQuery(height);
+							promises.push(
+								client.query<{
+									block: {
+										height: number;
+										transactions: Transaction[];
+									};
+								}>(blockQuery).catch(() => null)
+							);
+						}
+						
+						const results = await Promise.all(promises);
+						for (const result of results) {
+							if (result && result.block && result.block.transactions) {
+								// Note: We can't directly match Bech32m addresses with identifiers
+								// without proper decoding. This is a limitation of the current implementation.
+								allTransactions.push(...result.block.transactions);
+								if (allTransactions.length >= limit * 2) break;
+							}
+						}
+						
+						if (allTransactions.length >= limit * 2) break;
+					}
+					
+					// Return transactions found (without filtering, as we can't decode Bech32m)
+					const limitedTransactions = allTransactions.slice(0, limit);
+					setSearchResult(limitedTransactions);
+					setResult(JSON.stringify({ 
+						transactions: limitedTransactions,
+						note: "Bech32m address decoding failed. Showing recent transactions. To search by a specific address, convert the Bech32m address to hex identifier using Midnight.js or Wallet SDK, then use that identifier for search."
+					}, null, 2));
+					setError("Warning: Bech32m address decoding is not fully supported. Showing recent transactions. For accurate search, convert the Bech32m address to hex identifier using Midnight.js or Wallet SDK utilities.");
+					return;
 				}
-				
-				// For now, return all transactions found (since we can't directly match Bech32m)
-				// In a real implementation, you would decode Bech32m and match against identifiers
-				const limitedTransactions = allTransactions.slice(0, limit);
-				setSearchResult(limitedTransactions);
-				setResult(JSON.stringify({ 
-					transactions: limitedTransactions,
-					note: "Bech32m address search: The indexer doesn't support direct Bech32m address search. Showing recent transactions. To search by identifier, convert the Bech32m address to hex identifier first."
-				}, null, 2));
-				setError("Note: Direct Bech32m address search is not supported by the indexer. Showing recent transactions. To search by identifier, convert the Bech32m address to hex identifier first.");
-				return;
 			}
 			
 			// Try contract address search first (if it looks like a hex address)
@@ -481,7 +592,7 @@ export function IndexerExplorer() {
 						<button
 							type="button"
 							className={`tab-button ${activeTab === "blocks" ? "active" : ""}`}
-							onClick={() => setActiveTab("blocks")}
+							onClick={() => handleTabChange("blocks")}
 						>
 							Blocks
 						</button>
@@ -490,28 +601,28 @@ export function IndexerExplorer() {
 							className={`tab-button ${
 								activeTab === "transactions" ? "active" : ""
 							}`}
-							onClick={() => setActiveTab("transactions")}
+							onClick={() => handleTabChange("transactions")}
 						>
 							Transactions
 						</button>
 						<button
 							type="button"
 							className={`tab-button ${activeTab === "search" ? "active" : ""}`}
-							onClick={() => setActiveTab("search")}
+							onClick={() => handleTabChange("search")}
 						>
 							Search
 						</button>
 						<button
 							type="button"
 							className={`tab-button ${activeTab === "custom" ? "active" : ""}`}
-							onClick={() => setActiveTab("custom")}
+							onClick={() => handleTabChange("custom")}
 						>
 							Custom Query
 						</button>
 						<button
 							type="button"
 							className={`tab-button ${activeTab === "schema" ? "active" : ""}`}
-							onClick={() => setActiveTab("schema")}
+							onClick={() => handleTabChange("schema")}
 						>
 							Schema
 						</button>
@@ -523,7 +634,7 @@ export function IndexerExplorer() {
 						<div className="method-panel">
 							<h2>Query Blocks</h2>
 							<p className="method-description-text">
-								Query blocks from the indexer. Gets the latest block and follows the parent chain to retrieve multiple blocks.
+								Query blocks from the indexer. Gets the latest blocks sequentially without recursion, so you can retrieve many blocks.
 							</p>
 
 							<div className="params-section">
@@ -533,17 +644,12 @@ export function IndexerExplorer() {
 										<input
 											type="number"
 											value={blocksLimit}
-											onChange={(e) => {
-												const value = parseInt(e.target.value, 10);
-												if (!isNaN(value) && value >= 1 && value <= MAX_PARENT_CHAIN_DEPTH) {
-													setBlocksLimit(e.target.value);
-												}
-											}}
+											onChange={(e) => setBlocksLimit(e.target.value)}
 											placeholder="10"
 											min="1"
-											max={MAX_PARENT_CHAIN_DEPTH}
+											max="1000"
 										/>
-										<small>Number of blocks to return (max: {MAX_PARENT_CHAIN_DEPTH} due to GraphQL recursion limit)</small>
+										<small>Number of blocks to return</small>
 									</label>
 								</div>
 							</div>
@@ -588,7 +694,7 @@ export function IndexerExplorer() {
 						<div className="method-panel">
 							<h2>Query Transactions</h2>
 							<p className="method-description-text">
-								Query transactions from the indexer. Searches through multiple blocks to find transactions since identifier-based queries often return empty results.
+								Query transactions from the indexer. Searches through multiple blocks (up to 1000) to find transactions. Can retrieve many more transactions than the Blocks tab.
 							</p>
 
 							<div className="params-section">
@@ -599,9 +705,9 @@ export function IndexerExplorer() {
 											type="number"
 											value={txLimit}
 											onChange={(e) => setTxLimit(e.target.value)}
-											placeholder="10"
+											placeholder="50"
 											min="1"
-											max="100"
+											max="1000"
 										/>
 										<small>Number of transactions to return (searches through multiple blocks)</small>
 									</label>
