@@ -1,0 +1,36 @@
+{
+	"name": "@midnight-sandbox/rpc-cli",
+	"version": "0.1.0",
+	"description": "CLI tool for interacting with Midnight Network RPC",
+	"type": "module",
+	"main": "dist/index.js",
+	"bin": {
+		"midnight-rpc": "./dist/cli.js"
+	},
+	"scripts": {
+		"build": "rm -rf dist && tsc --project tsconfig.build.json",
+		"dev": "tsx src/cli.ts",
+		"start": "node dist/cli.js",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write .",
+		"format": "biome format --write .",
+		"typecheck": "tsc -p tsconfig.json --noEmit"
+	},
+	"keywords": [
+		"midnight",
+		"rpc",
+		"blockchain",
+		"cli"
+	],
+	"author": "",
+	"license": "Apache-2.0",
+	"dependencies": {
+		"commander": "^14.0.2"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.3.5",
+		"@types/node": "^22.10.2",
+		"tsx": "^4.19.2",
+		"typescript": "^5.7.2"
+	}
+}

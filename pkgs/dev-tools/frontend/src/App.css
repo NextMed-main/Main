@@ -1,0 +1,276 @@
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body {
+	font-family:
+		-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
+		"Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+.app {
+	display: flex;
+	flex-direction: column;
+	height: 100vh;
+	background-color: #f5f5f5;
+}
+
+.header {
+	background-color: #1a1a1a;
+	color: white;
+	padding: 1rem 2rem;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header h1 {
+	font-size: 1.5rem;
+	margin-bottom: 0.5rem;
+}
+
+.endpoint-config {
+	margin-top: 0.5rem;
+}
+
+.endpoint-config label {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	font-size: 0.9rem;
+}
+
+.endpoint-input {
+	flex: 1;
+	max-width: 600px;
+	padding: 0.5rem;
+	border: 1px solid #444;
+	border-radius: 4px;
+	background-color: #2a2a2a;
+	color: white;
+	font-size: 0.9rem;
+}
+
+.endpoint-input:focus {
+	outline: none;
+	border-color: #007bff;
+}
+
+.main {
+	display: flex;
+	flex: 1;
+	overflow: hidden;
+}
+
+.sidebar {
+	width: 350px;
+	background-color: white;
+	border-right: 1px solid #e0e0e0;
+	overflow-y: auto;
+	padding: 1rem;
+}
+
+.tabs {
+	display: flex;
+	gap: 0.5rem;
+	margin-bottom: 1rem;
+	border-bottom: 1px solid #e0e0e0;
+	padding-bottom: 0.5rem;
+}
+
+.tab-button {
+	padding: 0.5rem 1rem;
+	border: none;
+	background-color: transparent;
+	color: #666;
+	cursor: pointer;
+	font-size: 0.9rem;
+	border-radius: 4px;
+	transition: all 0.2s;
+}
+
+.tab-button:hover {
+	background-color: #f8f9fa;
+	color: #333;
+}
+
+.tab-button.active {
+	background-color: #007bff;
+	color: white;
+}
+
+.sidebar h2 {
+	font-size: 1.2rem;
+	margin-bottom: 1rem;
+	color: #333;
+}
+
+.method-list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.method-button {
+	text-align: left;
+	padding: 0.75rem;
+	border: 1px solid #e0e0e0;
+	border-radius: 6px;
+	background-color: white;
+	cursor: pointer;
+	transition: all 0.2s;
+}
+
+.method-button:hover {
+	background-color: #f8f9fa;
+	border-color: #007bff;
+}
+
+.method-button.active {
+	background-color: #e7f3ff;
+	border-color: #007bff;
+}
+
+.method-name {
+	font-weight: 600;
+	font-size: 0.9rem;
+	color: #333;
+	margin-bottom: 0.25rem;
+}
+
+.method-description {
+	font-size: 0.8rem;
+	color: #666;
+}
+
+.content {
+	flex: 1;
+	overflow-y: auto;
+	padding: 2rem;
+}
+
+.method-panel {
+	background-color: white;
+	border-radius: 8px;
+	padding: 2rem;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	max-width: 900px;
+}
+
+.method-panel h2 {
+	font-size: 1.5rem;
+	margin-bottom: 0.5rem;
+	color: #333;
+}
+
+.method-description-text {
+	color: #666;
+	margin-bottom: 1.5rem;
+	font-size: 0.95rem;
+}
+
+.params-section {
+	margin-bottom: 1.5rem;
+}
+
+.params-section h3 {
+	font-size: 1.1rem;
+	margin-bottom: 1rem;
+	color: #333;
+}
+
+.param-input {
+	margin-bottom: 1rem;
+}
+
+.param-input label {
+	display: block;
+	font-weight: 500;
+	margin-bottom: 0.5rem;
+	color: #333;
+}
+
+.param-input input {
+	width: 100%;
+	padding: 0.75rem;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	font-size: 0.95rem;
+}
+
+.param-input input:focus {
+	outline: none;
+	border-color: #007bff;
+}
+
+.required {
+	color: #dc3545;
+	margin-left: 0.25rem;
+}
+
+.call-button {
+	background-color: #007bff;
+	color: white;
+	border: none;
+	padding: 0.75rem 1.5rem;
+	border-radius: 6px;
+	font-size: 1rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background-color 0.2s;
+	margin-bottom: 1.5rem;
+}
+
+.call-button:hover:not(:disabled) {
+	background-color: #0056b3;
+}
+
+.call-button:disabled {
+	background-color: #6c757d;
+	cursor: not-allowed;
+}
+
+.error-panel,
+.result-panel {
+	margin-top: 1.5rem;
+	padding: 1rem;
+	border-radius: 6px;
+}
+
+.error-panel {
+	background-color: #fff5f5;
+	border: 1px solid #feb2b2;
+}
+
+.error-panel h3 {
+	color: #c53030;
+	margin-bottom: 0.5rem;
+}
+
+.result-panel {
+	background-color: #f0f9ff;
+	border: 1px solid #90cdf4;
+}
+
+.result-panel h3 {
+	color: #2c5282;
+	margin-bottom: 0.5rem;
+}
+
+pre {
+	background-color: #1a1a1a;
+	color: #f8f8f2;
+	padding: 1rem;
+	border-radius: 4px;
+	overflow-x: auto;
+	font-size: 0.9rem;
+	line-height: 1.5;
+	font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+}
+
+.error-panel pre {
+	background-color: #2d1b1b;
+	color: #ff6b6b;
+}
