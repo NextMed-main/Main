@@ -33,10 +33,10 @@ git submodule update --init --recursive
 pnpm dev
 ```
 
-## Build
+## Contract Build
 
 ```bash
-pnpm build
+pnpm contract compact
 ```
 
 ## Start Production Server

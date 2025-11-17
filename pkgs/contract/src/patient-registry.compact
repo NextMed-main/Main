@@ -1,5 +1,5 @@
 // Compactコンパイラのバージョン指定
-pragma language_version 0.18.0;
+pragma language_version >= 0.16.0;
 // Midnight標準ライブラリのインポート
 import CompactStandardLibrary;
 
