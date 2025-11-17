@@ -177,15 +177,12 @@ const main = async () => {
 		
 		// プロバイダーの設定
 		logger.info('Configuring providers...');
-		const providers = await api.configureProviders(wallet, config);
+		const providers = await api.configurePatientRegistryProviders(wallet, config);
 		
-		// TODO: Patient Registryコントラクトのデプロイ
-		// 現在はCounterコントラクトを使用（後で実装）
+		// Patient Registryコントラクトのデプロイ
 		logger.info('Deploying Patient Registry contract...');
-		logger.warn('Note: Using Counter contract as placeholder. Patient Registry deployment will be implemented.');
-		
-		const counterContract = await api.deploy(providers, { privateCounter: 0 });
-		const deployTx = counterContract.deployTxData.public;
+		const patientRegistryContract = await api.deployPatientRegistry(providers);
+		const deployTx = patientRegistryContract.deployTxData.public;
 		
 		// デプロイ情報の作成
 		const walletState = await Rx.firstValueFrom(wallet.state());

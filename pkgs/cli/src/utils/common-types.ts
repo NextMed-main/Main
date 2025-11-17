@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Counter, type CounterPrivateState } from 'contract';
+import { Counter, type CounterPrivateState, PatientRegistry } from 'contract';
 import type { ImpureCircuitId, MidnightProviders } from '@midnight-ntwrk/midnight-js-types';
 import type { DeployedContract, FoundContract } from '@midnight-ntwrk/midnight-js-contracts';
 
@@ -26,3 +26,22 @@ export type CounterProviders = MidnightProviders<CounterCircuits, typeof Counter
 export type CounterContract = Counter.Contract<CounterPrivateState>;
 
 export type DeployedCounterContract = DeployedContract<CounterContract> | FoundContract<CounterContract>;
+
+// Patient Registry types
+export type PatientRegistryPrivateState = Record<string, never>; // Empty object for contracts without private state
+
+export type PatientRegistryCircuits = ImpureCircuitId<PatientRegistry.Contract<PatientRegistryPrivateState>>;
+
+export const PatientRegistryPrivateStateId = 'patientRegistryPrivateState';
+
+export type PatientRegistryProviders = MidnightProviders<
+	PatientRegistryCircuits,
+	typeof PatientRegistryPrivateStateId,
+	PatientRegistryPrivateState
+>;
+
+export type PatientRegistryContract = PatientRegistry.Contract<PatientRegistryPrivateState>;
+
+export type DeployedPatientRegistryContract =
+	| DeployedContract<PatientRegistryContract>
+	| FoundContract<PatientRegistryContract>;
