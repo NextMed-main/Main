@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 import { RpcExplorer } from "./RpcExplorer";
 import { WalletApp } from "./WalletApp";
+import { IndexerExplorer } from "./IndexerExplorer";
 
 export interface ToolConfig {
 	/**
@@ -45,6 +46,12 @@ export const TOOLS: ToolConfig[] = [
 		name: "Wallet Connection",
 		description: "Connect and verify Midnight Network compatible wallets",
 		component: WalletApp,
+	},
+	{
+		id: "indexer",
+		name: "Indexer Explorer",
+		description: "Query and explore blockchain data using the public indexer GraphQL API",
+		component: IndexerExplorer,
 	},
 	// To add a new tool, add its configuration here
 	// {
