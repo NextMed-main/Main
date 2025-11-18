@@ -3,7 +3,7 @@
 import { LandingPage } from "@/components/landing-page";
 import { LoginScreen } from "@/components/login-screen";
 import dynamic from "next/dynamic";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 // Dynamic imports for code splitting (要件 10.5)
 const PatientDashboard = dynamic(
@@ -56,6 +56,24 @@ export type UserRole = "patient" | "researcher" | "institution" | null;
 export default function Home() {
   const [showLanding, setShowLanding] = useState(true);
   const [userRole, setUserRole] = useState<UserRole>(null);
+
+  // Register Service Worker for PWA
+  useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      "serviceWorker" in navigator &&
+      process.env.NODE_ENV === "production"
+    ) {
+      navigator.serviceWorker
+        .register("/sw.js")
+        .then((registration) => {
+          console.log("[PWA] Service Worker registered:", registration.scope);
+        })
+        .catch((err) => {
+          console.error("[PWA] Service Worker registration failed:", err);
+        });
+    }
+  }, []);
 
   if (showLanding) {
     return <LandingPage onGetStarted={() => setShowLanding(false)} />;
