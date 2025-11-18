@@ -33,8 +33,8 @@
   - **Property 1: Service Worker登録の自動実行**
   - **Validates: Requirements 2.1**
 
-- [ ] 2. Service Workerとキャッシング戦略の実装
-- [ ] 2.1 Workboxキャッシング戦略の設定
+- [-] 2. Service Workerとキャッシング戦略の実装
+- [x] 2.1 Workboxキャッシング戦略の設定
   - next.config.mjsにruntimeCaching設定を追加
   - 静的アセット用のCacheFirst戦略を設定
   - API用のNetworkFirst戦略を設定
