@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="192" height="192" fill="#6366f1"/>
+  
+  <!-- Medical Cross -->
+  <g transform="translate(96, 96)">
+    <rect x="-15.36" y="-48" width="30.72" height="96" fill="white" rx="3.84"/>
+    <rect x="-48" y="-15.36" width="96" height="30.72" fill="white" rx="3.84"/>
+  </g>
+  
+  <!-- Shield outline for security/privacy -->
+  <path d="M 96 28.799999999999997 
+           L 134.39999999999998 48 
+           L 134.39999999999998 105.60000000000001 
+           Q 134.39999999999998 144 96 163.2
+           Q 57.599999999999994 144 57.599999999999994 105.60000000000001
+           L 57.599999999999994 48 Z" 
+        fill="none" 
+        stroke="white" 
+        stroke-width="2.88" 
+        opacity="0.3"/>
+</svg>

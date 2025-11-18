@@ -1,13 +1,13 @@
 # PWA実装 - タスクリスト
 
-- [-] 1. プロジェクトセットアップとPWA基盤構築
-- [ ] 1.1 next-pwaライブラリのインストールと設定
+- [x] 1. プロジェクトセットアップとPWA基盤構築
+- [x] 1.1 next-pwaライブラリのインストールと設定
   - next-pwaとworkboxをインストール
   - next.config.mjsにPWA設定を追加
   - 開発環境ではService Workerを無効化
   - _Requirements: 2.1, 2.2_
 
-- [ ] 1.2 Web App Manifestファイルの作成
+- [x] 1.2 Web App Manifestファイルの作成
   - public/manifest.jsonを作成
   - アプリ名、短縮名、説明を定義
   - テーマカラー（#6366f1）とbackground_colorを設定
@@ -15,14 +15,14 @@
   - start_url: "/"を設定
   - _Requirements: 1.1, 1.3, 1.4, 1.5_
 
-- [ ] 1.3 PWAアイコンの作成と配置
+- [x] 1.3 PWAアイコンの作成と配置
   - 192x192と512x512のPNGアイコンを作成
   - public/icons/ディレクトリに配置
   - manifest.jsonにアイコン定義を追加
   - maskable iconとして設定
   - _Requirements: 1.2_
 
-- [ ] 1.4 layout.tsxにmanifestとメタタグを追加
+- [x] 1.4 layout.tsxにmanifestとメタタグを追加
   - manifestファイルへのリンクを追加
   - theme-colorメタタグを追加
   - iOS用メタタグ（apple-touch-icon等）を追加
