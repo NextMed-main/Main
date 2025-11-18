@@ -464,12 +464,6 @@ export circuit registerPatient(
 - [HelixChain](references/helixchain/) - 参考実装
 - すべてのコントリビューター
 
-## 📞 お問い合わせ
-
-- **プロジェクトリンク**: [https://github.com/your-org/nextmed](https://github.com/your-org/nextmed)
-- **Issue Tracker**: [https://github.com/your-org/nextmed/issues](https://github.com/your-org/nextmed/issues)
-- **Discord**: [Join our community](https://discord.gg/midnight)
-
 ---
 
 <div align="center">
