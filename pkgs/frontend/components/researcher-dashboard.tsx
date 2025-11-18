@@ -1,64 +1,49 @@
 "use client";
 
-import { useState } from "react";
+import { CyberChart } from "@/components/cyber/cyber-chart";
+import { GlassCard } from "@/components/cyber/glass-card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
-import {
-  Shield,
-  Database,
-  Search,
-  LogOut,
-  CheckCircle2,
-  BarChart3,
-  Users,
-  MessageSquare,
-  Code2,
-  Filter,
-  CreditCard,
-  Coins,
-  Wallet,
-  TrendingUp,
-  Activity,
-} from "lucide-react";
 import { WalletButton } from "@/components/wallet/wallet-button";
+import {
+    Activity,
+    BarChart3,
+    CheckCircle2,
+    Code2,
+    Coins,
+    CreditCard,
+    Database,
+    Filter,
+    LogOut,
+    MessageSquare,
+    Search,
+    Shield,
+    TrendingUp,
+    Users,
+    Wallet,
+} from "lucide-react";
+import { useState } from "react";
 
 interface ResearcherDashboardProps {
   onLogout: () => void;
@@ -135,8 +120,6 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
     { region: "Leeds", rate: 27.3 },
     { region: "Glasgow", rate: 32.1 },
   ];
-
-  const COLORS = ["#3b82f6", "#8b5cf6", "#06b6d4", "#10b981", "#f59e0b"];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
@@ -262,37 +245,44 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
         </DialogContent>
       </Dialog>
 
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-primary">
-            <Shield className="h-8 w-8" />
-            <span className="text-2xl font-bold">NextMed</span>
+      {/* Responsive Header (要件 8.1, 8.2, 8.3) */}
+      <header className="relative z-10 border-b border-white/10 glass">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <img 
+              src="/logo.jpg" 
+              alt="NextMed Logo" 
+              className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg object-cover"
+            />
+            <span className="text-xl sm:text-2xl font-bold bg-linear-to-r from-indigo-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">
+              NextMed
+            </span>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             {hasSubscription && (
-              <Badge variant="secondary" className="bg-success/10 text-success">
+              <Badge variant="secondary" className="hidden sm:flex bg-success/10 text-success text-xs">
                 <CheckCircle2 className="h-3 w-3 mr-1" />
-                Active Subscription
+                Active
               </Badge>
             )}
-            <span className="text-sm text-muted-foreground">
+            <span className="hidden md:inline text-sm text-muted-foreground">
               Researcher Portal
             </span>
             <WalletButton />
-            <Button variant="ghost" size="sm" onClick={onLogout}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
+            <Button variant="ghost" size="sm" onClick={onLogout} className="touch-manipulation">
+              <LogOut className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Logout</span>
             </Button>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2 text-balance">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-6xl">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 text-balance">
             Confidential Sandbox
           </h1>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-muted-foreground text-sm sm:text-base lg:text-lg">
             Analyze medical data without compromising patient privacy
           </p>
         </div>
@@ -323,71 +313,62 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
           </Card>
         )}
 
-        <div className="grid gap-6 md:grid-cols-3 mb-6">
-          <Card className="shadow-lg">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+        {/* Responsive Stats Grid (要件 8.1, 8.2, 8.3) */}
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 mb-4 sm:mb-6">
+          <GlassCard variant="primary" className="p-4 sm:p-6 touch-manipulation active:scale-[0.98] transition-transform">
+            <div className="space-y-2">
+              <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                 Analyzable Records
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+              </p>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold">3,450</span>
-                <Database className="h-5 w-5 text-primary" />
+                <span className="text-2xl sm:text-3xl font-bold">3,450</span>
+                <Database className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </GlassCard>
 
-          <Card className="shadow-lg">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+          <GlassCard variant="secondary" className="p-4 sm:p-6 touch-manipulation active:scale-[0.98] transition-transform">
+            <div className="space-y-2">
+              <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                 Regions Available
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold">15</span>
-                  <Users className="h-5 w-5 text-secondary" />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  London (2,400 records)
-                </p>
+              </p>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-bold">15</span>
+                <Users className="h-4 w-4 sm:h-5 sm:w-5 text-secondary" />
               </div>
-            </CardContent>
-          </Card>
+              <p className="text-xs text-muted-foreground">
+                London (2,400 records)
+              </p>
+            </div>
+          </GlassCard>
 
-          <Card className="shadow-lg">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+          <GlassCard variant="accent" className="p-4 sm:p-6 touch-manipulation active:scale-[0.98] transition-transform">
+            <div className="space-y-2">
+              <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                 Conditions Tracked
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold">12</span>
-                  <BarChart3 className="h-5 w-5 text-accent" />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Hypertension (1,500 records)
-                </p>
+              </p>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-bold">12</span>
+                <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-accent" />
               </div>
-            </CardContent>
-          </Card>
+              <p className="text-xs text-muted-foreground">
+                Hypertension (1,500 records)
+              </p>
+            </div>
+          </GlassCard>
         </div>
 
-        <Card className="shadow-lg mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+        <GlassCard className="mb-6 p-6">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold flex items-center gap-2 mb-2">
               <Search className="h-5 w-5 text-primary" />
               Data Analysis Tools
-            </CardTitle>
-            <CardDescription>
+            </h2>
+            <p className="text-muted-foreground">
               Multiple ways to query and analyze anonymized medical data
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+            </p>
+          </div>
+          <div>
             <Tabs
               value={activeTab}
               onValueChange={setActiveTab}
@@ -443,91 +424,93 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
               </TabsContent>
 
               <TabsContent value="filters" className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label>Age Range</Label>
-                    <Select value={ageFilter} onValueChange={setAgeFilter}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select age range" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Ages</SelectItem>
-                        <SelectItem value="0-19">0-19 years</SelectItem>
-                        <SelectItem value="20-39">20-39 years</SelectItem>
-                        <SelectItem value="40-59">40-59 years</SelectItem>
-                        <SelectItem value="60+">60+ years</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <GlassCard variant="default" className="p-4">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label>Age Range</Label>
+                      <Select value={ageFilter} onValueChange={setAgeFilter}>
+                        <SelectTrigger className="backdrop-blur-sm bg-white/5 border-white/20">
+                          <SelectValue placeholder="Select age range" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Ages</SelectItem>
+                          <SelectItem value="0-19">0-19 years</SelectItem>
+                          <SelectItem value="20-39">20-39 years</SelectItem>
+                          <SelectItem value="40-59">40-59 years</SelectItem>
+                          <SelectItem value="60+">60+ years</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                  <div className="space-y-2">
-                    <Label>Condition/Symptom</Label>
-                    <Select
-                      value={symptomFilter}
-                      onValueChange={setSymptomFilter}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select condition" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Conditions</SelectItem>
-                        <SelectItem value="hypertension">
-                          Hypertension
-                        </SelectItem>
-                        <SelectItem value="diabetes">Diabetes</SelectItem>
-                        <SelectItem value="cardiovascular">
-                          Cardiovascular Disease
-                        </SelectItem>
-                        <SelectItem value="respiratory">
-                          Respiratory Issues
-                        </SelectItem>
-                        <SelectItem value="cancer">Cancer</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                    <div className="space-y-2">
+                      <Label>Condition/Symptom</Label>
+                      <Select
+                        value={symptomFilter}
+                        onValueChange={setSymptomFilter}
+                      >
+                        <SelectTrigger className="backdrop-blur-sm bg-white/5 border-white/20">
+                          <SelectValue placeholder="Select condition" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Conditions</SelectItem>
+                          <SelectItem value="hypertension">
+                            Hypertension
+                          </SelectItem>
+                          <SelectItem value="diabetes">Diabetes</SelectItem>
+                          <SelectItem value="cardiovascular">
+                            Cardiovascular Disease
+                          </SelectItem>
+                          <SelectItem value="respiratory">
+                            Respiratory Issues
+                          </SelectItem>
+                          <SelectItem value="cancer">Cancer</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                  <div className="space-y-2">
-                    <Label>Region</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select region" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Regions</SelectItem>
-                        <SelectItem value="london">London</SelectItem>
-                        <SelectItem value="manchester">Manchester</SelectItem>
-                        <SelectItem value="birmingham">Birmingham</SelectItem>
-                        <SelectItem value="leeds">Leeds</SelectItem>
-                        <SelectItem value="glasgow">Glasgow</SelectItem>
-                        <SelectItem value="liverpool">Liverpool</SelectItem>
-                        <SelectItem value="edinburgh">Edinburgh</SelectItem>
-                        <SelectItem value="bristol">Bristol</SelectItem>
-                        <SelectItem value="cardiff">Cardiff</SelectItem>
-                        <SelectItem value="belfast">Belfast</SelectItem>
-                        <SelectItem value="newcastle">Newcastle</SelectItem>
-                        <SelectItem value="sheffield">Sheffield</SelectItem>
-                        <SelectItem value="nottingham">Nottingham</SelectItem>
-                        <SelectItem value="southampton">Southampton</SelectItem>
-                        <SelectItem value="cambridge">Cambridge</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                    <div className="space-y-2">
+                      <Label>Region</Label>
+                      <Select>
+                        <SelectTrigger className="backdrop-blur-sm bg-white/5 border-white/20">
+                          <SelectValue placeholder="Select region" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Regions</SelectItem>
+                          <SelectItem value="london">London</SelectItem>
+                          <SelectItem value="manchester">Manchester</SelectItem>
+                          <SelectItem value="birmingham">Birmingham</SelectItem>
+                          <SelectItem value="leeds">Leeds</SelectItem>
+                          <SelectItem value="glasgow">Glasgow</SelectItem>
+                          <SelectItem value="liverpool">Liverpool</SelectItem>
+                          <SelectItem value="edinburgh">Edinburgh</SelectItem>
+                          <SelectItem value="bristol">Bristol</SelectItem>
+                          <SelectItem value="cardiff">Cardiff</SelectItem>
+                          <SelectItem value="belfast">Belfast</SelectItem>
+                          <SelectItem value="newcastle">Newcastle</SelectItem>
+                          <SelectItem value="sheffield">Sheffield</SelectItem>
+                          <SelectItem value="nottingham">Nottingham</SelectItem>
+                          <SelectItem value="southampton">Southampton</SelectItem>
+                          <SelectItem value="cambridge">Cambridge</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                  <div className="space-y-2">
-                    <Label>Gender</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select gender" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All</SelectItem>
-                        <SelectItem value="male">Male</SelectItem>
-                        <SelectItem value="female">Female</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="space-y-2">
+                      <Label>Gender</Label>
+                      <Select>
+                        <SelectTrigger className="backdrop-blur-sm bg-white/5 border-white/20">
+                          <SelectValue placeholder="Select gender" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All</SelectItem>
+                          <SelectItem value="male">Male</SelectItem>
+                          <SelectItem value="female">Female</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                </div>
+                </GlassCard>
 
                 <Button
                   onClick={handleExecuteAnalysis}
@@ -583,18 +566,18 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                 </Button>
               </TabsContent>
             </Tabs>
-          </CardContent>
-        </Card>
+          </div>
+        </GlassCard>
 
         {showResults && (
           <div className="space-y-6">
-            <Card className="shadow-lg">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
+            <GlassCard glow className="p-6">
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-2xl font-bold flex items-center gap-2">
                     <BarChart3 className="h-5 w-5 text-success" />
                     Analysis Results Dashboard
-                  </CardTitle>
+                  </h2>
                   <Badge
                     variant="secondary"
                     className="bg-success/10 text-success"
@@ -603,12 +586,12 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                     ZK-Proof Verified
                   </Badge>
                 </div>
-                <CardDescription>
+                <p className="text-muted-foreground">
                   Hypertension Analysis - Aggregated results from confidential
                   computing
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
+                </p>
+              </div>
+              <div className="space-y-6">
                 <div className="p-4 bg-muted/30 rounded-lg border border-success/20">
                   <div className="flex items-start gap-2">
                     <Shield className="h-4 w-4 text-success mt-1 flex-shrink-0" />
@@ -621,273 +604,212 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-4">
-                  <Card className="shadow-sm">
-                    <CardContent className="pt-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-muted-foreground mb-1">
-                            Total Records
-                          </p>
-                          <p className="text-3xl font-bold text-primary">
-                            1,200
-                          </p>
-                        </div>
-                        <Database className="h-8 w-8 text-primary/20" />
+                  <GlassCard variant="primary" className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">
+                          Total Records
+                        </p>
+                        <p className="text-3xl font-bold text-primary">
+                          1,200
+                        </p>
                       </div>
-                    </CardContent>
-                  </Card>
+                      <Database className="h-8 w-8 text-primary/20" />
+                    </div>
+                  </GlassCard>
 
-                  <Card className="shadow-sm">
-                    <CardContent className="pt-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-muted-foreground mb-1">
-                            Total Cases
-                          </p>
-                          <p className="text-3xl font-bold text-secondary">
-                            342
-                          </p>
-                        </div>
-                        <Activity className="h-8 w-8 text-secondary/20" />
+                  <GlassCard variant="secondary" className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">
+                          Total Cases
+                        </p>
+                        <p className="text-3xl font-bold text-secondary">
+                          342
+                        </p>
                       </div>
-                    </CardContent>
-                  </Card>
+                      <Activity className="h-8 w-8 text-secondary/20" />
+                    </div>
+                  </GlassCard>
 
-                  <Card className="shadow-sm">
-                    <CardContent className="pt-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-muted-foreground mb-1">
-                            Overall Rate
-                          </p>
-                          <p className="text-3xl font-bold text-accent">
-                            28.5%
-                          </p>
-                        </div>
-                        <BarChart3 className="h-8 w-8 text-accent/20" />
+                  <GlassCard variant="accent" className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">
+                          Overall Rate
+                        </p>
+                        <p className="text-3xl font-bold text-accent">
+                          28.5%
+                        </p>
                       </div>
-                    </CardContent>
-                  </Card>
+                      <BarChart3 className="h-8 w-8 text-accent/20" />
+                    </div>
+                  </GlassCard>
 
-                  <Card className="shadow-sm">
-                    <CardContent className="pt-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-muted-foreground mb-1">
-                            Trend
-                          </p>
-                          <p className="text-3xl font-bold text-success">
-                            +2.0%
-                          </p>
-                        </div>
-                        <TrendingUp className="h-8 w-8 text-success/20" />
+                  <GlassCard variant="default" className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">
+                          Trend
+                        </p>
+                        <p className="text-3xl font-bold text-success">
+                          +2.0%
+                        </p>
                       </div>
-                    </CardContent>
-                  </Card>
+                      <TrendingUp className="h-8 w-8 text-success/20" />
+                    </div>
+                  </GlassCard>
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-2">
                   {/* Age Distribution Bar Chart */}
-                  <Card className="shadow-sm">
-                    <CardHeader>
-                      <CardTitle className="text-base">
+                  <GlassCard className="p-6">
+                    <div className="mb-4">
+                      <h3 className="text-lg font-semibold mb-1">
                         Hypertension Rate by Age Group
-                      </CardTitle>
-                      <CardDescription>
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
                         Distribution across different age ranges
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <ResponsiveContainer width="100%" height={250}>
-                        <BarChart data={ageDistributionData}>
-                          <CartesianGrid
-                            strokeDasharray="3 3"
-                            className="stroke-muted"
-                          />
-                          <XAxis dataKey="ageGroup" className="text-xs" />
-                          <YAxis className="text-xs" />
-                          <Tooltip
-                            contentStyle={{
-                              backgroundColor: "hsl(var(--card))",
-                              border: "1px solid hsl(var(--border))",
-                              borderRadius: "6px",
-                            }}
-                          />
-                          <Bar
-                            dataKey="rate"
-                            fill="hsl(var(--primary))"
-                            radius={[4, 4, 0, 0]}
-                          />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </CardContent>
-                  </Card>
+                      </p>
+                    </div>
+                    <CyberChart
+                      data={ageDistributionData.map(d => ({
+                        name: d.ageGroup,
+                        value: d.rate
+                      }))}
+                      type="bar"
+                      dataKey="value"
+                      xAxisKey="name"
+                      gradient={true}
+                      glow={true}
+                      height={250}
+                    />
+                  </GlassCard>
 
                   {/* Trend Line Chart */}
-                  <Card className="shadow-sm">
-                    <CardHeader>
-                      <CardTitle className="text-base">6-Month Trend</CardTitle>
-                      <CardDescription>
+                  <GlassCard className="p-6">
+                    <div className="mb-4">
+                      <h3 className="text-lg font-semibold mb-1">6-Month Trend</h3>
+                      <p className="text-sm text-muted-foreground">
                         Hypertension rate over time
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <ResponsiveContainer width="100%" height={250}>
-                        <LineChart data={trendData}>
-                          <CartesianGrid
-                            strokeDasharray="3 3"
-                            className="stroke-muted"
-                          />
-                          <XAxis dataKey="month" className="text-xs" />
-                          <YAxis className="text-xs" domain={[25, 30]} />
-                          <Tooltip
-                            contentStyle={{
-                              backgroundColor: "hsl(var(--card))",
-                              border: "1px solid hsl(var(--border))",
-                              borderRadius: "6px",
-                            }}
-                          />
-                          <Line
-                            type="monotone"
-                            dataKey="rate"
-                            stroke="hsl(var(--secondary))"
-                            strokeWidth={2}
-                            dot={{ fill: "hsl(var(--secondary))", r: 4 }}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </CardContent>
-                  </Card>
+                      </p>
+                    </div>
+                    <CyberChart
+                      data={trendData.map(d => ({
+                        name: d.month,
+                        value: d.rate
+                      }))}
+                      type="line"
+                      dataKey="value"
+                      xAxisKey="name"
+                      gradient={true}
+                      glow={true}
+                      height={250}
+                      colors={{
+                        primary: "#10b981",
+                        secondary: "#10b981",
+                        accent: "#10b981"
+                      }}
+                    />
+                  </GlassCard>
 
                   {/* Gender Distribution Pie Chart */}
-                  <Card className="shadow-sm">
-                    <CardHeader>
-                      <CardTitle className="text-base">
+                  <GlassCard className="p-6">
+                    <div className="mb-4">
+                      <h3 className="text-lg font-semibold mb-1">
                         Gender Distribution
-                      </CardTitle>
-                      <CardDescription>Cases by gender</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <ResponsiveContainer width="100%" height={250}>
-                        <PieChart>
-                          <Pie
-                            data={genderDistributionData}
-                            cx="50%"
-                            cy="50%"
-                            labelLine={false}
-                            label={({ name, value }) => `${name}: ${value}`}
-                            outerRadius={80}
-                            fill="#8884d8"
-                            dataKey="value"
-                          >
-                            {genderDistributionData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
-                            ))}
-                          </Pie>
-                          <Tooltip
-                            contentStyle={{
-                              backgroundColor: "hsl(var(--card))",
-                              border: "1px solid hsl(var(--border))",
-                              borderRadius: "6px",
-                            }}
-                          />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </CardContent>
-                  </Card>
+                      </h3>
+                      <p className="text-sm text-muted-foreground">Cases by gender</p>
+                    </div>
+                    <CyberChart
+                      data={genderDistributionData}
+                      type="pie"
+                      dataKey="value"
+                      gradient={true}
+                      glow={true}
+                      height={250}
+                      showLegend={true}
+                    />
+                  </GlassCard>
 
                   {/* Regional Comparison */}
-                  <Card className="shadow-sm">
-                    <CardHeader>
-                      <CardTitle className="text-base">
+                  <GlassCard className="p-6">
+                    <div className="mb-4">
+                      <h3 className="text-lg font-semibold mb-1">
                         Regional Comparison
-                      </CardTitle>
-                      <CardDescription>Top 5 regions by rate</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <ResponsiveContainer width="100%" height={250}>
-                        <BarChart data={regionComparisonData} layout="vertical">
-                          <CartesianGrid
-                            strokeDasharray="3 3"
-                            className="stroke-muted"
-                          />
-                          <XAxis type="number" className="text-xs" />
-                          <YAxis
-                            dataKey="region"
-                            type="category"
-                            className="text-xs"
-                            width={80}
-                          />
-                          <Tooltip
-                            contentStyle={{
-                              backgroundColor: "hsl(var(--card))",
-                              border: "1px solid hsl(var(--border))",
-                              borderRadius: "6px",
-                            }}
-                          />
-                          <Bar
-                            dataKey="rate"
-                            fill="hsl(var(--accent))"
-                            radius={[0, 4, 4, 0]}
-                          />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </CardContent>
-                  </Card>
+                      </h3>
+                      <p className="text-sm text-muted-foreground">Top 5 regions by rate</p>
+                    </div>
+                    <CyberChart
+                      data={regionComparisonData.map(d => ({
+                        name: d.region,
+                        value: d.rate
+                      }))}
+                      type="bar"
+                      dataKey="value"
+                      xAxisKey="name"
+                      gradient={true}
+                      glow={true}
+                      height={250}
+                      colors={{
+                        primary: "#06b6d4",
+                        secondary: "#06b6d4",
+                        accent: "#06b6d4"
+                      }}
+                    />
+                  </GlassCard>
                 </div>
 
-                <Card className="shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-base">
+                <GlassCard className="p-6">
+                  <div className="mb-4">
+                    <h3 className="text-lg font-semibold mb-1">
                       Detailed Statistics
-                    </CardTitle>
-                    <CardDescription>
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
                       Comprehensive breakdown by age group
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="border-b">
-                            <th className="text-left py-3 px-4 font-medium text-muted-foreground">
-                              Age Group
-                            </th>
-                            <th className="text-right py-3 px-4 font-medium text-muted-foreground">
-                              Total Records
-                            </th>
-                            <th className="text-right py-3 px-4 font-medium text-muted-foreground">
-                              Cases
-                            </th>
-                            <th className="text-right py-3 px-4 font-medium text-muted-foreground">
-                              Rate
-                            </th>
+                    </p>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-white/10">
+                          <th className="text-left py-3 px-4 font-medium text-muted-foreground">
+                            Age Group
+                          </th>
+                          <th className="text-right py-3 px-4 font-medium text-muted-foreground">
+                            Total Records
+                          </th>
+                          <th className="text-right py-3 px-4 font-medium text-muted-foreground">
+                            Cases
+                          </th>
+                          <th className="text-right py-3 px-4 font-medium text-muted-foreground">
+                            Rate
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {ageDistributionData.map((row) => (
+                          <tr key={row.ageGroup} className="border-b border-white/5 last:border-0">
+                            <td className="py-3 px-4 font-medium">
+                              {row.ageGroup}
+                            </td>
+                            <td className="text-right py-3 px-4">
+                              {row.total.toLocaleString()}
+                            </td>
+                            <td className="text-right py-3 px-4">
+                              {row.cases.toLocaleString()}
+                            </td>
+                            <td className="text-right py-3 px-4">
+                              <Badge variant="secondary">{row.rate}%</Badge>
+                            </td>
                           </tr>
-                        </thead>
-                        <tbody>
-                          {ageDistributionData.map((row, index) => (
-                            <tr key={index} className="border-b last:border-0">
-                              <td className="py-3 px-4 font-medium">
-                                {row.ageGroup}
-                              </td>
-                              <td className="text-right py-3 px-4">
-                                {row.total.toLocaleString()}
-                              </td>
-                              <td className="text-right py-3 px-4">
-                                {row.cases.toLocaleString()}
-                              </td>
-                              <td className="text-right py-3 px-4">
-                                <Badge variant="secondary">{row.rate}%</Badge>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </CardContent>
-                </Card>
-              </CardContent>
-            </Card>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </GlassCard>
+              </div>
+            </GlassCard>
           </div>
         )}
       </main>
