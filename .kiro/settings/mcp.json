@@ -10,6 +10,11 @@
       "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
       "disabled": false
     },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@executeautomation/playwright-mcp-server"],
+      "disabled": false
+    },
     "serena": {
       "command": "uvx",
       "args": [

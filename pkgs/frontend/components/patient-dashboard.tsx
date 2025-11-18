@@ -1,18 +1,8 @@
 "use client";
 
-import type React from "react";
-
-import { useState, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
+import { GlassCard } from "@/components/cyber/glass-card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -20,24 +10,28 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import { WalletButton } from "@/components/wallet/wallet-button";
+import { calculateCountUp, easingFunctions, smoothTransition } from "@/lib/animations";
 import {
-  Shield,
-  Wallet,
+  CheckCircle2,
+  Coins,
+  FileText,
   History,
   LogOut,
-  CheckCircle2,
+  Shield,
   TrendingUp,
   Upload,
-  FileText,
-  Coins,
+  Wallet,
 } from "lucide-react";
-import { WalletButton } from "@/components/wallet/wallet-button";
+import React, { useEffect, useRef, useState } from "react";
 
 interface PatientDashboardProps {
   onLogout: () => void;
 }
 
-export function PatientDashboard({ onLogout }: PatientDashboardProps) {
+// React.memo for optimization (要件 10.3)
+export const PatientDashboard = React.memo(function PatientDashboard({ onLogout }: PatientDashboardProps) {
   const [dataConsent, setDataConsent] = useState(true);
   const [uploadStatus, setUploadStatus] = useState<
     "idle" | "uploading" | "processing" | "complete"
@@ -49,63 +43,27 @@ export function PatientDashboard({ onLogout }: PatientDashboardProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [showWalletModal, setShowWalletModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Count-up animation state (要件 3.3)
+  const [displayedEarnings, setDisplayedEarnings] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
 
-  const handleWalletConnectClick = () => {
+  // useCallback for event handlers (要件 10.4)
+  const handleWalletConnectClick = React.useCallback(() => {
     setShowWalletModal(true);
-  };
+  }, []);
 
-  const handleWalletSelect = (walletType: string) => {
-    const mockAddress =
-      "0x" + Math.random().toString(16).substring(2, 10).toUpperCase();
+  const handleWalletSelect = React.useCallback((_walletType: string) => {
+    const mockAddress = `0x${Math.random().toString(16).substring(2, 10).toUpperCase()}`;
     setWalletAddress(mockAddress);
     setWalletConnected(true);
     setShowWalletModal(false);
-  };
+  }, []);
 
-  const handleWalletDisconnect = () => {
+  const handleWalletDisconnect = React.useCallback(() => {
     setWalletAddress("");
     setWalletConnected(false);
-  };
-
-  const handleWithdraw = () => {
-    if (!walletConnected) {
-      alert("Please connect your wallet first");
-      return;
-    }
-    alert(`Withdrawing ${totalEarnings} NEXT tokens to ${walletAddress}`);
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      handleFileUpload(file);
-    }
-  };
-
-  const handleUploadClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileUpload = (file: File) => {
-    setUploadStatus("uploading");
-    setUploadProgress(0);
-    setPotentialEarnings(15);
-
-    const uploadInterval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(uploadInterval);
-          setUploadStatus("processing");
-          setTimeout(() => {
-            setUploadStatus("complete");
-          }, 2000);
-          return 100;
-        }
-        return prev + 25;
-      });
-    }, 500);
-  };
+  }, []);
 
   const transactions = [
     {
@@ -159,7 +117,82 @@ export function PatientDashboard({ onLogout }: PatientDashboardProps) {
     },
   ];
 
-  const totalEarnings = transactions.reduce((sum, t) => sum + t.amount, 0);
+  // useMemo for computed values (要件 10.4)
+  const totalEarnings = React.useMemo(
+    () => transactions.reduce((sum, t) => sum + t.amount, 0),
+    [transactions]
+  );
+
+  const handleWithdraw = React.useCallback(() => {
+    if (!walletConnected) {
+      alert("Please connect your wallet first");
+      return;
+    }
+    alert(`Withdrawing ${totalEarnings} NEXT tokens to ${walletAddress}`);
+  }, [walletConnected, walletAddress, totalEarnings]);
+
+  const handleFileUpload = React.useCallback((_file: File) => {
+    setUploadStatus("uploading");
+    setUploadProgress(0);
+    setPotentialEarnings(15);
+
+    const uploadInterval = setInterval(() => {
+      setUploadProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(uploadInterval);
+          setUploadStatus("processing");
+          setTimeout(() => {
+            setUploadStatus("complete");
+          }, 2000);
+          return 100;
+        }
+        return prev + 25;
+      });
+    }, 500);
+  }, []);
+
+  const handleFileSelect = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      handleFileUpload(file);
+    }
+  }, [handleFileUpload]);
+
+  const handleUploadClick = React.useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  // Count-up animation effect (要件 3.3: カウントアップアニメーション)
+  useEffect(() => {
+    if (displayedEarnings === totalEarnings) return;
+    
+    setIsAnimating(true);
+    const duration = 1000; // 1 second
+    const startTime = Date.now();
+    const startValue = displayedEarnings;
+    
+    const animate = () => {
+      const currentTime = Date.now();
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      const currentValue = calculateCountUp(
+        { start: startValue, end: totalEarnings, easing: easingFunctions.easeOutCubic },
+        progress
+      );
+      
+      setDisplayedEarnings(currentValue);
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        setIsAnimating(false);
+      }
+    };
+    
+    requestAnimationFrame(animate);
+  }, [totalEarnings, displayedEarnings]);
 
   const walletOptions = [
     {
@@ -212,6 +245,7 @@ export function PatientDashboard({ onLogout }: PatientDashboardProps) {
             {walletOptions.map((wallet) => (
               <button
                 key={wallet.name}
+                type="button"
                 onClick={() => handleWalletSelect(wallet.name)}
                 className="w-full flex items-center gap-4 p-4 rounded-lg border border-border hover:border-primary hover:bg-primary/5 transition-all group"
               >
@@ -241,185 +275,200 @@ export function PatientDashboard({ onLogout }: PatientDashboardProps) {
         </DialogContent>
       </Dialog>
 
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-primary">
-            <Shield className="h-8 w-8" />
-            <span className="text-2xl font-bold">NextMed</span>
+      {/* Header with glassmorphism - Responsive (要件 3.4, 8.1, 8.2, 8.3) */}
+      <header className="relative z-10 border-b border-white/10 glass">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <img 
+              src="/logo.jpg" 
+              alt="NextMed Logo" 
+              className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg object-cover"
+            />
+            <span className="text-xl sm:text-2xl font-bold bg-linear-to-r from-indigo-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">
+              NextMed
+            </span>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <span className="hidden md:inline text-sm text-muted-foreground">
               Patient Portal
             </span>
             <WalletButton />
-            <Button variant="ghost" size="sm" onClick={onLogout}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
+            <Button variant="ghost" size="sm" onClick={onLogout} className="touch-manipulation">
+              <LogOut className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Logout</span>
             </Button>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2 text-balance">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-6xl">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 text-balance">
             My Data Wallet
           </h1>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-muted-foreground text-sm sm:text-base lg:text-lg">
             Manage your medical data sharing and track your earnings
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 mb-6">
-          <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Wallet className="h-5 w-5 text-success" />
-                Total Earnings
-              </CardTitle>
-              <CardDescription>
+        {/* Responsive Grid: 1 column mobile, 2 columns tablet+ (要件 8.1, 8.2, 8.3) */}
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2 mb-4 sm:mb-6">
+          {/* Earnings Card with GlassCard - Responsive (要件 3.1, 8.1) */}
+          <GlassCard variant="accent" glow className="p-4 sm:p-6 touch-manipulation active:scale-[0.98] transition-transform" style={smoothTransition(['all'], { duration: 300 })}>
+            <div className="space-y-2 mb-4">
+              <div className="flex items-center gap-2">
+                <Wallet className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-400" />
+                <h3 className="text-base sm:text-lg font-semibold text-white">Total Earnings</h3>
+              </div>
+              <p className="text-xs sm:text-sm text-gray-300">
                 Your rewards for contributing to medical research
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-5xl font-bold text-success">
-                    {totalEarnings}
-                  </span>
-                  <span className="text-2xl text-muted-foreground">
-                    NEXT Tokens
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <TrendingUp className="h-4 w-4 text-success" />
-                  <span>+{transactions[0].amount} tokens this week</span>
-                </div>
-                <div className="flex gap-2 pt-2">
-                  {!walletConnected ? (
+              </p>
+            </div>
+            <div className="space-y-4">
+              {/* Count-up animation - Responsive (要件 3.3, 8.1) */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-baseline gap-1 sm:gap-2" style={smoothTransition(['opacity'], { duration: 500 })}>
+                <span className={`text-3xl sm:text-4xl lg:text-5xl font-bold text-cyan-400 ${isAnimating ? 'opacity-80' : 'opacity-100'}`}>
+                  {displayedEarnings}
+                </span>
+                <span className="text-lg sm:text-xl lg:text-2xl text-gray-300">
+                  NEXT Tokens
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-300">
+                <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-emerald-400" />
+                <span>+{transactions[0].amount} tokens this week</span>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                {!walletConnected ? (
+                  <Button
+                    onClick={handleWalletConnectClick}
+                    className="w-full sm:flex-1 bg-transparent border-cyan-400/50 hover:bg-cyan-400/10 touch-manipulation"
+                    variant="outline"
+                  >
+                    <Wallet className="h-4 w-4 mr-2" />
+                    Connect Wallet
+                  </Button>
+                ) : (
+                  <>
                     <Button
-                      onClick={handleWalletConnectClick}
-                      className="flex-1 bg-transparent"
+                      onClick={handleWalletDisconnect}
+                      className="w-full sm:flex-1 bg-transparent border-cyan-400/50 hover:bg-cyan-400/10 touch-manipulation"
                       variant="outline"
+                      size="sm"
                     >
                       <Wallet className="h-4 w-4 mr-2" />
-                      Connect Wallet
+                      <span className="hidden sm:inline">{walletAddress.substring(0, 6)}...{walletAddress.substring(walletAddress.length - 4)}</span>
+                      <span className="sm:hidden">{walletAddress.substring(0, 4)}...{walletAddress.substring(walletAddress.length - 4)}</span>
                     </Button>
-                  ) : (
-                    <>
-                      <Button
-                        onClick={handleWalletDisconnect}
-                        className="flex-1 bg-transparent"
-                        variant="outline"
-                        size="sm"
-                      >
-                        <Wallet className="h-4 w-4 mr-2" />
-                        {walletAddress.substring(0, 6)}...
-                        {walletAddress.substring(walletAddress.length - 4)}
-                      </Button>
-                      <Button
-                        onClick={handleWithdraw}
-                        className="flex-1"
-                        variant="default"
-                      >
-                        Withdraw
-                      </Button>
-                    </>
-                  )}
-                </div>
+                    <Button
+                      onClick={handleWithdraw}
+                      className="w-full sm:flex-1 bg-cyan-500 hover:bg-cyan-600 touch-manipulation"
+                      variant="default"
+                    >
+                      Withdraw
+                    </Button>
+                  </>
+                )}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </GlassCard>
 
-          <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-primary" />
-                Data Consent
-              </CardTitle>
-              <CardDescription>Control how your data is used</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-                  <div className="space-y-1">
-                    <p className="font-medium">Allow anonymized data usage</p>
-                    <p className="text-sm text-muted-foreground">
-                      Earn rewards when your data is analyzed
-                    </p>
-                  </div>
-                  <Switch
-                    checked={dataConsent}
-                    onCheckedChange={setDataConsent}
-                  />
+          {/* Data Consent Card with GlassCard - Responsive (要件 3.1, 8.1) */}
+          <GlassCard variant="primary" glow className="p-4 sm:p-6 touch-manipulation active:scale-[0.98] transition-transform" style={smoothTransition(['all'], { duration: 300 })}>
+            <div className="space-y-2 mb-4">
+              <div className="flex items-center gap-2">
+                <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-400" />
+                <h3 className="text-base sm:text-lg font-semibold text-white">Data Consent</h3>
+              </div>
+              <p className="text-xs sm:text-sm text-gray-300">Control how your data is used</p>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10">
+                <div className="space-y-1">
+                  <p className="font-medium text-white">Allow anonymized data usage</p>
+                  <p className="text-sm text-gray-300">
+                    Earn rewards when your data is analyzed
+                  </p>
                 </div>
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-success mt-0.5 flex-shrink-0" />
-                    <span className="text-muted-foreground">
-                      Your name and address are never revealed
-                    </span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-success mt-0.5 flex-shrink-0" />
-                    <span className="text-muted-foreground">
-                      Protected by Midnight's ZK technology
-                    </span>
-                  </div>
+                <Switch
+                  checked={dataConsent}
+                  onCheckedChange={setDataConsent}
+                />
+              </div>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-start gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-400 mt-0.5 shrink-0" />
+                  <span className="text-gray-300">
+                    Your name and address are never revealed
+                  </span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-400 mt-0.5 shrink-0" />
+                  <span className="text-gray-300">
+                    Protected by Midnight's ZK technology
+                  </span>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </GlassCard>
         </div>
 
-        <Card className="shadow-lg mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Upload className="h-5 w-5 text-primary" />
-              Upload Your Medical Data
-            </CardTitle>
-            <CardDescription>
+        {/* Upload Card with GlassCard (要件 3.1: グラスモーフィズムカードレイアウト) */}
+        <GlassCard variant="secondary" glow className="p-6 mb-6" style={smoothTransition(['all'], { duration: 300 })}>
+          <div className="space-y-2 mb-4">
+            <div className="flex items-center gap-2">
+              <Upload className="h-5 w-5 text-emerald-400" />
+              <h3 className="text-lg font-semibold text-white">Upload Your Medical Data</h3>
+            </div>
+            <p className="text-sm text-gray-300">
               Share your medical records and earn NEXT tokens
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="p-4 bg-gradient-to-br from-success/5 to-primary/5 rounded-lg border border-success/20">
+            </p>
+          </div>
+          <div className="space-y-4">
+            <div className="p-4 bg-linear-to-br from-emerald-500/10 to-indigo-500/10 rounded-lg border border-emerald-400/20">
               <div className="flex items-start gap-3 mb-3">
-                <Coins className="h-5 w-5 text-success mt-0.5 flex-shrink-0" />
+                <Coins className="h-5 w-5 text-emerald-400 mt-0.5 shrink-0" />
                 <div>
-                  <p className="font-semibold text-success mb-1">
+                  <p className="font-semibold text-emerald-400 mb-1">
                     Earn Tokens by Uploading
                   </p>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
+                  <p className="text-sm text-gray-300 leading-relaxed">
                     Upload your medical records, lab results, or health data.
                     Each upload is processed securely with ZK technology and you
                     earn NEXT tokens when researchers use your anonymized data.
                   </p>
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-3 text-center pt-3 border-t border-success/20">
+              <div className="grid grid-cols-3 gap-3 text-center pt-3 border-t border-emerald-400/20">
                 <div>
-                  <p className="text-lg font-bold text-success">10-30</p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-lg font-bold text-emerald-400">10-30</p>
+                  <p className="text-xs text-gray-400">
                     Tokens per upload
                   </p>
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-primary">100%</p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-lg font-bold text-indigo-400">100%</p>
+                  <p className="text-xs text-gray-400">
                     Privacy protected
                   </p>
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-accent">Instant</p>
-                  <p className="text-xs text-muted-foreground">Processing</p>
+                  <p className="text-lg font-bold text-cyan-400">Instant</p>
+                  <p className="text-xs text-gray-400">Processing</p>
                 </div>
               </div>
             </div>
 
-            <div
-              className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer"
+            <button
+              type="button"
+              className="w-full border-2 border-dashed border-white/20 rounded-lg p-8 text-center hover:border-emerald-400/50 transition-colors cursor-pointer"
               onClick={handleUploadClick}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleUploadClick();
+                }
+              }}
             >
               <input
                 ref={fileInputRef}
@@ -428,29 +477,30 @@ export function PatientDashboard({ onLogout }: PatientDashboardProps) {
                 accept=".pdf,.csv,.json,.dcm,.dicom"
                 onChange={handleFileSelect}
               />
-              <Upload className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
-              <p className="font-medium mb-2">Drag & Drop Your Medical Files</p>
-              <p className="text-sm text-muted-foreground mb-4">
+              <Upload className="h-10 w-10 mx-auto mb-3 text-gray-400" />
+              <p className="font-medium mb-2 text-white">Drag & Drop Your Medical Files</p>
+              <p className="text-sm text-gray-300 mb-4">
                 or click to select files (PDF, CSV, JSON, DICOM)
               </p>
-              <Button type="button" disabled={uploadStatus !== "idle"}>
+              <Button type="button" disabled={uploadStatus !== "idle"} className="bg-emerald-500 hover:bg-emerald-600">
                 Select File to Upload
               </Button>
-            </div>
+            </button>
 
+            {/* Data update transitions (要件 3.5: データ更新時のトランジション) */}
             {uploadStatus !== "idle" && (
-              <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
+              <div className="space-y-3 p-4 bg-white/5 rounded-lg border border-white/10" style={smoothTransition(['opacity', 'transform'], { duration: 500 })}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-medium">
+                    <FileText className="h-4 w-4 text-indigo-400" />
+                    <span className="text-sm font-medium text-white">
                       {selectedFile?.name || "my_lab_results_2025.pdf"}
                     </span>
                   </div>
                   {uploadStatus === "complete" && (
                     <Badge
                       variant="secondary"
-                      className="bg-success/10 text-success"
+                      className="bg-emerald-500/10 text-emerald-400 border-emerald-400/20"
                     >
                       <CheckCircle2 className="h-3 w-3 mr-1" />
                       Complete
@@ -459,54 +509,52 @@ export function PatientDashboard({ onLogout }: PatientDashboardProps) {
                 </div>
 
                 {uploadStatus === "uploading" && (
-                  <>
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">
-                          Uploading...
-                        </span>
-                        <span className="font-medium">{uploadProgress}%</span>
-                      </div>
-                      <div className="h-2 bg-muted rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-primary transition-all duration-300"
-                          style={{ width: `${uploadProgress}%` }}
-                        />
-                      </div>
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-300">
+                        Uploading...
+                      </span>
+                      <span className="font-medium text-white">{uploadProgress}%</span>
                     </div>
-                  </>
+                    <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-indigo-500 transition-all duration-300"
+                        style={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                  </div>
                 )}
 
                 {uploadStatus === "processing" && (
                   <div className="flex items-center gap-2 text-sm">
-                    <div className="h-4 w-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                    <span className="font-medium text-primary">
+                    <div className="h-4 w-4 border-2 border-indigo-400/30 border-t-indigo-400 rounded-full animate-spin" />
+                    <span className="font-medium text-indigo-400">
                       Processing: Masking PII with Midnight ZK...
                     </span>
                   </div>
                 )}
 
                 {uploadStatus === "complete" && (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-sm text-success">
+                  <div className="space-y-3" style={smoothTransition(['opacity'], { duration: 500 })}>
+                    <div className="flex items-center gap-2 text-sm text-emerald-400">
                       <CheckCircle2 className="h-4 w-4" />
                       <span className="font-medium">
                         Upload complete! Your data is now securely stored.
                       </span>
                     </div>
-                    <div className="p-4 bg-success/10 border border-success/20 rounded-lg">
+                    <div className="p-4 bg-emerald-500/10 border border-emerald-400/20 rounded-lg">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium">
+                        <span className="text-sm font-medium text-white">
                           Potential Earnings
                         </span>
                         <div className="flex items-center gap-1">
-                          <Coins className="h-4 w-4 text-success" />
-                          <span className="text-lg font-bold text-success">
+                          <Coins className="h-4 w-4 text-emerald-400" />
+                          <span className="text-lg font-bold text-emerald-400">
                             +{potentialEarnings} NEXT
                           </span>
                         </div>
                       </div>
-                      <p className="text-xs text-muted-foreground leading-relaxed">
+                      <p className="text-xs text-gray-300 leading-relaxed">
                         You'll earn tokens when researchers access your
                         anonymized data. All PII has been masked using
                         Midnight's ZK technology.
@@ -516,69 +564,73 @@ export function PatientDashboard({ onLogout }: PatientDashboardProps) {
                 )}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </GlassCard>
 
-        <Card className="shadow-lg mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <History className="h-5 w-5 text-secondary" />
-              Transaction History
-            </CardTitle>
-            <CardDescription>Recent rewards from data usage</CardDescription>
-          </CardHeader>
-          <CardContent>
+        {/* Transaction History with GlassCard (要件 3.1: グラスモーフィズムカードレイアウト) */}
+        <GlassCard variant="secondary" glow className="p-6 mb-6" style={smoothTransition(['all'], { duration: 300 })}>
+          <div className="space-y-2 mb-4">
+            <div className="flex items-center gap-2">
+              <History className="h-5 w-5 text-emerald-400" />
+              <h3 className="text-lg font-semibold text-white">Transaction History</h3>
+            </div>
+            <p className="text-sm text-gray-300">Recent rewards from data usage</p>
+          </div>
+          <div>
             <div className="space-y-3">
-              {transactions.map((transaction) => (
+              {transactions.map((transaction, index) => (
                 <div
                   key={transaction.id}
-                  className="flex items-center justify-between p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex items-center justify-between p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors border border-white/10"
+                  style={smoothTransition(['background-color', 'transform'], { duration: 300, delay: index * 50 })}
                 >
                   <div className="space-y-1">
-                    <p className="font-medium">{transaction.purpose}</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="font-medium text-white">{transaction.purpose}</p>
+                    <p className="text-sm text-gray-300">
                       {transaction.researcher} • {transaction.date}
                     </p>
                   </div>
                   <Badge
                     variant="secondary"
-                    className="text-success bg-success/10"
+                    className="text-emerald-400 bg-emerald-500/10 border-emerald-400/20"
                   >
                     +{transaction.amount} NEXT
                   </Badge>
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </GlassCard>
 
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-accent" />
-              Consent & Audit Log
-            </CardTitle>
-            <CardDescription>
+        {/* Audit Log with GlassCard (要件 3.1: グラスモーフィズムカードレイアウト) */}
+        <GlassCard variant="accent" glow className="p-6" style={smoothTransition(['all'], { duration: 300 })}>
+          <div className="space-y-2 mb-4">
+            <div className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-cyan-400" />
+              <h3 className="text-lg font-semibold text-white">Consent & Audit Log</h3>
+            </div>
+            <p className="text-sm text-gray-300">
               Timeline of when your data was accessed
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+            </p>
+          </div>
+          <div>
             <div className="space-y-4">
-              {auditLog.map((log) => (
+              {auditLog.map((log, index) => (
                 <div
                   key={log.id}
-                  className="relative pl-6 pb-4 border-l-2 border-accent/30 last:pb-0"
+                  className="relative pl-6 pb-4 border-l-2 border-cyan-400/30 last:pb-0"
+                  style={smoothTransition(['opacity'], { duration: 300, delay: index * 100 })}
                 >
-                  <div className="absolute left-0 top-0 -translate-x-1/2 w-3 h-3 rounded-full bg-accent" />
+                  <div className="absolute left-0 top-0 -translate-x-1/2 w-3 h-3 rounded-full bg-cyan-400" />
                   <div className="space-y-1">
-                    <p className="font-medium">{log.purpose}</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="font-medium text-white">{log.purpose}</p>
+                    <p className="text-sm text-gray-300">
                       Accessed by {log.researcher}
                     </p>
-                    <p className="text-xs text-muted-foreground">{log.date}</p>
-                    <div className="mt-2 p-3 bg-accent/5 border border-accent/20 rounded-md">
-                      <p className="text-xs text-muted-foreground leading-relaxed">
-                        <Shield className="h-3 w-3 inline mr-1 text-accent" />
+                    <p className="text-xs text-gray-400">{log.date}</p>
+                    <div className="mt-2 p-3 bg-cyan-500/5 border border-cyan-400/20 rounded-md">
+                      <p className="text-xs text-gray-300 leading-relaxed">
+                        <Shield className="h-3 w-3 inline mr-1 text-cyan-400" />
                         Your data was used only after your PII (Name, Address)
                         was protected and masked by Midnight's ZK technology.
                       </p>
@@ -587,9 +639,9 @@ export function PatientDashboard({ onLogout }: PatientDashboardProps) {
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </GlassCard>
       </main>
     </div>
   );
-}
+});
