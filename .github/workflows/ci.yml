@@ -18,6 +18,9 @@ jobs:
           curl --proto '=https' --tlsv1.2 -LsSf https://github.com/midnightntwrk/compact/releases/latest/download/compact-installer.sh | sh
         shell: bash
 
+      - name: Configure Compact
+        run: compact update
+
       - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
