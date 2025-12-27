@@ -37,6 +37,11 @@ export default defineConfig({
       },
     },
     reporters: ["default", ["junit", { outputFile: "reports/report.xml" }]],
+    server: {
+      deps: {
+        inline: [/@midnight-ntwrk\/.*/],
+      },
+    },
   },
   resolve: {
     extensions: [".ts", ".js"],
