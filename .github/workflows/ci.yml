@@ -9,12 +9,6 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-
-    services:
-      # If explicit docker services are needed, define them here.
-      # For now, relying on 'docker compose' in scripts or testcontainers.
-      # Docker is available on ubuntu-latest.
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
