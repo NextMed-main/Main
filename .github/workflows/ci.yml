@@ -50,8 +50,8 @@ jobs:
       # We'll try running explicit typecheck where available, or build as a fallback check.
       # For now, leveraging the 'build' step at the end for full verification,
       # but ideally we want fail-fast typechecking.
-      - name: Typecheck (CLI)
-        run: pnpm --filter cli run typecheck
+      # - name: Typecheck (CLI)
+      #   run: pnpm --filter cli run typecheck
 
       - name: Run Tests (Unit & Integration)
         # This runs 'test' script in all packages that have it.
