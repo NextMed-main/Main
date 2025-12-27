@@ -43,6 +43,9 @@ export default defineConfig({
       },
     },
   },
+  ssr: {
+    noExternal: [/@midnight-ntwrk\/.*/],
+  },
   resolve: {
     extensions: [".ts", ".js"],
     conditions: ["import", "node", "default"],
