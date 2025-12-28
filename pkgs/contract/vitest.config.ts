@@ -20,6 +20,7 @@ export default defineConfig({
   test: {
     deps: {
       interopDefault: true,
+      inline: [/@midnight-ntwrk\/.*/],
       optimizer: {
         web: {
           include: ["@midnight-ntwrk/compact-runtime", "@midnight-ntwrk/onchain-runtime"],
