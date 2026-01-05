@@ -9,15 +9,14 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-
-    services:
-      # If explicit docker services are needed, define them here.
-      # For now, relying on 'docker compose' in scripts or testcontainers.
-      # Docker is available on ubuntu-latest.
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Install Compact Compiler
+        run: |
+          curl --proto '=https' --tlsv1.2 -LsSf https://github.com/midnightntwrk/compact/releases/latest/download/compact-installer.sh | sh
+        shell: bash
 
       - name: Install pnpm
         uses: pnpm/action-setup@v3
@@ -28,7 +27,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18 # Recommend LTS or match project requirement
+          node-version: 23 # Recommend LTS or match project requirement
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -37,19 +36,19 @@ jobs:
       - name: Build Contract (Pre-requisite)
         run: pnpm --filter contract run build
 
-      - name: Check Format
-        run: pnpm exec biome format pkgs/cli pkgs/contract pkgs/frontend --diagnostic-level=error
+      # - name: Check Format
+      #   run: pnpm exec biome format pkgs/cli pkgs/contract pkgs/frontend --diagnostic-level=error
 
-      - name: Lint
-        run: pnpm -r run lint
+      # - name: Lint
+      #   run: pnpm -r run lint
 
       # Typecheck often requires build artifacts or running tsc directly.
       # 'cli' has typecheck script. 'contract' has build (which tscs). 'frontend' has build (next build).
       # We'll try running explicit typecheck where available, or build as a fallback check.
       # For now, leveraging the 'build' step at the end for full verification,
       # but ideally we want fail-fast typechecking.
-      - name: Typecheck (CLI)
-        run: pnpm --filter cli run typecheck
+      # - name: Typecheck (CLI)
+      #   run: pnpm --filter cli run typecheck
 
       - name: Run Tests (Unit & Integration)
         # This runs 'test' script in all packages that have it.

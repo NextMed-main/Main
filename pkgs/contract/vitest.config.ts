@@ -18,8 +18,18 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   mode: "node",
   test: {
+    setupFiles: ["./vitest.setup.ts"],
     deps: {
       interopDefault: true,
+      inline: [/@midnight-ntwrk\/.*/],
+      optimizer: {
+        web: {
+          include: ["@midnight-ntwrk/compact-runtime", "@midnight-ntwrk/onchain-runtime"],
+        },
+        ssr: {
+          include: ["@midnight-ntwrk/compact-runtime", "@midnight-ntwrk/onchain-runtime"],
+        },
+      },
     },
     globals: true,
     environment: "node",
@@ -37,6 +47,14 @@ export default defineConfig({
       },
     },
     reporters: ["default", ["junit", { outputFile: "reports/report.xml" }]],
+    server: {
+      deps: {
+        inline: [/@midnight-ntwrk\/.*/],
+      },
+    },
+  },
+  ssr: {
+    noExternal: [/@midnight-ntwrk\/.*/],
   },
   resolve: {
     extensions: [".ts", ".js"],

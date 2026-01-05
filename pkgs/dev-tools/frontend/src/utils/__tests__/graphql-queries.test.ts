@@ -3,13 +3,13 @@
  * TDD: Test-driven development for query validation
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-	buildBlocksQuery,
-	buildTransactionsQuery,
-	buildTransactionByHashQuery,
-	buildTransactionsByAccountQuery,
-	buildBlocksInRangeQuery,
+    buildBlocksInRangeQuery,
+    buildBlocksQuery,
+    buildTransactionByHashQuery,
+    buildTransactionsByAccountQuery,
+    buildTransactionsQuery,
 } from "../graphql-queries";
 
 describe("GraphQL Query Builders", () => {
@@ -29,7 +29,7 @@ describe("GraphQL Query Builders", () => {
 
 		it("should not contain invalid fields", () => {
 			const query = buildBlocksQuery();
-			expect(query).not.toContain("id");
+			expect(query).not.toMatch(/\s+id\s+/);
 			expect(query).not.toContain("transactionCount");
 		});
 	});
@@ -50,7 +50,7 @@ describe("GraphQL Query Builders", () => {
 
 		it("should not contain invalid fields", () => {
 			const query = buildTransactionsQuery();
-			expect(query).not.toContain('id');
+			expect(query).not.toMatch(/\s+id\s+/);
 		});
 	});
 
@@ -58,15 +58,15 @@ describe("GraphQL Query Builders", () => {
 		it("should build a valid transaction hash query", () => {
 			const hash = "0x1234567890abcdef";
 			const query = buildTransactionByHashQuery(hash);
-			expect(query).toContain(`transaction(hash: "${hash}")`);
+			expect(query).toContain(`transactions(offset: { hash: "${hash}" })`);
 			expect(query).toContain("hash");
-			expect(query).toContain("blockNumber");
+			expect(query).toContain("timestamp");
 		});
 
 		it("should escape special characters in hash", () => {
 			const hash = '0x"test"';
 			const query = buildTransactionByHashQuery(hash);
-			expect(query).toContain(`transaction(hash: "${hash}")`);
+			expect(query).toContain(`transactions(offset: { hash: "${hash}" })`);
 		});
 	});
 

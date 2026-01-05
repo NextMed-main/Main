@@ -303,17 +303,18 @@ export function buildLatestBlockWithTransactionsQuery(): string {
 }
 
 /**
- * Query transactions with offset (offset is required)
- * TransactionOffset: { hash?: HexEncoded, identifier?: HexEncoded }
- * identifier must be a hex-encoded 32-byte value (64 hex chars with 0x prefix)
+ * Query transactions with offset and limit
  */
 export function buildTransactionsQuery(
-	identifierHex: string,
+	offset: number = 0,
+	limit: number = 10,
 ): string {
 	return `
     query {
-      transactions(offset: { identifier: "${identifierHex}" }) {
+      transactions(offset: ${offset}, limit: ${limit}) {
         hash
+        blockNumber
+        extrinsicIndex
         protocolVersion
         applyStage
         identifiers
@@ -513,6 +514,68 @@ export function buildTransactionByHashQuery(txHash: string): string {
           address
           state
         }
+      }
+    }
+  `;
+}
+
+/**
+ * Query blocks with pagination
+ */
+export function buildBlocksQuery(
+	offset: number = 0,
+	limit: number = 10,
+): string {
+	return `
+    query {
+      blocks(offset: ${offset}, limit: ${limit}) {
+        number
+        hash
+        timestamp
+
+        parent {
+          hash
+        }
+      }
+    }
+  `;
+}
+
+/**
+ * Query transactions by account with pagination
+ */
+export function buildTransactionsByAccountQuery(
+	address: string,
+	offset: number = 0,
+	limit: number = 100,
+): string {
+	return `
+    query {
+      transactions(filter: { account: "${address}" }, offset: ${offset}, limit: ${limit}) {
+        hash
+        blockNumber
+        timestamp
+      }
+    }
+  `;
+}
+
+/**
+ * Query blocks in range with pagination
+ */
+export function buildBlocksInRangeQuery(
+	startBlock: number,
+	endBlock: number,
+	offset: number = 0,
+	limit: number = 100,
+): string {
+	return `
+    query {
+      blocks(filter: { number: { gte: ${startBlock}, lte: ${endBlock} } }, offset: ${offset}, limit: ${limit}) {
+        number
+        hash
+        timestamp
+
       }
     }
   `;
