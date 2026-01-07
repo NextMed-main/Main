@@ -472,9 +472,10 @@ export const PatientDashboard = React.memo(function PatientDashboard({ onLogout 
               </div>
             </div>
 
-            <button
-              type="button"
-              className="w-full border-2 border-dashed border-white/20 rounded-lg p-8 text-center hover:border-emerald-400/50 transition-colors cursor-pointer"
+            <div
+              role="button"
+              tabIndex={0}
+              className="w-full border-2 border-dashed border-white/20 rounded-lg p-8 text-center hover:border-emerald-400/50 transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
               onClick={handleUploadClick}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
@@ -495,10 +496,10 @@ export const PatientDashboard = React.memo(function PatientDashboard({ onLogout 
               <p className="text-sm text-gray-300 mb-4">
                 or click to select files (PDF, CSV, JSON, DICOM)
               </p>
-              <Button type="button" disabled={uploadStatus !== "idle"} className="bg-emerald-500 hover:bg-emerald-600">
+              <Button type="button" disabled={uploadStatus !== "idle"} className="bg-emerald-500 hover:bg-emerald-600 pointer-events-none">
                 Select File to Upload
               </Button>
-            </button>
+            </div>
 
             {/* Data update transitions (要件 3.5: データ更新時のトランジション) */}
             {uploadStatus !== "idle" && (
