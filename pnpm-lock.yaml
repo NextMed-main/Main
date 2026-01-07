@@ -285,6 +285,9 @@ importers:
       '@hookform/resolvers':
         specifier: ^3.10.0
         version: 3.10.0(react-hook-form@7.66.0(react@19.2.0))
+      '@midnight-ntwrk/dapp-connector-api':
+        specifier: ^3.0.0
+        version: 3.0.0(rxjs@7.8.2)
       '@radix-ui/react-accordion':
         specifier: 1.2.2
         version: 1.2.2(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -368,7 +371,7 @@ importers:
         version: 1.1.6(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       '@vercel/analytics':
         specifier: latest
-        version: 1.5.0(next@16.0.0(@babel/core@7.28.5)(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react@19.2.0)
+        version: 1.6.1(next@16.0.0(@babel/core@7.28.5)(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react@19.2.0)
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.21(postcss@8.5.6)
@@ -416,7 +419,7 @@ importers:
         version: 2.1.9(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       recharts:
         specifier: latest
-        version: 3.4.1(@types/react@19.2.2)(react-dom@19.2.0(react@19.2.0))(react-is@17.0.2)(react@19.2.0)(redux@5.0.1)
+        version: 3.6.0(@types/react@19.2.2)(react-dom@19.2.0(react@19.2.0))(react-is@17.0.2)(react@19.2.0)(redux@5.0.1)
       sonner:
         specifier: ^1.7.4
         version: 1.7.4(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -1624,6 +1627,9 @@ packages:
 
   '@midnight-ntwrk/compact-runtime@0.9.0':
     resolution: {integrity: sha512-Dsms+SWRWlaTIay4SO7ITxTJvo8lgEKkMss+dQnIZDnEoCEO5lHTSj4TckBAvyYSWm4KElN3tir/MVm5hHgfDA==}
+
+  '@midnight-ntwrk/dapp-connector-api@3.0.0':
+    resolution: {integrity: sha512-A/AhsNjibrOSaUiPhQhxANeW9178uYnzeBFBf30YCvyvWg0YWCbhQfc7dRpiL7iBoX3Sxt9mtf+Svx4ZygLajg==}
 
   '@midnight-ntwrk/ledger@4.0.0':
     resolution: {integrity: sha512-cnJisY8uQ4NO54miDnjs/ov6n102ZPfKEPxtiDKVEdlKijcc70jz/CI2yBCc0itlwwaqma7FM2Ou5N4pWpbwbg==}
@@ -3038,8 +3044,8 @@ packages:
     resolution: {integrity: sha512-uk574k8IU0rOF/AjniX8qbLSGURJVUCeM5e4MIMKBFFi8weeiLrG1fyQejyLXQpRZbU/1BuQasleV/RfHC3hHg==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@vercel/analytics@1.5.0':
-    resolution: {integrity: sha512-MYsBzfPki4gthY5HnYN7jgInhAZ7Ac1cYDoRWFomwGHWEX7odTEzbtg9kf/QSo7XEsEAqlQugA6gJ2WS2DEa3g==}
+  '@vercel/analytics@1.6.1':
+    resolution: {integrity: sha512-oH9He/bEM+6oKlv3chWuOOcp8Y6fo6/PSro8hEkgCW3pu9/OiCXiUpRUogDh3Fs3LH2sosDrx8CxeOLBEE+afg==}
     peerDependencies:
       '@remix-run/react': ^2
       '@sveltejs/kit': ^1 || ^2
@@ -4824,6 +4830,7 @@ packages:
   next@16.0.0:
     resolution: {integrity: sha512-nYohiNdxGu4OmBzggxy9rczmjIGI+TpR5vbKTsE1HqYwNm1B+YSiugSrFguX6omMOKnDHAmBPY4+8TNJk0Idyg==}
     engines: {node: '>=20.9.0'}
+    deprecated: This version has a security vulnerability. Please upgrade to a patched version. See https://nextjs.org/blog/CVE-2025-66478 for more details.
     hasBin: true
     peerDependencies:
       '@opentelemetry/api': ^1.1.0
@@ -5147,8 +5154,8 @@ packages:
     resolution: {integrity: sha512-57frrGM/OCTLqLOAh0mhVA9VBMHd+9U7Zb2THMGdBUoZVOtGbJzjxsYGDJ3A9AYYCP4hn6y1TVbaOfzWtm5GFg==}
     engines: {node: '>= 12.13.0'}
 
-  recharts@3.4.1:
-    resolution: {integrity: sha512-35kYg6JoOgwq8sE4rhYkVWwa6aAIgOtT+Ob0gitnShjwUwZmhrmy7Jco/5kJNF4PnLXgt9Hwq+geEMS+WrjU1g==}
+  recharts@3.6.0:
+    resolution: {integrity: sha512-L5bjxvQRAe26RlToBAziKUB7whaGKEwD3znoM6fz3DrTowCIC/FnJYnuq1GEzB8Zv2kdTfaxQfi5GoH0tBinyg==}
     engines: {node: '>=18'}
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
@@ -5659,6 +5666,10 @@ packages:
     peerDependencies:
       typescript: '>=4.8.4'
 
+  ts-custom-error@3.3.1:
+    resolution: {integrity: sha512-5OX1tzOjxWEgsr/YEUWSuPrQ00deKLh6D7OTWcvNHm12/7QPyRh8SYpyWvA4IZv8H/+GQWQEh/kwo95Q9OVW1A==}
+    engines: {node: '>=14.0.0'}
+
   ts-invariant@0.10.3:
     resolution: {integrity: sha512-uivwYcQaxAucv1CzRp2n/QdYPo4ILf9VXgH19zEIjFx2EJufV16P0JtJVpYHy89DItG6Kwj2oIUjrcK5au+4tQ==}
     engines: {node: '>=8'}
@@ -5993,6 +6004,7 @@ packages:
   whatwg-encoding@3.1.1:
     resolution: {integrity: sha512-6qN4hJdMwfYBtE3YBTTHhoeuUrDBPZmbQaxWAqSALV/MeEnR5z1xd8UKud2RAkFoPkmB+hli1TZSnyi84xz1vQ==}
     engines: {node: '>=18'}
+    deprecated: Use @exodus/bytes instead for a more spec-conformant and faster implementation
 
   whatwg-mimetype@3.0.0:
     resolution: {integrity: sha512-nt+N2dzIutVRxARx1nghPKGv1xHikU7HKdfafKkLNLindmPU/ch3U31NOCGGA/dmPcmb1VlofO0vnKAcsm0o/Q==}
@@ -7359,6 +7371,14 @@ snapshots:
       '@midnight-ntwrk/onchain-runtime': 0.3.0
       '@types/object-inspect': 1.13.0
       object-inspect: 1.13.4
+
+  '@midnight-ntwrk/dapp-connector-api@3.0.0(rxjs@7.8.2)':
+    dependencies:
+      '@midnight-ntwrk/wallet-api': 5.0.0(rxjs@7.8.2)
+      '@midnight-ntwrk/zswap': 4.0.0
+      ts-custom-error: 3.3.1
+    transitivePeerDependencies:
+      - rxjs
 
   '@midnight-ntwrk/ledger@4.0.0': {}
 
@@ -8782,7 +8802,7 @@ snapshots:
       '@typescript-eslint/types': 8.46.3
       eslint-visitor-keys: 4.2.1
 
-  '@vercel/analytics@1.5.0(next@16.0.0(@babel/core@7.28.5)(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react@19.2.0)':
+  '@vercel/analytics@1.6.1(next@16.0.0(@babel/core@7.28.5)(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react@19.2.0)':
     optionalDependencies:
       next: 16.0.0(@babel/core@7.28.5)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       react: 19.2.0
@@ -8930,7 +8950,7 @@ snapshots:
       sirv: 3.0.2
       tinyglobby: 0.2.15
       tinyrainbow: 3.0.3
-      vitest: 4.0.10(@types/node@24.10.0)(@vitest/ui@4.0.10)(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@27.2.0)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.20.6)(yaml@2.8.1)
+      vitest: 4.0.10(@types/node@22.19.0)(@vitest/ui@4.0.10)(happy-dom@20.0.10)(jiti@2.6.1)(jsdom@27.2.0)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.20.6)(yaml@2.8.1)
 
   '@vitest/utils@4.0.10':
     dependencies:
@@ -11027,7 +11047,7 @@ snapshots:
 
   real-require@0.2.0: {}
 
-  recharts@3.4.1(@types/react@19.2.2)(react-dom@19.2.0(react@19.2.0))(react-is@17.0.2)(react@19.2.0)(redux@5.0.1):
+  recharts@3.6.0(@types/react@19.2.2)(react-dom@19.2.0(react@19.2.0))(react-is@17.0.2)(react@19.2.0)(redux@5.0.1):
     dependencies:
       '@reduxjs/toolkit': 2.10.1(react-redux@9.2.0(@types/react@19.2.2)(react@19.2.0)(redux@5.0.1))(react@19.2.0)
       clsx: 2.1.1
@@ -11658,6 +11678,8 @@ snapshots:
   ts-api-utils@2.1.0(typescript@5.9.3):
     dependencies:
       typescript: 5.9.3
+
+  ts-custom-error@3.3.1: {}
 
   ts-invariant@0.10.3:
     dependencies:

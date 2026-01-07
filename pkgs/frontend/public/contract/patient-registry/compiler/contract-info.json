@@ -1,0 +1,90 @@
+{
+  "circuits": [
+    {
+      "name": "registerPatient",
+      "pure": false,
+      "arguments": [
+        {
+          "name": "age",
+          "type": {
+            "type-name": "Uint",
+            "maxval": 18446744073709551615
+          }
+        },
+        {
+          "name": "gender_code",
+          "type": {
+            "type-name": "Uint",
+            "maxval": 18446744073709551615
+          }
+        },
+        {
+          "name": "condition_hash",
+          "type": {
+            "type-name": "Field"
+          }
+        }
+      ],
+      "result-type": {
+        "type-name": "Boolean"
+      }
+    },
+    {
+      "name": "getRegistrationStats",
+      "pure": false,
+      "arguments": [
+      ],
+      "result-type": {
+        "type-name": "Tuple",
+        "types": [
+          {
+            "type-name": "Field"
+          },
+          {
+            "type-name": "Field"
+          },
+          {
+            "type-name": "Field"
+          },
+          {
+            "type-name": "Field"
+          }
+        ]
+      }
+    },
+    {
+      "name": "verifyAgeRange",
+      "pure": true,
+      "arguments": [
+        {
+          "name": "age",
+          "type": {
+            "type-name": "Uint",
+            "maxval": 18446744073709551615
+          }
+        },
+        {
+          "name": "min_age",
+          "type": {
+            "type-name": "Uint",
+            "maxval": 18446744073709551615
+          }
+        },
+        {
+          "name": "max_age",
+          "type": {
+            "type-name": "Uint",
+            "maxval": 18446744073709551615
+          }
+        }
+      ],
+      "result-type": {
+        "type-name": "Boolean"
+      }
+    }
+  ],
+  "witnesses": [
+  ],
+  "contracts": [
+  ]
+}
