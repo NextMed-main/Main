@@ -2,6 +2,7 @@
 
 import { LandingPage } from "@/components/landing-page";
 import { LoginScreen } from "@/components/login-screen";
+import { ErrorBoundary, SuspenseFallback } from "@/components/ui/error-boundary";
 import dynamic from "next/dynamic";
 import { Suspense, useEffect, useState } from "react";
 
@@ -9,14 +10,7 @@ import { Suspense, useEffect, useState } from "react";
 const PatientDashboard = dynamic(
   () => import("@/components/patient-dashboard").then(mod => ({ default: mod.PatientDashboard })),
   {
-    loading: () => (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-        <div className="text-center">
-          <div className="h-12 w-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading dashboard...</p>
-        </div>
-      </div>
-    ),
+    loading: () => <SuspenseFallback message="Loading Patient Portal..." />,
     ssr: false,
   }
 );
@@ -24,14 +18,7 @@ const PatientDashboard = dynamic(
 const ResearcherDashboard = dynamic(
   () => import("@/components/researcher-dashboard").then(mod => ({ default: mod.ResearcherDashboard })),
   {
-    loading: () => (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-        <div className="text-center">
-          <div className="h-12 w-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading dashboard...</p>
-        </div>
-      </div>
-    ),
+    loading: () => <SuspenseFallback message="Loading Research Portal..." />,
     ssr: false,
   }
 );
@@ -39,14 +26,7 @@ const ResearcherDashboard = dynamic(
 const InstitutionDashboard = dynamic(
   () => import("@/components/institution-dashboard").then(mod => ({ default: mod.InstitutionDashboard })),
   {
-    loading: () => (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0a0e27] via-[#060918] to-[#0f1629]">
-        <div className="text-center">
-          <div className="h-12 w-12 border-4 border-cyan-400/30 border-t-cyan-400 rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-cyan-300/70">Loading dashboard...</p>
-        </div>
-      </div>
-    ),
+    loading: () => <SuspenseFallback message="Loading Institution Portal..." />,
     ssr: false,
   }
 );
@@ -85,27 +65,34 @@ export default function Home() {
 
   if (userRole === "patient") {
     return (
-      <Suspense fallback={<div>Loading...</div>}>
-        <PatientDashboard onLogout={() => setUserRole(null)} />
-      </Suspense>
+      <ErrorBoundary title="Patient Dashboard Error" onError={(e) => console.error("Patient Dashboard Error:", e)}>
+        <Suspense fallback={<SuspenseFallback message="Loading Patient Portal..." />}>
+          <PatientDashboard onLogout={() => setUserRole(null)} />
+        </Suspense>
+      </ErrorBoundary>
     );
   }
 
   if (userRole === "researcher") {
     return (
-      <Suspense fallback={<div>Loading...</div>}>
-        <ResearcherDashboard onLogout={() => setUserRole(null)} />
-      </Suspense>
+      <ErrorBoundary title="Researcher Dashboard Error" onError={(e) => console.error("Researcher Dashboard Error:", e)}>
+        <Suspense fallback={<SuspenseFallback message="Loading Research Portal..." />}>
+          <ResearcherDashboard onLogout={() => setUserRole(null)} />
+        </Suspense>
+      </ErrorBoundary>
     );
   }
 
   if (userRole === "institution") {
     return (
-      <Suspense fallback={<div>Loading...</div>}>
-        <InstitutionDashboard onLogout={() => setUserRole(null)} />
-      </Suspense>
+      <ErrorBoundary title="Institution Dashboard Error" onError={(e) => console.error("Institution Dashboard Error:", e)}>
+        <Suspense fallback={<SuspenseFallback message="Loading Institution Portal..." />}>
+          <InstitutionDashboard onLogout={() => setUserRole(null)} />
+        </Suspense>
+      </ErrorBoundary>
     );
   }
 
   return null;
 }
+

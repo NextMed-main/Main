@@ -16,6 +16,7 @@ import { calculateCountUp, easingFunctions, smoothTransition } from "@/lib/anima
 import {
   CheckCircle2,
   Coins,
+  ExternalLink,
   FileText,
   History,
   LogOut,
@@ -24,6 +25,7 @@ import {
   Upload,
   Wallet,
 } from "lucide-react";
+import { formatTxHash, getTxUrl } from "@/lib/explorer";
 import React, { useEffect, useRef, useState } from "react";
 
 interface PatientDashboardProps {
@@ -72,6 +74,8 @@ export const PatientDashboard = React.memo(function PatientDashboard({ onLogout 
       purpose: "Public Health Analysis",
       date: "2025-02-01",
       researcher: "Researcher X",
+      txHash: "00000000cedb75e9c6315a3fa646718dc64290399e92dcc7401f00d7a1ab1dfc",
+      blockHeight: 2599043,
     },
     {
       id: 2,
@@ -79,6 +83,8 @@ export const PatientDashboard = React.memo(function PatientDashboard({ onLogout 
       purpose: "Hypertension Study",
       date: "2025-01-28",
       researcher: "Researcher Y",
+      txHash: "00000000f8a721bc5e4d903281a6f3c92b8e47d156c904ea23f701b8cd92ef41",
+      blockHeight: 2598012,
     },
     {
       id: 3,
@@ -86,6 +92,8 @@ export const PatientDashboard = React.memo(function PatientDashboard({ onLogout 
       purpose: "Diabetes Research",
       date: "2025-01-25",
       researcher: "Researcher Z",
+      txHash: "00000000a3e8b2c94f1d6078e52a9b3c71d4e8f609a2b5c8d7e6f0123456789a",
+      blockHeight: 2596847,
     },
     {
       id: 4,
@@ -93,6 +101,8 @@ export const PatientDashboard = React.memo(function PatientDashboard({ onLogout 
       purpose: "Cardiovascular Analysis",
       date: "2025-01-20",
       researcher: "Researcher X",
+      txHash: "000000007b2c4d5e6f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e",
+      blockHeight: 2594521,
     },
   ];
 
@@ -102,18 +112,21 @@ export const PatientDashboard = React.memo(function PatientDashboard({ onLogout 
       researcher: "Researcher X",
       purpose: "Hypertension Study",
       date: "2025-02-01 14:30",
+      txHash: "00000000d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f7081920304050",
     },
     {
       id: 2,
       researcher: "Researcher Y",
       purpose: "Public Health Analysis",
       date: "2025-01-28 10:15",
+      txHash: "00000000e5f6a7b8c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f70819203040506",
     },
     {
       id: 3,
       researcher: "Researcher Z",
       purpose: "Diabetes Research",
       date: "2025-01-25 16:45",
+      txHash: "00000000f6a7b8c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f7081920304050607",
     },
   ];
 
@@ -586,9 +599,22 @@ export const PatientDashboard = React.memo(function PatientDashboard({ onLogout 
                 >
                   <div className="space-y-1">
                     <p className="font-medium text-white">{transaction.purpose}</p>
-                    <p className="text-sm text-gray-300">
-                      {transaction.researcher} • {transaction.date}
-                    </p>
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-300">
+                      <span>{transaction.researcher}</span>
+                      <span>•</span>
+                      <span>{transaction.date}</span>
+                      <span>•</span>
+                      <a
+                        href={getTxUrl(transaction.txHash)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-cyan-400 hover:text-cyan-300 hover:underline transition-colors"
+                        title={`View transaction on Midnight Explorer`}
+                      >
+                        <span className="font-mono text-xs">{formatTxHash(transaction.txHash)}</span>
+                        <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                      </a>
+                    </div>
                   </div>
                   <Badge
                     variant="secondary"
@@ -627,7 +653,20 @@ export const PatientDashboard = React.memo(function PatientDashboard({ onLogout 
                     <p className="text-sm text-gray-300">
                       Accessed by {log.researcher}
                     </p>
-                    <p className="text-xs text-gray-400">{log.date}</p>
+                    <div className="flex items-center gap-2 text-xs text-gray-400">
+                      <span>{log.date}</span>
+                      <span>•</span>
+                      <a
+                        href={getTxUrl(log.txHash)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-cyan-400 hover:text-cyan-300 hover:underline transition-colors"
+                        title="View access transaction on Midnight Explorer"
+                      >
+                        <span className="font-mono">{formatTxHash(log.txHash)}</span>
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </div>
                     <div className="mt-2 p-3 bg-cyan-500/5 border border-cyan-400/20 rounded-md">
                       <p className="text-xs text-gray-300 leading-relaxed">
                         <Shield className="h-3 w-3 inline mr-1 text-cyan-400" />
