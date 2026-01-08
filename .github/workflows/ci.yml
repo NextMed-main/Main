@@ -16,6 +16,7 @@ jobs:
       - name: Install Compact Compiler
         run: |
           curl --proto '=https' --tlsv1.2 -LsSf https://github.com/midnightntwrk/compact/releases/latest/download/compact-installer.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
         shell: bash
 
       - name: Install pnpm
