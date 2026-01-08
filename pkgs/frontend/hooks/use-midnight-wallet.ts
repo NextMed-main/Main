@@ -48,8 +48,8 @@ export interface MidnightWalletHookState {
  * Midnight wallet hook actions
  */
 export interface MidnightWalletHookActions {
-  /** Connect to Lace wallet */
-  connect: () => Promise<void>;
+  /** Connect to Lace wallet - returns true on success */
+  connect: () => Promise<boolean>;
   /** Disconnect wallet */
   disconnect: () => void;
   /** Copy address to clipboard */
@@ -155,10 +155,11 @@ export function useMidnightWallet(): UseMidnightWalletReturn {
 
   /**
    * Connect to Lace wallet
+   * @returns true on success, false on failure
    */
-  const connect = useCallback(async (): Promise<void> => {
+  const connect = useCallback(async (): Promise<boolean> => {
     // Check if already connecting
-    if (state.isConnecting) return;
+    if (state.isConnecting) return false;
 
     // Check if wallet is installed
     if (!isLaceInstalled()) {
@@ -172,7 +173,7 @@ export function useMidnightWallet(): UseMidnightWalletReturn {
         description: "Please install the Lace Midnight Preview extension.",
         variant: "destructive",
       });
-      return;
+      return false;
     }
 
     setState((prev) => ({
@@ -188,7 +189,7 @@ export function useMidnightWallet(): UseMidnightWalletReturn {
       // Get wallet state and service config in parallel
       const [walletState, serviceConfig] = await Promise.all([
         getWalletState(walletApi),
-        getServiceConfig(),
+        getServiceConfig(walletApi),
       ]);
 
       // Save connection state
@@ -210,6 +211,8 @@ export function useMidnightWallet(): UseMidnightWalletReturn {
         title: "Wallet Connected",
         description: `Connected to Midnight Network via Lace`,
       });
+
+      return true;
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Failed to connect to wallet";
@@ -227,6 +230,7 @@ export function useMidnightWallet(): UseMidnightWalletReturn {
       });
 
       console.error("Midnight wallet connection error:", error);
+      return false;
     }
   }, [state.isConnecting, toast]);
 

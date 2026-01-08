@@ -1,4 +1,5 @@
 import { Toaster } from "@/components/ui/sonner";
+import { MidnightWalletProvider } from "@/components/wallet/midnight-wallet-provider";
 import { WalletProvider } from "@/components/wallet/wallet-provider";
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
@@ -48,11 +49,14 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geist.className} ${geistMono.className} font-sans antialiased`}>
         <WalletProvider>
-          {children}
-          <Toaster />
+          <MidnightWalletProvider>
+            {children}
+            <Toaster />
+          </MidnightWalletProvider>
         </WalletProvider>
         <Analytics />
       </body>
     </html>
   );
 }
+

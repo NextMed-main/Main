@@ -3,15 +3,10 @@
 import { GlassCard } from "@/components/cyber/glass-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { WalletButton } from "@/components/wallet/wallet-button";
+import { WalletSelectionModal } from "@/components/wallet/wallet-modal";
+import { useMidnightWalletContext } from "@/components/wallet/midnight-wallet-provider";
 import { calculateCountUp, easingFunctions, smoothTransition } from "@/lib/animations";
 import {
   CheckCircle2,
@@ -34,14 +29,15 @@ interface PatientDashboardProps {
 
 // React.memo for optimization (要件 10.3)
 export const PatientDashboard = React.memo(function PatientDashboard({ onLogout }: PatientDashboardProps) {
+  // Use shared Midnight wallet context
+  const midnightWallet = useMidnightWalletContext();
+  
   const [dataConsent, setDataConsent] = useState(true);
   const [uploadStatus, setUploadStatus] = useState<
     "idle" | "uploading" | "processing" | "complete"
   >("idle");
   const [uploadProgress, setUploadProgress] = useState(0);
   const [potentialEarnings, setPotentialEarnings] = useState(0);
-  const [walletConnected, setWalletConnected] = useState(false);
-  const [walletAddress, setWalletAddress] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [showWalletModal, setShowWalletModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -50,22 +46,18 @@ export const PatientDashboard = React.memo(function PatientDashboard({ onLogout 
   const [displayedEarnings, setDisplayedEarnings] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
 
+  // Derive wallet state from context
+  const walletConnected = midnightWallet.isConnected;
+  const walletAddress = midnightWallet.formattedAddress || "";
+
   // useCallback for event handlers (要件 10.4)
   const handleWalletConnectClick = React.useCallback(() => {
     setShowWalletModal(true);
   }, []);
 
-  const handleWalletSelect = React.useCallback((_walletType: string) => {
-    const mockAddress = `0x${Math.random().toString(16).substring(2, 10).toUpperCase()}`;
-    setWalletAddress(mockAddress);
-    setWalletConnected(true);
-    setShowWalletModal(false);
-  }, []);
-
   const handleWalletDisconnect = React.useCallback(() => {
-    setWalletAddress("");
-    setWalletConnected(false);
-  }, []);
+    midnightWallet.disconnect();
+  }, [midnightWallet]);
 
   const transactions = [
     {
@@ -207,86 +199,13 @@ export const PatientDashboard = React.memo(function PatientDashboard({ onLogout 
     requestAnimationFrame(animate);
   }, [totalEarnings, displayedEarnings]);
 
-  const walletOptions = [
-    {
-      name: "MetaMask",
-      description: "Connect using MetaMask browser extension",
-      icon: "🦊",
-      popular: true,
-    },
-    {
-      name: "WalletConnect",
-      description: "Scan QR code with your mobile wallet",
-      icon: "📱",
-      popular: true,
-    },
-    {
-      name: "Coinbase Wallet",
-      description: "Connect using Coinbase Wallet",
-      icon: "🔵",
-      popular: false,
-    },
-    {
-      name: "Trust Wallet",
-      description: "Connect using Trust Wallet",
-      icon: "🛡️",
-      popular: false,
-    },
-    {
-      name: "Phantom",
-      description: "Connect using Phantom wallet",
-      icon: "👻",
-      popular: false,
-    },
-  ];
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-      <Dialog open={showWalletModal} onOpenChange={setShowWalletModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Wallet className="h-5 w-5 text-primary" />
-              Connect Your Wallet
-            </DialogTitle>
-            <DialogDescription>
-              Choose your preferred wallet to connect and manage your NEXT
-              tokens
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2 py-4">
-            {walletOptions.map((wallet) => (
-              <button
-                key={wallet.name}
-                type="button"
-                onClick={() => handleWalletSelect(wallet.name)}
-                className="w-full flex items-center gap-4 p-4 rounded-lg border border-border hover:border-primary hover:bg-primary/5 transition-all group"
-              >
-                <div className="text-3xl">{wallet.icon}</div>
-                <div className="flex-1 text-left">
-                  <div className="flex items-center gap-2">
-                    <p className="font-semibold group-hover:text-primary transition-colors">
-                      {wallet.name}
-                    </p>
-                    {wallet.popular && (
-                      <Badge variant="secondary" className="text-xs">
-                        Popular
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {wallet.description}
-                  </p>
-                </div>
-              </button>
-            ))}
-          </div>
-          <div className="text-xs text-muted-foreground text-center pt-2 border-t">
-            <Shield className="h-3 w-3 inline mr-1" />
-            Your wallet connection is secure and encrypted
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Wallet Selection Modal - uses proper Midnight wallets */}
+      <WalletSelectionModal
+        isOpen={showWalletModal}
+        onClose={() => setShowWalletModal(false)}
+      />
 
       {/* Header with glassmorphism - Responsive (要件 3.4, 8.1, 8.2, 8.3) */}
       <header className="relative z-10 border-b border-white/10 glass">

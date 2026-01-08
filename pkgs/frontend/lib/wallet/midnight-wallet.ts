@@ -157,40 +157,104 @@ export async function connectLace(
 /**
  * Get the wallet state (address and public keys)
  * 
+ * Note: Lace v4.0.0 uses getShieldedAddresses() instead of state()
+ * 
  * @param api - DAppConnectorWalletAPI instance from connectLace()
  * @returns Wallet state containing address and public keys
  */
 export async function getWalletState(
   api: import("@midnight-ntwrk/dapp-connector-api").DAppConnectorWalletAPI
 ): Promise<MidnightWalletState> {
-  const state = await api.state();
-  return {
-    address: state.address,
-    coinPublicKey: state.coinPublicKey,
-    encryptionPublicKey: state.encryptionPublicKey,
-  };
+  // Cast API to access Lace v4.0.0 methods
+  const walletApi = api as unknown as Record<string, unknown>;
+  
+  // Try Lace v4.0.0 method first (getShieldedAddresses)
+  if (typeof walletApi.getShieldedAddresses === 'function') {
+    const shielded = await (walletApi.getShieldedAddresses as () => Promise<{
+      shieldedAddress: string;
+      shieldedCoinPublicKey: string;
+      shieldedEncryptionPublicKey: string;
+    }>)();
+    
+    return {
+      address: shielded.shieldedAddress,
+      coinPublicKey: shielded.shieldedCoinPublicKey,
+      encryptionPublicKey: shielded.shieldedEncryptionPublicKey,
+    };
+  }
+  
+  // Fallback to legacy state() method
+  if (typeof walletApi.state === 'function') {
+    const state = await (walletApi.state as () => Promise<{
+      address: string;
+      coinPublicKey: string;
+      encryptionPublicKey: string;
+    }>)();
+    return {
+      address: state.address,
+      coinPublicKey: state.coinPublicKey,
+      encryptionPublicKey: state.encryptionPublicKey,
+    };
+  }
+  
+  throw new Error("Unable to retrieve wallet state - unsupported wallet API version");
 }
 
 /**
  * Get service configuration from the wallet
  * 
+ * Note: Lace v4.0.0 uses getConfiguration() instead of serviceUriConfig()
+ * 
  * This returns the URLs for the node, indexer, and proof server that the wallet is connected to.
  * 
+ * @param api - DAppConnectorWalletAPI instance from connectLace()
  * @returns Service configuration (node, indexer, indexerWS, proofServer URLs)
- * @throws Error if Lace is not installed
  */
-export async function getServiceConfig(): Promise<MidnightServiceConfig> {
-  if (!isLaceInstalled()) {
-    throw new Error("Lace wallet is not installed.");
+export async function getServiceConfig(
+  api?: import("@midnight-ntwrk/dapp-connector-api").DAppConnectorWalletAPI
+): Promise<MidnightServiceConfig> {
+  // If API is provided, use it; otherwise try to get from window.midnight
+  if (api) {
+    const walletApi = api as unknown as Record<string, unknown>;
+    
+    // Try Lace v4.0.0 method first (getConfiguration)
+    if (typeof walletApi.getConfiguration === 'function') {
+      const config = await (walletApi.getConfiguration as () => Promise<{
+        indexerUri?: string;
+        indexerWsUri?: string;
+        substrateNodeUri?: string;
+        proverServerUri?: string;
+      }>)();
+      
+      return {
+        node: config.substrateNodeUri || '',
+        indexer: config.indexerUri || '',
+        indexerWS: config.indexerWsUri || '',
+        proofServer: config.proverServerUri || '',
+      };
+    }
+  }
+  
+  // Fallback to legacy window.midnight.mnLace.serviceUriConfig()
+  if (isLaceInstalled()) {
+    const mnLace = window.midnight!.mnLace as unknown as Record<string, unknown>;
+    if (typeof mnLace.serviceUriConfig === 'function') {
+      const config = await (mnLace.serviceUriConfig as () => Promise<{
+        substrateNodeUri: string;
+        indexerUri: string;
+        indexerWsUri: string;
+        proverServerUri: string;
+      }>)();
+      return {
+        node: config.substrateNodeUri,
+        indexer: config.indexerUri,
+        indexerWS: config.indexerWsUri,
+        proofServer: config.proverServerUri,
+      };
+    }
   }
 
-  const config = await window.midnight!.mnLace.serviceUriConfig();
-  return {
-    node: config.substrateNodeUri,
-    indexer: config.indexerUri,
-    indexerWS: config.indexerWsUri,
-    proofServer: config.proverServerUri,
-  };
+  throw new Error("Unable to retrieve service configuration - unsupported wallet API version");
 }
 
 /**
@@ -205,7 +269,7 @@ export async function connectWallet(): Promise<WalletConnection> {
   const api = await connectLace();
   const [state, serviceConfig] = await Promise.all([
     getWalletState(api),
-    getServiceConfig(),
+    getServiceConfig(api),
   ]);
 
   return {
@@ -214,6 +278,7 @@ export async function connectWallet(): Promise<WalletConnection> {
     serviceConfig,
   };
 }
+
 
 /**
  * Format a Midnight address for display

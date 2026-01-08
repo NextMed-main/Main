@@ -22,8 +22,9 @@ import type { WalletName } from "@/lib/wallet/types";
 import { getAllWalletProviders, type ExtendedWalletProvider } from "@/lib/wallet/providers";
 import { detectWallets, openWalletInstallPage } from "@/lib/wallet/wallet-api";
 import { isLaceInstalled } from "@/lib/wallet/midnight-wallet";
-import { useMidnightWallet } from "@/hooks/use-midnight-wallet";
+import { useMidnightWalletContext } from "./midnight-wallet-provider";
 import { cn } from "@/lib/utils";
+
 
 /**
  * WalletSelectionModal Props
@@ -41,7 +42,7 @@ export function WalletSelectionModal({
   onClose,
 }: WalletSelectionModalProps) {
   const { connect, isConnecting } = useWalletContext();
-  const midnightWallet = useMidnightWallet();
+  const midnightWallet = useMidnightWalletContext();
   const [installedWallets, setInstalledWallets] = useState<WalletName[]>([]);
   const [midnightInstalled, setMidnightInstalled] = useState(false);
 
@@ -58,8 +59,8 @@ export function WalletSelectionModal({
    * Handle Midnight wallet (Lace) connection
    */
   const handleMidnightConnect = async () => {
-    await midnightWallet.connect();
-    if (midnightWallet.isConnected) {
+    const success = await midnightWallet.connect();
+    if (success) {
       onClose();
     }
   };

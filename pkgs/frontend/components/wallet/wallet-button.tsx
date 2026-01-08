@@ -9,10 +9,11 @@ import { useState } from "react";
 import { Wallet, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useWalletContext } from "./wallet-provider";
-import { useMidnightWallet } from "@/hooks/use-midnight-wallet";
+import { useMidnightWalletContext } from "./midnight-wallet-provider";
 import { WalletSelectionModal } from "./wallet-modal";
 import { WalletDropdown } from "./wallet-dropdown";
 import { cn } from "@/lib/utils";
+
 
 /**
  * WalletButton Props
@@ -27,7 +28,7 @@ interface WalletButtonProps {
  */
 export function WalletButton({ className }: WalletButtonProps) {
   const cip30Wallet = useWalletContext();
-  const midnightWallet = useMidnightWallet();
+  const midnightWallet = useMidnightWalletContext();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
