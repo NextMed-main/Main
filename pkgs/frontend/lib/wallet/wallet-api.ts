@@ -3,6 +3,7 @@
  * CIP-30プロトコルを使用したウォレット接続機能
  */
 
+import { WALLET_PROVIDERS } from "./providers";
 import type {
   CardanoWalletProvider,
   CardanoWindow,
@@ -10,7 +11,6 @@ import type {
   WalletName,
 } from "./types";
 import { WalletError } from "./types";
-import { WALLET_PROVIDERS } from "./providers";
 
 /**
  * Cardano Window オブジェクトを取得

@@ -5,15 +5,14 @@
 
 "use client";
 
+import { Sparkles, Wallet } from "lucide-react";
 import { useState } from "react";
-import { Wallet, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useWalletContext } from "./wallet-provider";
-import { useMidnightWalletContext } from "./midnight-wallet-provider";
-import { WalletSelectionModal } from "./wallet-modal";
-import { WalletDropdown } from "./wallet-dropdown";
 import { cn } from "@/lib/utils";
-
+import { useMidnightWalletContext } from "./midnight-wallet-provider";
+import { WalletDropdown } from "./wallet-dropdown";
+import { WalletSelectionModal } from "./wallet-modal";
+import { useWalletContext } from "./wallet-provider";
 
 /**
  * WalletButton Props
@@ -37,7 +36,8 @@ export function WalletButton({ className }: WalletButtonProps) {
   const isMidnightConnected = midnightWallet.isConnected;
   const isCip30Connected = cip30Wallet.isConnected;
   const isAnyConnected = isMidnightConnected || isCip30Connected;
-  const isAnyConnecting = midnightWallet.isConnecting || cip30Wallet.isConnecting;
+  const isAnyConnecting =
+    midnightWallet.isConnecting || cip30Wallet.isConnecting;
 
   // Get display address
   const displayAddress = isMidnightConnected
@@ -67,8 +67,8 @@ export function WalletButton({ className }: WalletButtonProps) {
           isMidnightConnected
             ? "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
             : isAnyConnected
-            ? "bg-gray-700 hover:bg-gray-800"
-            : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700",
+              ? "bg-gray-700 hover:bg-gray-800"
+              : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700",
           className,
         )}
       >
@@ -103,14 +103,14 @@ export function WalletButton({ className }: WalletButtonProps) {
 
       {/* Midnight wallet dropdown (simplified for now) */}
       {isMidnightConnected && isDropdownOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-50"
           onClick={() => setIsDropdownOpen(false)}
-          onKeyDown={(e) => e.key === 'Escape' && setIsDropdownOpen(false)}
+          onKeyDown={(e) => e.key === "Escape" && setIsDropdownOpen(false)}
           role="button"
           tabIndex={0}
         >
-          <div 
+          <div
             className="absolute right-4 top-16 w-72 rounded-lg border bg-background shadow-lg p-4"
             onClick={(e) => e.stopPropagation()}
             onKeyDown={(e) => e.stopPropagation()}

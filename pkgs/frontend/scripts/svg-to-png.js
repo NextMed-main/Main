@@ -3,28 +3,28 @@
 /**
  * SVG to PNG Converter
  * Converts SVG icons to PNG format for PWA compatibility
- * 
+ *
  * Note: This creates base64-encoded PNG data URLs as a fallback.
  * For production, use proper image conversion tools like sharp or imagemagick.
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
-const iconsDir = path.join(__dirname, '../public/icons');
+const iconsDir = path.join(__dirname, "../public/icons");
 const sizes = [192, 512];
 
-console.log('Creating PNG icons from SVG...\n');
+console.log("Creating PNG icons from SVG...\n");
 
 // For now, we'll create simple PNG files using Canvas API simulation
 // In a real production environment, you'd use sharp, imagemagick, or similar
-sizes.forEach(size => {
+sizes.forEach((size) => {
   const svgPath = path.join(iconsDir, `icon-${size}x${size}.svg`);
   const pngPath = path.join(iconsDir, `icon-${size}x${size}.png`);
-  
+
   // Read SVG content
-  const svgContent = fs.readFileSync(svgPath, 'utf8');
-  
+  const svgContent = fs.readFileSync(svgPath, "utf8");
+
   // For this implementation, we'll copy the SVG as a reference
   // and create a note file for manual conversion
   console.log(`⚠ SVG created at: ${svgPath}`);
@@ -32,7 +32,7 @@ sizes.forEach(size => {
 });
 
 // Create a README for icon conversion
-const readmePath = path.join(iconsDir, 'README.md');
+const readmePath = path.join(iconsDir, "README.md");
 const readme = `# PWA Icons
 
 ## Current Status
@@ -86,18 +86,20 @@ For production, consider professional design with:
 `;
 
 fs.writeFileSync(readmePath, readme);
-console.log('✓ Created README.md with conversion instructions\n');
+console.log("✓ Created README.md with conversion instructions\n");
 
 // Create temporary PNG placeholders by copying SVG
 // This allows the app to run, but proper PNG conversion is recommended
-sizes.forEach(size => {
+sizes.forEach((size) => {
   const svgPath = path.join(iconsDir, `icon-${size}x${size}.svg`);
   const pngPath = path.join(iconsDir, `icon-${size}x${size}.png`);
-  
+
   // Copy SVG as PNG for now (browsers can handle SVG in many contexts)
   fs.copyFileSync(svgPath, pngPath);
   console.log(`✓ Created placeholder: icon-${size}x${size}.png`);
 });
 
-console.log('\n⚠ Note: PNG files are currently SVG copies.');
-console.log('For production, convert SVG to proper PNG format using the methods in README.md\n');
+console.log("\n⚠ Note: PNG files are currently SVG copies.");
+console.log(
+  "For production, convert SVG to proper PNG format using the methods in README.md\n",
+);

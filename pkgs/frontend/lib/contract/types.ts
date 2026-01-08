@@ -18,7 +18,8 @@ export interface PatientRegistryConfig {
  * Default deployed contract configuration
  */
 export const DEPLOYED_CONTRACT: PatientRegistryConfig = {
-  contractAddress: "0200f683ce77beddfed112fdb915dde64f5075c7f2ccdbf319fd8738e89e131806cc",
+  contractAddress:
+    "0200f683ce77beddfed112fdb915dde64f5075c7f2ccdbf319fd8738e89e131806cc",
   proofServerUrl: "http://localhost:6300",
   indexerUrl: "https://indexer.testnet-02.midnight.network/api/v1/graphql",
   indexerWsUrl: "wss://indexer.testnet-02.midnight.network/api/v1/graphql/ws",

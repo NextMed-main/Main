@@ -1,30 +1,32 @@
 /**
  * ウォレット選択モーダルコンポーネント
  * Supports both Midnight DApp Connector (Lace) and CIP-30 wallets
- * 
+ *
  * Dark glassmorphism design to match NextMed aesthetic
  */
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { Check, ExternalLink, Shield, Sparkles, X, Zap } from "lucide-react";
 import Image from "next/image";
-import { ExternalLink, Check, Shield, Sparkles, X, Zap } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { useWalletContext } from "./wallet-provider";
-import type { WalletName } from "@/lib/wallet/types";
-import { getAllWalletProviders, type ExtendedWalletProvider } from "@/lib/wallet/providers";
-import { detectWallets, openWalletInstallPage } from "@/lib/wallet/wallet-api";
-import { isLaceInstalled } from "@/lib/wallet/midnight-wallet";
-import { useMidnightWalletContext } from "./midnight-wallet-provider";
 import { cn } from "@/lib/utils";
-
+import { isLaceInstalled } from "@/lib/wallet/midnight-wallet";
+import {
+  type ExtendedWalletProvider,
+  getAllWalletProviders,
+} from "@/lib/wallet/providers";
+import type { WalletName } from "@/lib/wallet/types";
+import { detectWallets, openWalletInstallPage } from "@/lib/wallet/wallet-api";
+import { useMidnightWalletContext } from "./midnight-wallet-provider";
+import { useWalletContext } from "./wallet-provider";
 
 /**
  * WalletSelectionModal Props
@@ -94,7 +96,7 @@ export function WalletSelectionModal({
         <div className="relative rounded-2xl border border-white/10 bg-gray-900/95 backdrop-blur-xl shadow-2xl overflow-hidden">
           {/* Gradient accent at top */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-500" />
-          
+
           {/* Close button */}
           <button
             onClick={onClose}
@@ -118,13 +120,13 @@ export function WalletSelectionModal({
           <div className="px-6 py-4 space-y-3">
             {walletProviders.map((provider) => {
               // Determine if wallet is installed
-              const isInstalled = provider.isMidnight 
-                ? midnightInstalled 
+              const isInstalled = provider.isMidnight
+                ? midnightInstalled
                 : installedWallets.includes(provider.name);
-              
+
               // Determine if this wallet is currently connected
-              const isConnected = provider.isMidnight 
-                ? midnightWallet.isConnected 
+              const isConnected = provider.isMidnight
+                ? midnightWallet.isConnected
                 : false;
 
               return (
@@ -150,12 +152,14 @@ export function WalletSelectionModal({
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                       {/* Wallet icon */}
-                      <div className={cn(
-                        "relative h-12 w-12 rounded-xl overflow-hidden flex items-center justify-center",
-                        provider.isMidnight
-                          ? "bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30"
-                          : "bg-white/10 border border-white/10"
-                      )}>
+                      <div
+                        className={cn(
+                          "relative h-12 w-12 rounded-xl overflow-hidden flex items-center justify-center",
+                          provider.isMidnight
+                            ? "bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30"
+                            : "bg-white/10 border border-white/10",
+                        )}
+                      >
                         <Image
                           src={provider.icon}
                           alt={provider.displayName}
@@ -173,16 +177,22 @@ export function WalletSelectionModal({
                       {/* Wallet info */}
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className={cn(
-                            "font-semibold",
-                            provider.isMidnight ? "text-white" : "text-gray-200"
-                          )}>
+                          <h3
+                            className={cn(
+                              "font-semibold",
+                              provider.isMidnight
+                                ? "text-white"
+                                : "text-gray-200",
+                            )}
+                          >
                             {provider.displayName}
                           </h3>
                           {isInstalled && !isConnected && (
                             <div className="flex items-center gap-1 text-emerald-400">
                               <Check className="h-3.5 w-3.5" />
-                              <span className="text-[10px] font-medium">Installed</span>
+                              <span className="text-[10px] font-medium">
+                                Installed
+                              </span>
                             </div>
                           )}
                           {isConnected && (
@@ -191,10 +201,14 @@ export function WalletSelectionModal({
                             </span>
                           )}
                         </div>
-                        <p className={cn(
-                          "text-xs mt-0.5",
-                          provider.isMidnight ? "text-indigo-300/80" : "text-gray-500"
-                        )}>
+                        <p
+                          className={cn(
+                            "text-xs mt-0.5",
+                            provider.isMidnight
+                              ? "text-indigo-300/80"
+                              : "text-gray-500",
+                          )}
+                        >
                           {provider.description}
                         </p>
                       </div>
@@ -212,9 +226,9 @@ export function WalletSelectionModal({
                       </Button>
                     ) : isInstalled ? (
                       <Button
-                        onClick={() => 
-                          provider.isMidnight 
-                            ? handleMidnightConnect() 
+                        onClick={() =>
+                          provider.isMidnight
+                            ? handleMidnightConnect()
                             : handleCip30Connect(provider.name)
                         }
                         disabled={isAnyConnecting}
@@ -223,7 +237,7 @@ export function WalletSelectionModal({
                           "min-w-[90px] font-medium",
                           provider.isMidnight
                             ? "bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white shadow-lg shadow-indigo-500/25"
-                            : "bg-white/10 hover:bg-white/20 text-white border border-white/10"
+                            : "bg-white/10 hover:bg-white/20 text-white border border-white/10",
                         )}
                       >
                         {isAnyConnecting ? (
@@ -259,7 +273,11 @@ export function WalletSelectionModal({
                 <Shield className="h-4 w-4 text-indigo-400" />
               </div>
               <div className="text-xs text-gray-400 leading-relaxed">
-                <span className="text-indigo-300 font-medium">Midnight wallets</span> enable zero-knowledge privacy features. Your medical data stays private while still being verifiable.
+                <span className="text-indigo-300 font-medium">
+                  Midnight wallets
+                </span>{" "}
+                enable zero-knowledge privacy features. Your medical data stays
+                private while still being verifiable.
               </div>
             </div>
           </div>
@@ -268,4 +286,3 @@ export function WalletSelectionModal({
     </Dialog>
   );
 }
-

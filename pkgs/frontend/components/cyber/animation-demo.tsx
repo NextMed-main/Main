@@ -1,39 +1,46 @@
 /**
  * アニメーションデモコンポーネント
- * 
+ *
  * 実装したアニメーションユーティリティの動作確認用
  * 要件: 5.1, 5.2, 5.3, 5.4, 5.5, 9.4
  */
 
 "use client";
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
-    customFade,
-    fadeIn,
-    fadeOut,
-    fadeSlideIn,
-    glowAnimation,
-    hoverTransition,
-    modalAnimation,
-    prefersReducedMotion,
-    pulseAnimation,
-    scaleFadeIn,
-    shakeAnimation,
-    shimmerAnimation,
-    skeletonAnimation,
-    slideIn,
-    type SlideDirection
-} from '@/lib/animations';
-import { useState } from 'react';
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  customFade,
+  fadeIn,
+  fadeOut,
+  fadeSlideIn,
+  glowAnimation,
+  hoverTransition,
+  modalAnimation,
+  prefersReducedMotion,
+  pulseAnimation,
+  type SlideDirection,
+  scaleFadeIn,
+  shakeAnimation,
+  shimmerAnimation,
+  skeletonAnimation,
+  slideIn,
+} from "@/lib/animations";
 
 export function AnimationDemo() {
   const [showModal, setShowModal] = useState(false);
   const [triggerShake, setTriggerShake] = useState(false);
-  const [fadeState, setFadeState] = useState<'in' | 'out'>('in');
-  const [slideDirection, setSlideDirection] = useState<SlideDirection>('bottom');
+  const [fadeState, setFadeState] = useState<"in" | "out">("in");
+  const [slideDirection, setSlideDirection] =
+    useState<SlideDirection>("bottom");
   const motionReduced = prefersReducedMotion();
 
   const handleShake = () => {
@@ -45,7 +52,7 @@ export function AnimationDemo() {
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* ヘッダー */}
-        <div className={fadeSlideIn('top')}>
+        <div className={fadeSlideIn("top")}>
           <h1 className="text-4xl font-bold text-white mb-2">
             アニメーションデモ
           </h1>
@@ -53,7 +60,10 @@ export function AnimationDemo() {
             実装したアニメーションユーティリティの動作確認
           </p>
           {motionReduced && (
-            <Badge variant="outline" className="mt-2 border-yellow-500 text-yellow-500">
+            <Badge
+              variant="outline"
+              className="mt-2 border-yellow-500 text-yellow-500"
+            >
               ⚠️ アニメーション軽減モードが有効です
             </Badge>
           )}
@@ -69,67 +79,62 @@ export function AnimationDemo() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex gap-4">
-              <Button onClick={() => setFadeState('in')}>
-                フェードイン
-              </Button>
-              <Button onClick={() => setFadeState('out')} variant="outline">
+              <Button onClick={() => setFadeState("in")}>フェードイン</Button>
+              <Button onClick={() => setFadeState("out")} variant="outline">
                 フェードアウト
               </Button>
             </div>
             <div
               className={`p-4 bg-blue-500/20 rounded-lg ${
-                fadeState === 'in' ? fadeIn() : fadeOut()
+                fadeState === "in" ? fadeIn() : fadeOut()
               }`}
             >
               <p className="text-white">
-                このボックスがフェード{fadeState === 'in' ? 'イン' : 'アウト'}します
+                このボックスがフェード{fadeState === "in" ? "イン" : "アウト"}
+                します
               </p>
             </div>
             <div
               style={customFade(fadeState, { duration: 500 })}
               className="p-4 bg-purple-500/20 rounded-lg"
             >
-              <p className="text-white">
-                カスタムフェード（500ms）
-              </p>
+              <p className="text-white">カスタムフェード（500ms）</p>
             </div>
           </CardContent>
         </Card>
 
         {/* スライドアニメーション */}
-        <Card className={slideIn('left')}>
+        <Card className={slideIn("left")}>
           <CardHeader>
             <CardTitle>スライドアニメーション（要件 5.1）</CardTitle>
-            <CardDescription>
-              ページ遷移時のスライドイン
-            </CardDescription>
+            <CardDescription>ページ遷移時のスライドイン</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex gap-2 flex-wrap">
-              {(['left', 'right', 'top', 'bottom'] as SlideDirection[]).map((dir) => (
-                <Button
-                  key={dir}
-                  onClick={() => setSlideDirection(dir)}
-                  variant={slideDirection === dir ? 'default' : 'outline'}
-                  size="sm"
-                >
-                  {dir}
-                </Button>
-              ))}
+              {(["left", "right", "top", "bottom"] as SlideDirection[]).map(
+                (dir) => (
+                  <Button
+                    key={dir}
+                    onClick={() => setSlideDirection(dir)}
+                    variant={slideDirection === dir ? "default" : "outline"}
+                    size="sm"
+                  >
+                    {dir}
+                  </Button>
+                ),
+              )}
             </div>
             <div
               key={slideDirection}
               className={`p-4 bg-green-500/20 rounded-lg ${slideIn(slideDirection)}`}
             >
-              <p className="text-white">
-                {slideDirection}からスライドイン
-              </p>
+              <p className="text-white">{slideDirection}からスライドイン</p>
             </div>
           </CardContent>
         </Card>
 
         {/* パルスとグローアニメーション */}
-        <Card className={fadeSlideIn('right')}>
+        <Card className={fadeSlideIn("right")}>
           <CardHeader>
             <CardTitle>パルスとグローアニメーション（要件 5.2）</CardTitle>
             <CardDescription>
@@ -139,18 +144,16 @@ export function AnimationDemo() {
           <CardContent className="space-y-4">
             <div className="flex gap-4 flex-wrap">
               <div className={pulseAnimation()}>
-                <Button>
-                  パルスボタン
-                </Button>
+                <Button>パルスボタン</Button>
               </div>
               <Button
-                style={glowAnimation({ color: '#06b6d4', intensity: 'medium' })}
+                style={glowAnimation({ color: "#06b6d4", intensity: "medium" })}
                 className="transition-all"
               >
                 グローボタン（シアン）
               </Button>
               <Button
-                style={glowAnimation({ color: '#ec4899', intensity: 'high' })}
+                style={glowAnimation({ color: "#ec4899", intensity: "high" })}
                 className="transition-all"
               >
                 グローボタン（ピンク）
@@ -167,7 +170,7 @@ export function AnimationDemo() {
                 className="p-4 bg-pink-500/20 rounded-lg cursor-pointer"
                 style={{
                   ...hoverTransition(),
-                  ...glowAnimation({ color: '#ec4899', intensity: 'low' }),
+                  ...glowAnimation({ color: "#ec4899", intensity: "low" }),
                 }}
               >
                 <p className="text-white text-center">ホバーでグロー</p>
@@ -190,9 +193,7 @@ export function AnimationDemo() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => setShowModal(true)}>
-              モーダルを開く
-            </Button>
+            <Button onClick={() => setShowModal(true)}>モーダルを開く</Button>
           </CardContent>
         </Card>
 
@@ -206,9 +207,18 @@ export function AnimationDemo() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <div className={`h-4 rounded ${skeletonAnimation()}`} style={{ width: '80%' }} />
-              <div className={`h-4 rounded ${skeletonAnimation()}`} style={{ width: '60%' }} />
-              <div className={`h-4 rounded ${skeletonAnimation()}`} style={{ width: '90%' }} />
+              <div
+                className={`h-4 rounded ${skeletonAnimation()}`}
+                style={{ width: "80%" }}
+              />
+              <div
+                className={`h-4 rounded ${skeletonAnimation()}`}
+                style={{ width: "60%" }}
+              />
+              <div
+                className={`h-4 rounded ${skeletonAnimation()}`}
+                style={{ width: "90%" }}
+              />
             </div>
             <div className={`h-32 rounded ${shimmerAnimation()}`} />
           </CardContent>
@@ -228,18 +238,16 @@ export function AnimationDemo() {
             </Button>
             <div
               className={`p-4 bg-red-500/20 border border-red-500 rounded-lg ${
-                triggerShake ? shakeAnimation() : ''
+                triggerShake ? shakeAnimation() : ""
               }`}
             >
-              <p className="text-red-400">
-                ⚠️ エラーメッセージ: 入力が無効です
-              </p>
+              <p className="text-red-400">⚠️ エラーメッセージ: 入力が無効です</p>
             </div>
           </CardContent>
         </Card>
 
         {/* 複合アニメーション */}
-        <Card className={fadeSlideIn('bottom')}>
+        <Card className={fadeSlideIn("bottom")}>
           <CardHeader>
             <CardTitle>複合アニメーション</CardTitle>
             <CardDescription>
@@ -247,7 +255,7 @@ export function AnimationDemo() {
             </CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className={fadeSlideIn('left')}>
+            <div className={fadeSlideIn("left")}>
               <div className="p-4 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-lg">
                 <p className="text-white">フェード + スライド（左）</p>
               </div>
@@ -278,9 +286,7 @@ export function AnimationDemo() {
               このモーダルはスケールアップとフェードインのアニメーションで表示されます。
             </p>
             <div className="flex gap-4">
-              <Button onClick={() => setShowModal(false)}>
-                閉じる
-              </Button>
+              <Button onClick={() => setShowModal(false)}>閉じる</Button>
               <Button variant="outline" onClick={() => setShowModal(false)}>
                 キャンセル
               </Button>

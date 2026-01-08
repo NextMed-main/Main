@@ -1,14 +1,14 @@
 "use client";
 
+import { Eye, EyeOff } from "lucide-react";
+import type React from "react";
+import { useState } from "react";
 import type { UserRole } from "@/app/page";
 import { GlassCard } from "@/components/cyber/glass-card";
 import { NeonButton } from "@/components/cyber/neon-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff } from "lucide-react";
-import type React from "react";
-import { useState } from "react";
 
 interface LoginScreenProps {
   onLogin: (role: UserRole) => void;
@@ -48,7 +48,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden p-4 sm:p-6 lg:p-8">
       {/* 背景画像 */}
-      <div 
+      <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/background_logo.jpg')" }}
       />
@@ -56,11 +56,11 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-indigo-500/20 via-transparent to-transparent" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,var(--tw-gradient-stops))] from-cyan-500/20 via-transparent to-transparent" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-emerald-500/10 via-transparent to-transparent" />
-      
+
       {/* グラスモーフィズムログインカード - Responsive (要件 8.1, 8.2, 8.3) */}
-      <GlassCard 
-        variant="default" 
-        glow={true} 
+      <GlassCard
+        variant="default"
+        glow={true}
         hover={false}
         className="w-full max-w-md z-10 p-6 sm:p-8"
       >
@@ -69,9 +69,9 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           <div className="space-y-3 sm:space-y-4 text-center">
             <div className="flex justify-center">
               <div className="flex items-center gap-2 sm:gap-3">
-                <img 
-                  src="/logo.jpg" 
-                  alt="NextMed Logo" 
+                <img
+                  src="/logo.jpg"
+                  alt="NextMed Logo"
                   className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg object-cover"
                 />
                 <span className="text-2xl sm:text-3xl font-bold bg-linear-to-r from-indigo-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">
@@ -79,7 +79,9 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
                 </span>
               </div>
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-white">Welcome Back</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-white">
+              Welcome Back
+            </h2>
             <p className="text-xs sm:text-sm text-gray-300 px-2">
               Sign in to access your confidential medical data platform
             </p>
@@ -88,7 +90,9 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           {/* ログインフォーム - Responsive (要件 8.1, 8.5) */}
           <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-gray-200 text-sm">Email Address</Label>
+              <Label htmlFor="email" className="text-gray-200 text-sm">
+                Email Address
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -100,7 +104,9 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-gray-200 text-sm">Password</Label>
+              <Label htmlFor="password" className="text-gray-200 text-sm">
+                Password
+              </Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -129,10 +135,10 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
                 {error}
               </p>
             )}
-            <NeonButton 
-              type="submit" 
-              variant="accent" 
-              size="lg" 
+            <NeonButton
+              type="submit"
+              variant="accent"
+              size="lg"
               glow={true}
               className="w-full touch-manipulation"
             >
@@ -182,7 +188,9 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           {/* デモ認証情報 - Responsive */}
           <div className="pt-3 sm:pt-4 border-t border-white/20">
             <p className="text-xs text-gray-400 text-center leading-relaxed">
-              <span className="font-semibold text-cyan-400">Demo Credentials:</span>
+              <span className="font-semibold text-cyan-400">
+                Demo Credentials:
+              </span>
               <br />
               Patient: patient@nextmed.demo / pass123
               <br />

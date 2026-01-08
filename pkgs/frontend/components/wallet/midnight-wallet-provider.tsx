@@ -5,13 +5,18 @@
 
 "use client";
 
-import { createContext, useContext, type ReactNode } from "react";
-import { useMidnightWallet, type UseMidnightWalletReturn } from "@/hooks/use-midnight-wallet";
+import { createContext, type ReactNode, useContext } from "react";
+import {
+  type UseMidnightWalletReturn,
+  useMidnightWallet,
+} from "@/hooks/use-midnight-wallet";
 
 /**
  * Midnight wallet context
  */
-const MidnightWalletContext = createContext<UseMidnightWalletReturn | null>(null);
+const MidnightWalletContext = createContext<UseMidnightWalletReturn | null>(
+  null,
+);
 
 /**
  * MidnightWalletProvider Props
@@ -24,7 +29,9 @@ interface MidnightWalletProviderProps {
  * MidnightWalletProvider Component
  * Wrap at the application root to share Midnight wallet state
  */
-export function MidnightWalletProvider({ children }: MidnightWalletProviderProps) {
+export function MidnightWalletProvider({
+  children,
+}: MidnightWalletProviderProps) {
   const wallet = useMidnightWallet();
 
   return (
@@ -43,7 +50,9 @@ export function useMidnightWalletContext(): UseMidnightWalletReturn {
   const context = useContext(MidnightWalletContext);
 
   if (!context) {
-    throw new Error("useMidnightWalletContext must be used within MidnightWalletProvider");
+    throw new Error(
+      "useMidnightWalletContext must be used within MidnightWalletProvider",
+    );
   }
 
   return context;

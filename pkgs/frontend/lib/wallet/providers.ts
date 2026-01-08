@@ -25,10 +25,12 @@ export const WALLET_PROVIDERS: Record<WalletName, ExtendedWalletProvider> = {
     name: "lace",
     displayName: "Lace (Midnight)",
     icon: "/wallet-icons/lace.png",
-    installUrl: "https://chromewebstore.google.com/detail/lace-midnight-preview/hgeekaiplokcnmakghbdfbgnlfheichg",
+    installUrl:
+      "https://chromewebstore.google.com/detail/lace-midnight-preview/hgeekaiplokcnmakghbdfbgnlfheichg",
     windowKey: "lace",
     isMidnight: true,
-    description: "Connect via Midnight DApp Connector for zero-knowledge proofs",
+    description:
+      "Connect via Midnight DApp Connector for zero-knowledge proofs",
     badge: "Recommended",
   },
   yoroi: {
@@ -62,7 +64,9 @@ export const SUPPORTED_WALLETS: WalletName[] = ["lace", "yoroi", "eternl"];
  * @param walletName ウォレット名
  * @returns ウォレットプロバイダー情報
  */
-export function getWalletProvider(walletName: WalletName): ExtendedWalletProvider {
+export function getWalletProvider(
+  walletName: WalletName,
+): ExtendedWalletProvider {
   return WALLET_PROVIDERS[walletName];
 }
 

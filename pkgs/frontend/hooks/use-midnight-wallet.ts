@@ -1,26 +1,26 @@
 /**
  * Midnight Wallet Hook
- * 
+ *
  * React hook for managing Midnight Lace wallet connection state.
  * Uses the Midnight DApp Connector API instead of CIP-30.
  */
 
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
 import type { DAppConnectorWalletAPI } from "@midnight-ntwrk/dapp-connector-api";
+import { useCallback, useEffect, useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 import {
-  isLaceInstalled,
-  isLaceAuthorized,
   connectLace,
-  getWalletState,
-  getServiceConfig,
   formatMidnightAddress,
   getLaceInstallUrl,
-  type MidnightWalletState,
+  getServiceConfig,
+  getWalletState,
+  isLaceAuthorized,
+  isLaceInstalled,
   type MidnightServiceConfig,
+  type MidnightWalletState,
 } from "@/lib/wallet/midnight-wallet";
-import { useToast } from "@/hooks/use-toast";
 
 /**
  * Midnight wallet connection state
@@ -63,7 +63,8 @@ export interface MidnightWalletHookActions {
 /**
  * Combined hook return type
  */
-export type UseMidnightWalletReturn = MidnightWalletHookState & MidnightWalletHookActions;
+export type UseMidnightWalletReturn = MidnightWalletHookState &
+  MidnightWalletHookActions;
 
 /**
  * Local storage key for wallet connection state
@@ -80,7 +81,7 @@ function saveConnectionState(address: string): void {
     JSON.stringify({
       address,
       connectedAt: Date.now(),
-    })
+    }),
   );
 }
 
@@ -165,7 +166,8 @@ export function useMidnightWallet(): UseMidnightWalletReturn {
     if (!isLaceInstalled()) {
       setState((prev) => ({
         ...prev,
-        error: "Lace wallet is not installed. Please install the Lace Midnight Preview extension.",
+        error:
+          "Lace wallet is not installed. Please install the Lace Midnight Preview extension.",
         isLaceInstalled: false,
       }));
       toast({

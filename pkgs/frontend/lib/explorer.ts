@@ -1,9 +1,9 @@
 /**
  * Midnight Network Explorer Utilities
- * 
+ *
  * Provides helper functions for generating blockchain explorer links
  * and formatting transaction hashes for display.
- * 
+ *
  * @module lib/explorer
  */
 
@@ -42,10 +42,10 @@ export function getExplorerBaseUrl(): string {
 
 /**
  * Generate a URL to view a specific transaction on the explorer
- * 
+ *
  * @param txHash - The transaction hash (with or without 0x prefix)
  * @returns Full URL to the transaction page
- * 
+ *
  * @example
  * ```ts
  * const url = getTxUrl("00000000cedb75e9c6315a3fa646718dc64290399e92dcc7401f00d7a1ab1dfc");
@@ -59,7 +59,7 @@ export function getTxUrl(txHash: string): string {
 
 /**
  * Generate a URL to view a specific block on the explorer
- * 
+ *
  * @param blockHeight - The block height number
  * @returns Full URL to the block page
  */
@@ -69,7 +69,7 @@ export function getBlockUrl(blockHeight: number): string {
 
 /**
  * Generate a URL to view an address on the explorer
- * 
+ *
  * @param address - The wallet or contract address
  * @returns Full URL to the address page
  */
@@ -79,7 +79,7 @@ export function getAddressUrl(address: string): string {
 
 /**
  * Generate a URL to view a contract on the explorer
- * 
+ *
  * @param contractAddress - The contract address
  * @returns Full URL to the contract page
  */
@@ -89,16 +89,16 @@ export function getContractUrl(contractAddress: string): string {
 
 /**
  * Format a transaction hash for display with truncation
- * 
+ *
  * @param txHash - The full transaction hash
  * @param options - Formatting options
  * @returns Truncated hash string (e.g., "0x00000000...ab1dfc")
- * 
+ *
  * @example
  * ```ts
  * formatTxHash("00000000cedb75e9c6315a3fa646718dc64290399e92dcc7401f00d7a1ab1dfc")
  * // Returns: "00000000...ab1dfc"
- * 
+ *
  * formatTxHash("00000000cedb75e9...", { prefixLength: 10, suffixLength: 8, showPrefix: true })
  * // Returns: "0x00000000ce...1f00d7a1ab1dfc"
  * ```
@@ -109,7 +109,7 @@ export function formatTxHash(
     prefixLength?: number;
     suffixLength?: number;
     showPrefix?: boolean;
-  } = {}
+  } = {},
 ): string {
   const { prefixLength = 8, suffixLength = 6, showPrefix = false } = options;
 
@@ -130,7 +130,7 @@ export function formatTxHash(
 
 /**
  * Format a block height for display with locale-specific formatting
- * 
+ *
  * @param blockHeight - The block height number
  * @returns Formatted block height (e.g., "2,599,043")
  */
@@ -140,19 +140,19 @@ export function formatBlockHeight(blockHeight: number): string {
 
 /**
  * Validate if a string is a valid Midnight transaction hash
- * 
+ *
  * @param hash - The string to validate
  * @returns True if valid transaction hash format
  */
 export function isValidTxHash(hash: string): boolean {
   if (!hash) return false;
-  
+
   const cleanHash = hash.startsWith("0x") ? hash.slice(2) : hash;
-  
+
   // Midnight TX hashes are 72 hex characters
   const validLength = cleanHash.length === 72 || cleanHash.length === 64;
   const isHex = /^[0-9a-fA-F]+$/.test(cleanHash);
-  
+
   return validLength && isHex;
 }
 

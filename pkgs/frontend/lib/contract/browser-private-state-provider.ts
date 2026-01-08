@@ -1,9 +1,9 @@
 /**
  * Browser-compatible Private State Provider
- * 
+ *
  * Uses localStorage to persist private state in the browser.
  * This is a browser alternative to LevelDB-based storage used in Node.js.
- * 
+ *
  * Based on the pattern from dev-tools/frontend.
  */
 
@@ -25,13 +25,13 @@ export interface BrowserPrivateStateOptions {
 
 /**
  * Create a localStorage-based Private State Provider for browser environments
- * 
+ *
  * @param options - Configuration options
  * @param options.privateStateStoreName - Unique name for the storage key
  * @returns PrivateStateProvider instance
  */
 export function browserPrivateStateProvider<T extends string>(
-  options: BrowserPrivateStateOptions
+  options: BrowserPrivateStateOptions,
 ): PrivateStateProvider<T> {
   const storageKey = `midnight_private_state_${options.privateStateStoreName}`;
 
@@ -41,7 +41,10 @@ export function browserPrivateStateProvider<T extends string>(
      */
     async get(_id: T): Promise<Uint8Array | null> {
       try {
-        if (typeof window === "undefined" || typeof localStorage === "undefined") {
+        if (
+          typeof window === "undefined" ||
+          typeof localStorage === "undefined"
+        ) {
           return null;
         }
         const stored = localStorage.getItem(storageKey);
@@ -61,7 +64,10 @@ export function browserPrivateStateProvider<T extends string>(
      */
     async set(_id: T, state: Uint8Array): Promise<void> {
       try {
-        if (typeof window === "undefined" || typeof localStorage === "undefined") {
+        if (
+          typeof window === "undefined" ||
+          typeof localStorage === "undefined"
+        ) {
           throw new Error("localStorage is not available");
         }
         const bytes = Array.from(state);
@@ -77,7 +83,10 @@ export function browserPrivateStateProvider<T extends string>(
      */
     async remove(_id: T): Promise<void> {
       try {
-        if (typeof window === "undefined" || typeof localStorage === "undefined") {
+        if (
+          typeof window === "undefined" ||
+          typeof localStorage === "undefined"
+        ) {
           return;
         }
         localStorage.removeItem(storageKey);
@@ -91,14 +100,14 @@ export function browserPrivateStateProvider<T extends string>(
 
 /**
  * Clear all Midnight private state from localStorage
- * 
+ *
  * Useful for debugging or resetting wallet state
  */
 export function clearAllPrivateState(): void {
   if (typeof window === "undefined" || typeof localStorage === "undefined") {
     return;
   }
-  
+
   const keysToRemove: string[] = [];
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
@@ -106,10 +115,10 @@ export function clearAllPrivateState(): void {
       keysToRemove.push(key);
     }
   }
-  
+
   for (const key of keysToRemove) {
     localStorage.removeItem(key);
   }
-  
+
   console.log(`Cleared ${keysToRemove.length} Midnight private state entries`);
 }

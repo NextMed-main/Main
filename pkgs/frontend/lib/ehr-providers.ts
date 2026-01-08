@@ -26,7 +26,8 @@ export const EHR_PROVIDERS: EHRProvider[] = [
     categoryJa: "総合・大手",
     target: "Large Scale Hospitals / Regional Alliance",
     targetJa: "大規模病院・地域広域連携",
-    description: "Largest domestic share. De facto standard for regional medical coordination infrastructure.",
+    description:
+      "Largest domestic share. De facto standard for regional medical coordination infrastructure.",
     descriptionJa: "国内シェア最大級。地域医療連携基盤のデファクト。",
   },
   {
@@ -38,7 +39,8 @@ export const EHR_PROVIDERS: EHRProvider[] = [
     categoryJa: "総合・大手",
     target: "Regional Medical Network",
     targetJa: "地域医療連携ネットワーク",
-    description: "Integration of medical information between facilities. Utilizes NTT Data infrastructure.",
+    description:
+      "Integration of medical information between facilities. Utilizes NTT Data infrastructure.",
     descriptionJa: "施設間での診療情報統合参照。NTTデータの基盤活用。",
   },
   {
@@ -50,7 +52,8 @@ export const EHR_PROVIDERS: EHRProvider[] = [
     categoryJa: "総合・大手",
     target: "SME Hospitals / Regional Alliance",
     targetJa: "中小病院・地域連携",
-    description: "Strong in regional coordination functions. Abundant introduction track record.",
+    description:
+      "Strong in regional coordination functions. Abundant introduction track record.",
     descriptionJa: "地域連携機能に強み。導入実績が豊富。",
   },
   {
@@ -62,7 +65,8 @@ export const EHR_PROVIDERS: EHRProvider[] = [
     categoryJa: "総合・大手",
     target: "Large Hospitals / Integrated",
     targetJa: "大病院・統合型",
-    description: "Data sharing environment completely integrated with proprietary electronic medical records.",
+    description:
+      "Data sharing environment completely integrated with proprietary electronic medical records.",
     descriptionJa: "自社カルテと完全に統合されたデータ共有環境。",
   },
   {
@@ -74,7 +78,8 @@ export const EHR_PROVIDERS: EHRProvider[] = [
     categoryJa: "公共・PHR",
     target: "Patients / Local Gov",
     targetJa: "患者・自治体",
-    description: "Strong character as PHR (Personal Health Record), viewable by patients themselves.",
+    description:
+      "Strong character as PHR (Personal Health Record), viewable by patients themselves.",
     descriptionJa: "PHR（個人健康記録）としての性格が強く、患者自身が閲覧。",
   },
   {
@@ -86,7 +91,8 @@ export const EHR_PROVIDERS: EHRProvider[] = [
     categoryJa: "クラウド・次世代",
     target: "Clinics / Patients",
     targetJa: "クリニック・患者",
-    description: "System integrating online medical care, electronic charts, and reservations.",
+    description:
+      "System integrating online medical care, electronic charts, and reservations.",
     descriptionJa: "オンライン診療、カルテ、予約が一体となったシステム。",
   },
   {
@@ -110,7 +116,8 @@ export const EHR_PROVIDERS: EHRProvider[] = [
     categoryJa: "クラウド・次世代",
     target: "Clinics / API Integration",
     targetJa: "クリニック・API連携",
-    description: "Active in API integration, high affinity with external services.",
+    description:
+      "Active in API integration, high affinity with external services.",
     descriptionJa: "API連携に積極的で、外部サービスとの親和性が高い。",
   },
   {
@@ -122,8 +129,10 @@ export const EHR_PROVIDERS: EHRProvider[] = [
     categoryJa: "データ基盤",
     target: "Developers / Data Integration",
     targetJa: "開発者・データ統合",
-    description: "Global data platform. Strong in standardization of medical information.",
-    descriptionJa: "グローバルなデータプラットフォーム。医療情報の標準化に強み。",
+    description:
+      "Global data platform. Strong in standardization of medical information.",
+    descriptionJa:
+      "グローバルなデータプラットフォーム。医療情報の標準化に強み。",
   },
   {
     id: "ssmix",

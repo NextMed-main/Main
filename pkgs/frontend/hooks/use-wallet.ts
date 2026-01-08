@@ -4,24 +4,24 @@
 
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 import type {
+  WalletActions,
   WalletName,
   WalletState,
-  WalletActions,
 } from "@/lib/wallet/types";
-import { WalletError, ERROR_MESSAGES } from "@/lib/wallet/types";
+import { ERROR_MESSAGES, WalletError } from "@/lib/wallet/types";
 import {
   connectWallet,
-  getAddress,
   formatAddress,
+  getAddress,
 } from "@/lib/wallet/wallet-api";
 import {
-  saveConnection,
-  loadConnection,
   clearConnection,
+  loadConnection,
+  saveConnection,
 } from "@/lib/wallet/wallet-storage";
-import { useToast } from "@/hooks/use-toast";
 
 /**
  * ウォレット状態管理フック

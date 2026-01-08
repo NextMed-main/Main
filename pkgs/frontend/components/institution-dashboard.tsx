@@ -1,13 +1,5 @@
 "use client";
 
-import { CyberChart } from "@/components/cyber/cyber-chart";
-import { GlassCard } from "@/components/cyber/glass-card";
-import { NeonButton } from "@/components/cyber/neon-button";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { WalletButton } from "@/components/wallet/wallet-button";
-import { EHR_PROVIDERS, type EHRProvider } from "@/lib/ehr-providers";
 import {
   Activity,
   CheckCircle2,
@@ -21,6 +13,14 @@ import {
   Upload,
 } from "lucide-react";
 import { useState } from "react";
+import { CyberChart } from "@/components/cyber/cyber-chart";
+import { GlassCard } from "@/components/cyber/glass-card";
+import { NeonButton } from "@/components/cyber/neon-button";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { WalletButton } from "@/components/wallet/wallet-button";
+import { EHR_PROVIDERS, type EHRProvider } from "@/lib/ehr-providers";
 
 interface InstitutionDashboardProps {
   onLogout: () => void;
@@ -36,12 +36,11 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
   const [selectedEHR, setSelectedEHR] = useState<EHRProvider | null>(null);
 
   const handleConnect = (providerId: string) => {
-    const provider = EHR_PROVIDERS.find(p => p.id === providerId);
+    const provider = EHR_PROVIDERS.find((p) => p.id === providerId);
     if (provider) {
       setSelectedEHR(provider);
     }
   };
-
 
   const handleFileUpload = () => {
     setUploadStatus("uploading");
@@ -149,9 +148,9 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
       <header className="relative z-10 border-b border-white/10 glass">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
-            <img 
-              src="/logo.jpg" 
-              alt="NextMed Logo" 
+            <img
+              src="/logo.jpg"
+              alt="NextMed Logo"
               className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg object-cover"
             />
             <span className="text-xl sm:text-2xl font-bold bg-linear-to-r from-indigo-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">
@@ -159,7 +158,9 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
             </span>
           </div>
           <div className="flex items-center gap-2 sm:gap-4">
-            <span className="hidden md:inline text-sm text-muted-foreground">Company & Clinic Portal</span>
+            <span className="hidden md:inline text-sm text-muted-foreground">
+              Company & Clinic Portal
+            </span>
             <WalletButton />
             <Button
               variant="ghost"
@@ -187,33 +188,50 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
 
         {/* Statistics Overview - Responsive Grid (要件 8.1, 8.2, 8.3) */}
         <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 mb-4 sm:mb-6">
-          <GlassCard variant="primary" className="p-4 sm:p-6 touch-manipulation active:scale-[0.98] transition-transform">
+          <GlassCard
+            variant="primary"
+            className="p-4 sm:p-6 touch-manipulation active:scale-[0.98] transition-transform"
+          >
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-indigo-500/20 flex items-center justify-center">
                 <Coins className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-400" />
               </div>
               <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-400" />
             </div>
-            <p className="text-xs sm:text-sm text-cyan-300/70 mb-1">Total NEXT Tokens</p>
-            <p className="text-2xl sm:text-3xl font-bold text-white mb-1">{totalTokens}</p>
+            <p className="text-xs sm:text-sm text-cyan-300/70 mb-1">
+              Total NEXT Tokens
+            </p>
+            <p className="text-2xl sm:text-3xl font-bold text-white mb-1">
+              {totalTokens}
+            </p>
             <p className="text-xs text-emerald-400">
               +{uploadHistory[0].tokens} this week
             </p>
           </GlassCard>
 
-          <GlassCard variant="secondary" className="p-4 sm:p-6 touch-manipulation active:scale-[0.98] transition-transform">
+          <GlassCard
+            variant="secondary"
+            className="p-4 sm:p-6 touch-manipulation active:scale-[0.98] transition-transform"
+          >
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-emerald-500/20 flex items-center justify-center">
                 <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-400" />
               </div>
               <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-400" />
             </div>
-            <p className="text-xs sm:text-sm text-cyan-300/70 mb-1">Records Processed</p>
-            <p className="text-2xl sm:text-3xl font-bold text-white mb-1">320</p>
+            <p className="text-xs sm:text-sm text-cyan-300/70 mb-1">
+              Records Processed
+            </p>
+            <p className="text-2xl sm:text-3xl font-bold text-white mb-1">
+              320
+            </p>
             <p className="text-xs text-cyan-400">Today</p>
           </GlassCard>
 
-          <GlassCard variant="accent" className="p-4 sm:p-6 touch-manipulation active:scale-[0.98] transition-transform">
+          <GlassCard
+            variant="accent"
+            className="p-4 sm:p-6 touch-manipulation active:scale-[0.98] transition-transform"
+          >
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-cyan-500/20 flex items-center justify-center">
                 <Activity className="h-5 w-5 sm:h-6 sm:w-6 text-cyan-400" />
@@ -224,7 +242,9 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
                 <Search className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400" />
               )}
             </div>
-            <p className="text-xs sm:text-sm text-cyan-300/70 mb-1">EHR Status</p>
+            <p className="text-xs sm:text-sm text-cyan-300/70 mb-1">
+              EHR Status
+            </p>
             <p className="text-lg sm:text-xl font-bold text-white mb-1">
               {selectedEHR ? "Connected" : "Not Connected"}
             </p>
@@ -528,20 +548,25 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
                   EHR System Integration
                 </h3>
                 <p className="text-sm text-cyan-300/70">
-                  {selectedEHR ? "Managed connection with your Electronic Health Records system" : "Select your EHR provider to begin integration"}
+                  {selectedEHR
+                    ? "Managed connection with your Electronic Health Records system"
+                    : "Select your EHR provider to begin integration"}
                 </p>
               </div>
 
               {!selectedEHR ? (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {EHR_PROVIDERS.map((provider) => (
-                    <GlassCard 
-                      key={provider.id} 
-                      variant="secondary" 
+                    <GlassCard
+                      key={provider.id}
+                      variant="secondary"
                       className="p-4 flex flex-col h-full hover:border-cyan-400/50 transition-colors group"
                     >
                       <div className="mb-3">
-                        <Badge variant="outline" className="mb-2 border-white/20 text-xs text-cyan-300/70">
+                        <Badge
+                          variant="outline"
+                          className="mb-2 border-white/20 text-xs text-cyan-300/70"
+                        >
                           {provider.categoryJa}
                         </Badge>
                         <h4 className="font-bold text-white text-lg group-hover:text-cyan-400 transition-colors">
@@ -551,18 +576,22 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
                           {provider.vendorJa}
                         </p>
                       </div>
-                      
+
                       <div className="flex-grow space-y-2 mb-4">
                         <div className="bg-white/5 rounded p-2">
-                          <p className="text-[10px] text-cyan-300/50 uppercase tracking-wider">Target</p>
-                          <p className="text-xs text-gray-300">{provider.targetJa}</p>
+                          <p className="text-[10px] text-cyan-300/50 uppercase tracking-wider">
+                            Target
+                          </p>
+                          <p className="text-xs text-gray-300">
+                            {provider.targetJa}
+                          </p>
                         </div>
                         <p className="text-xs text-gray-400 leading-snug">
                           {provider.descriptionJa}
                         </p>
                       </div>
 
-                      <Button 
+                      <Button
                         onClick={() => handleConnect(provider.id)}
                         className="w-full mt-auto bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 border border-cyan-500/50"
                         size="sm"
@@ -597,9 +626,9 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
                           <CheckCircle2 className="h-3 w-3 mr-1" />
                           Connected
                         </Badge>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className="h-6 text-xs text-gray-400 hover:text-white"
                           onClick={() => setSelectedEHR(null)}
                         >
@@ -618,10 +647,10 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-cyan-300/70 mb-1">Last Sync</p>
-                        <p className="font-semibold text-white">
-                          Just now
+                        <p className="text-sm text-cyan-300/70 mb-1">
+                          Last Sync
                         </p>
+                        <p className="font-semibold text-white">Just now</p>
                       </div>
                       <div>
                         <p className="text-sm text-cyan-300/70 mb-1">
@@ -647,9 +676,9 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
                         <strong className="text-white">
                           Security Assurance:
                         </strong>{" "}
-                        Data from {selectedEHR.name} is only integrated after all PII (Name,
-                        Address) is completely masked. NextMed never stores raw
-                        patient personal data.
+                        Data from {selectedEHR.name} is only integrated after
+                        all PII (Name, Address) is completely masked. NextMed
+                        never stores raw patient personal data.
                       </p>
                     </div>
                   </div>

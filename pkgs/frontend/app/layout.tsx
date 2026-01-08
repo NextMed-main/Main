@@ -1,10 +1,10 @@
-import { Toaster } from "@/components/ui/sonner";
-import { MidnightWalletProvider } from "@/components/wallet/midnight-wallet-provider";
-import { WalletProvider } from "@/components/wallet/wallet-provider";
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import type React from "react";
+import { Toaster } from "@/components/ui/sonner";
+import { MidnightWalletProvider } from "@/components/wallet/midnight-wallet-provider";
+import { WalletProvider } from "@/components/wallet/wallet-provider";
 import "./globals.css";
 
 const geist = Geist({ subsets: ["latin"] });
@@ -47,7 +47,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geist.className} ${geistMono.className} font-sans antialiased`}>
+      <body
+        className={`${geist.className} ${geistMono.className} font-sans antialiased`}
+      >
         <WalletProvider>
           <MidnightWalletProvider>
             {children}
@@ -59,4 +61,3 @@ export default function RootLayout({
     </html>
   );
 }
-

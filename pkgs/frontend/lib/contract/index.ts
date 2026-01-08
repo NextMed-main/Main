@@ -1,38 +1,35 @@
 /**
  * Contract Integration Module
- * 
+ *
  * Exports all contract-related functionality for the Patient Registry.
  */
 
-// Patient Registry Contract Service
-export {
-  PATIENT_REGISTRY_ADDRESS,
-  DEPLOYED_CONTRACT,
-  getLedgerState,
-  getRegistrationStats,
-  checkContractConnection,
-  registerPatient,
-  verifyAgeRangeLocal,
-  hashCondition,
-  GenderCode,
-  RegistrationState,
-} from "./patient-registry";
-
-// Types
-export type {
-  PatientRegistrationParams,
-  RegistrationResult,
-  RegistrationStats,
-  LedgerState,
-  ContractConnectionStatus,
-  PatientRegistryConfig,
-  ContractProviders,
-} from "./types";
-
+export type { BrowserPrivateStateOptions } from "./browser-private-state-provider";
 // Browser Private State Provider
 export {
   browserPrivateStateProvider,
   clearAllPrivateState,
 } from "./browser-private-state-provider";
-
-export type { BrowserPrivateStateOptions } from "./browser-private-state-provider";
+// Patient Registry Contract Service
+export {
+  checkContractConnection,
+  DEPLOYED_CONTRACT,
+  GenderCode,
+  getLedgerState,
+  getRegistrationStats,
+  hashCondition,
+  PATIENT_REGISTRY_ADDRESS,
+  RegistrationState,
+  registerPatient,
+  verifyAgeRangeLocal,
+} from "./patient-registry";
+// Types
+export type {
+  ContractConnectionStatus,
+  ContractProviders,
+  LedgerState,
+  PatientRegistrationParams,
+  PatientRegistryConfig,
+  RegistrationResult,
+  RegistrationStats,
+} from "./types";
