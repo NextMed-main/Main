@@ -288,6 +288,27 @@ importers:
       '@midnight-ntwrk/dapp-connector-api':
         specifier: ^3.0.0
         version: 3.0.0(rxjs@7.8.2)
+      '@midnight-ntwrk/midnight-js-contracts':
+        specifier: 2.0.2
+        version: 2.0.2
+      '@midnight-ntwrk/midnight-js-fetch-zk-config-provider':
+        specifier: 2.0.2
+        version: 2.0.2
+      '@midnight-ntwrk/midnight-js-http-client-proof-provider':
+        specifier: 2.0.2
+        version: 2.0.2
+      '@midnight-ntwrk/midnight-js-indexer-public-data-provider':
+        specifier: 2.0.2
+        version: 2.0.2(@types/react@19.2.2)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      '@midnight-ntwrk/midnight-js-network-id':
+        specifier: 2.0.2
+        version: 2.0.2
+      '@midnight-ntwrk/midnight-js-types':
+        specifier: 2.0.2
+        version: 2.0.2
+      '@midnight-ntwrk/midnight-js-utils':
+        specifier: 2.0.2
+        version: 2.0.2
       '@radix-ui/react-accordion':
         specifier: 1.2.2
         version: 1.2.2(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)

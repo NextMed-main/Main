@@ -8,12 +8,18 @@
  */
 
 /**
- * Private state provider interface for Midnight.js
+ * Private state provider interface for Midnight.js v2.0.2
+ * Includes all required methods for contract interaction
  */
 export interface PrivateStateProvider<T extends string> {
   get(id: T): Promise<Uint8Array | null>;
   set(id: T, state: Uint8Array): Promise<void>;
   remove(id: T): Promise<void>;
+  clear(): Promise<void>;
+  setSigningKey(id: T, key: Uint8Array): Promise<void>;
+  getSigningKey(id: T): Promise<Uint8Array | null>;
+  removeSigningKey(id: T): Promise<void>;
+  clearSigningKeys(): Promise<void>;
 }
 
 /**
@@ -34,6 +40,7 @@ export function browserPrivateStateProvider<T extends string>(
   options: BrowserPrivateStateOptions,
 ): PrivateStateProvider<T> {
   const storageKey = `midnight_private_state_${options.privateStateStoreName}`;
+  const signingKeyPrefix = `midnight_signing_key_${options.privateStateStoreName}`;
 
   return {
     /**
@@ -93,6 +100,78 @@ export function browserPrivateStateProvider<T extends string>(
       } catch (error) {
         console.error("Failed to delete private state:", error);
         throw error;
+      }
+    },
+
+    /**
+     * Clear all private state
+     */
+    async clear(): Promise<void> {
+      if (typeof window === "undefined" || typeof localStorage === "undefined") {
+        return;
+      }
+      localStorage.removeItem(storageKey);
+    },
+
+    /**
+     * Store a signing key
+     */
+    async setSigningKey(id: T, key: Uint8Array): Promise<void> {
+      if (typeof window === "undefined" || typeof localStorage === "undefined") {
+        throw new Error("localStorage is not available");
+      }
+      const keyStorageKey = `${signingKeyPrefix}_${id}`;
+      const bytes = Array.from(key);
+      localStorage.setItem(keyStorageKey, JSON.stringify(bytes));
+    },
+
+    /**
+     * Retrieve a signing key
+     */
+    async getSigningKey(id: T): Promise<Uint8Array | null> {
+      if (typeof window === "undefined" || typeof localStorage === "undefined") {
+        return null;
+      }
+      const keyStorageKey = `${signingKeyPrefix}_${id}`;
+      const stored = localStorage.getItem(keyStorageKey);
+      if (!stored) {
+        return null;
+      }
+      try {
+        const bytes = JSON.parse(stored) as number[];
+        return new Uint8Array(bytes);
+      } catch {
+        return null;
+      }
+    },
+
+    /**
+     * Remove a signing key
+     */
+    async removeSigningKey(id: T): Promise<void> {
+      if (typeof window === "undefined" || typeof localStorage === "undefined") {
+        return;
+      }
+      const keyStorageKey = `${signingKeyPrefix}_${id}`;
+      localStorage.removeItem(keyStorageKey);
+    },
+
+    /**
+     * Clear all signing keys
+     */
+    async clearSigningKeys(): Promise<void> {
+      if (typeof window === "undefined" || typeof localStorage === "undefined") {
+        return;
+      }
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(signingKeyPrefix)) {
+          keysToRemove.push(key);
+        }
+      }
+      for (const key of keysToRemove) {
+        localStorage.removeItem(key);
       }
     },
   };

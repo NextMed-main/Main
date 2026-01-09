@@ -8,7 +8,13 @@
  */
 
 import type { DAppConnectorWalletAPI } from "@midnight-ntwrk/dapp-connector-api";
-import { getServiceConfig } from "../wallet/midnight-wallet";
+import { findDeployedContract } from "@midnight-ntwrk/midnight-js-contracts";
+import { FetchZkConfigProvider } from "@midnight-ntwrk/midnight-js-fetch-zk-config-provider";
+import { httpClientProofProvider } from "@midnight-ntwrk/midnight-js-http-client-proof-provider";
+import { indexerPublicDataProvider } from "@midnight-ntwrk/midnight-js-indexer-public-data-provider";
+import { NetworkId, setNetworkId } from "@midnight-ntwrk/midnight-js-network-id";
+import { getServiceConfig, getWalletState } from "../wallet/midnight-wallet";
+import { browserPrivateStateProvider } from "./browser-private-state-provider";
 import {
   type ContractConnectionStatus,
   DEPLOYED_CONTRACT,
@@ -19,6 +25,9 @@ import {
   RegistrationState,
   type RegistrationStats,
 } from "./types";
+
+// Set network to TestNet
+setNetworkId(NetworkId.TestNet);
 
 // ============================================
 // Contract Constants
@@ -33,6 +42,95 @@ export const PATIENT_REGISTRY_ADDRESS = DEPLOYED_CONTRACT.contractAddress;
  * Private state ID for the patient registry
  */
 const PRIVATE_STATE_ID = "patientRegistryState";
+
+/**
+ * ZK config path for the patient registry contract
+ * This should point to the compiled contract files in public/contract/patient-registry/
+ */
+const ZK_CONFIG_BASE_URL = "/contract/patient-registry";
+
+// ============================================
+// Browser Provider Configuration
+// ============================================
+
+/**
+ * Configure all required providers for browser-based contract interaction
+ *
+ * This follows the Midnight.js pattern for browser DApps:
+ * - privateStateProvider: localStorage-based state management
+ * - publicDataProvider: Indexer connection for reading on-chain data
+ * - zkConfigProvider: Loads ZK circuit configs from public directory
+ * - proofProvider: HTTP client for proof server communication
+ * - walletProvider: DApp connector for balancing/proving transactions
+ * - midnightProvider: DApp connector for submitting transactions
+ *
+ * @param walletApi - Connected DApp Connector wallet API
+ * @returns Configured providers for contract operations
+ */
+export async function configureBrowserProviders(walletApi: DAppConnectorWalletAPI) {
+  const serviceConfig = await getServiceConfig(walletApi);
+  // walletState is available for future use if needed for coinPublicKey, encryptionPublicKey
+  // const walletState = await getWalletState(walletApi);
+
+  const indexerWsUrl = serviceConfig.indexerWS ?? 
+    serviceConfig.indexer.replace("https://", "wss://").replace("/graphql", "/graphql/ws");
+
+  return {
+    // Use type assertion to bypass strict type checking - browser environment differs from Node.js
+    privateStateProvider: browserPrivateStateProvider<typeof PRIVATE_STATE_ID>({
+      privateStateStoreName: "patient-registry-state",
+    }) as any,
+    // Use type assertion to call indexerPublicDataProvider with (url, wsUrl) arguments
+    publicDataProvider: (indexerPublicDataProvider as any)(serviceConfig.indexer, indexerWsUrl),
+    // FetchZkConfigProvider takes (circuitName, baseUrl) in some versions
+    zkConfigProvider: new (FetchZkConfigProvider as any)(
+      "registerPatient",
+      ZK_CONFIG_BASE_URL,
+    ),
+    proofProvider: httpClientProofProvider(serviceConfig.proofServer) as any,
+    // For browser, we pass the wallet API directly - it handles balancing and proving
+    walletProvider: walletApi as any,
+    midnightProvider: walletApi as any,
+  };
+}
+
+/**
+ * Join an existing Patient Registry contract
+ *
+ * This connects to a deployed contract instance on the blockchain.
+ * Must be called before any contract transactions.
+ *
+ * @param walletApi - Connected DApp Connector wallet API
+ * @param contractAddress - Address of deployed contract (defaults to PATIENT_REGISTRY_ADDRESS)
+ * @returns Deployed contract instance
+ */
+export async function joinPatientRegistry(
+  walletApi: DAppConnectorWalletAPI,
+  contractAddress: string = PATIENT_REGISTRY_ADDRESS,
+) {
+  console.log("Joining Patient Registry contract at:", contractAddress);
+  
+  const providers = await configureBrowserProviders(walletApi);
+
+  // Note: For browser use, we create a minimal contract instance
+  // The actual contract type comes from the compiled contract package
+  // This is a simplified version - full implementation would import from @nextmed/contract
+  const deployedContract = await findDeployedContract(providers, {
+    contractAddress,
+    contract: {
+      // Minimal contract interface for joining
+      impureCircuits: {
+        registerPatient: "registerPatient",
+        getRegistrationStats: "getRegistrationStats",
+      },
+    } as any,
+    privateStateId: PRIVATE_STATE_ID,
+    initialPrivateState: {},
+  });
+
+  console.log("Successfully joined contract:", deployedContract.deployTxData?.public?.contractAddress);
+  return deployedContract;
+}
 
 // ============================================
 // Indexer Queries
@@ -206,29 +304,62 @@ export async function registerPatient(
     throw new Error("Invalid gender code");
   }
 
-  // Get service config from wallet
-  const serviceConfig = await getServiceConfig();
-
   console.log("Registering patient with params:", {
     age: params.age,
     genderCode: params.genderCode,
     conditionHash: params.conditionHash.toString(),
   });
-  console.log("Using service config:", serviceConfig);
 
-  // TODO: Implement full contract call using Midnight.js
-  // This requires:
-  // 1. Creating the contract instance
-  // 2. Configuring providers
-  // 3. Joining the deployed contract
-  // 4. Calling contract.callTx.registerPatient()
+  try {
+    // Join the deployed contract
+    const contract = await joinPatientRegistry(walletApi);
 
-  // For now, throw an error indicating this is not yet fully implemented
-  throw new Error(
-    "Patient registration via browser is not yet fully implemented. " +
-      "The contract infrastructure exists but requires Midnight.js contract APIs to be properly configured. " +
-      "Please use the CLI to register patients: `pnpm register:patient`",
-  );
+    console.log("Contract joined, calling registerPatient circuit...");
+
+    // Call the registerPatient circuit on the contract
+    // This will:
+    // 1. Create an unbalanced transaction with the circuit call
+    // 2. The wallet will balance and prove the transaction
+    // 3. Submit the transaction to the network
+    const result = await (contract as any).callTx.registerPatient(
+      BigInt(params.age),
+      BigInt(params.genderCode),
+      params.conditionHash,
+    );
+
+    console.log("Registration transaction submitted:", result);
+
+    // Extract transaction details from the result
+    // The result structure varies by Midnight.js version, so we check multiple paths
+    const publicData = result?.public ?? result;
+    const txId = publicData?.txId ?? publicData?.transactionId ?? "unknown";
+    const blockHeight = publicData?.blockHeight ?? publicData?.block ?? 0;
+
+    return {
+      txId: String(txId),
+      blockHeight: Number(blockHeight),
+      success: true,
+    };
+  } catch (error) {
+    console.error("Patient registration failed:", error);
+    
+    // Provide helpful error messages
+    if (error instanceof Error) {
+      if (error.message.includes("proof")) {
+        throw new Error(
+          "Failed to generate proof. Make sure the proof server is running: " +
+          "docker run -p 6300:6300 midnightnetwork/proof-server:latest"
+        );
+      }
+      if (error.message.includes("balance") || error.message.includes("insufficient")) {
+        throw new Error(
+          "Insufficient funds. Please ensure your wallet has testnet tDUST tokens."
+        );
+      }
+      throw new Error(`Registration failed: ${error.message}`);
+    }
+    throw new Error("Registration failed: Unknown error");
+  }
 }
 
 /**

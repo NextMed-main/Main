@@ -20,6 +20,7 @@ import { Switch } from "@/components/ui/switch";
 import { useMidnightWalletContext } from "@/components/wallet/midnight-wallet-provider";
 import { WalletButton } from "@/components/wallet/wallet-button";
 import { WalletSelectionModal } from "@/components/wallet/wallet-modal";
+import { usePatientRegistry } from "@/hooks/use-patient-registry";
 import {
   calculateCountUp,
   easingFunctions,
@@ -37,15 +38,19 @@ export const PatientDashboard = React.memo(function PatientDashboard({
 }: PatientDashboardProps) {
   // Use shared Midnight wallet context
   const midnightWallet = useMidnightWalletContext();
+  
+  // Use Patient Registry contract hook
+  const { register: registerPatient, isSubmitting: isRegistering, error: registrationError, clearError } = usePatientRegistry();
 
   const [dataConsent, setDataConsent] = useState(true);
   const [uploadStatus, setUploadStatus] = useState<
-    "idle" | "uploading" | "processing" | "complete"
+    "idle" | "uploading" | "processing" | "complete" | "error"
   >("idle");
   const [uploadProgress, setUploadProgress] = useState(0);
   const [potentialEarnings, setPotentialEarnings] = useState(0);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [showWalletModal, setShowWalletModal] = useState(false);
+  const [lastTxHash, setLastTxHash] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Count-up animation state (要件 3.3)
@@ -149,25 +154,58 @@ export const PatientDashboard = React.memo(function PatientDashboard({
     alert(`Withdrawing ${totalEarnings} NEXT tokens to ${walletAddress}`);
   }, [walletConnected, walletAddress, totalEarnings]);
 
-  const handleFileUpload = React.useCallback((_file: File) => {
-    setUploadStatus("uploading");
-    setUploadProgress(0);
-    setPotentialEarnings(15);
+  const handleFileUpload = React.useCallback(
+    async (_file: File) => {
+      // Check wallet connection first
+      if (!walletConnected) {
+        alert("Please connect your wallet first to register health data.");
+        setShowWalletModal(true);
+        return;
+      }
 
-    const uploadInterval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(uploadInterval);
-          setUploadStatus("processing");
-          setTimeout(() => {
-            setUploadStatus("complete");
-          }, 2000);
-          return 100;
+      clearError();
+      setUploadStatus("uploading");
+      setUploadProgress(0);
+      setPotentialEarnings(15);
+      setLastTxHash(null);
+
+      // Simulate file processing progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress((prev) => {
+          if (prev >= 100) {
+            clearInterval(progressInterval);
+            return 100;
+          }
+          return prev + 10;
+        });
+      }, 200);
+
+      // Wait for progress to complete
+      await new Promise((resolve) => setTimeout(resolve, 2200));
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+      setUploadStatus("processing");
+
+      try {
+        // Call the real blockchain contract!
+        // Using demo data: age 30, male, condition "Hypertension"
+        const result = await registerPatient(30, "male", "Hypertension");
+
+        if (result) {
+          console.log("Registration successful! TX:", result.txId);
+          setLastTxHash(result.txId);
+          setUploadStatus("complete");
+        } else {
+          // Registration failed (error is set in the hook)
+          setUploadStatus("error");
         }
-        return prev + 25;
-      });
-    }, 500);
-  }, []);
+      } catch (err) {
+        console.error("Registration error:", err);
+        setUploadStatus("error");
+      }
+    },
+    [walletConnected, registerPatient, clearError]
+  );
 
   const handleFileSelect = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -530,7 +568,9 @@ export const PatientDashboard = React.memo(function PatientDashboard({
                   <div className="flex items-center gap-2 text-sm">
                     <div className="h-4 w-4 border-2 border-indigo-400/30 border-t-indigo-400 rounded-full animate-spin" />
                     <span className="font-medium text-indigo-400">
-                      Processing: Masking PII with Midnight ZK...
+                      {isRegistering 
+                        ? "Submitting to blockchain via Midnight ZK..." 
+                        : "Preparing ZK proof..."}
                     </span>
                   </div>
                 )}
@@ -543,9 +583,25 @@ export const PatientDashboard = React.memo(function PatientDashboard({
                     <div className="flex items-center gap-2 text-sm text-emerald-400">
                       <CheckCircle2 className="h-4 w-4" />
                       <span className="font-medium">
-                        Upload complete! Your data is now securely stored.
+                        Registration complete! Your data is now on the blockchain.
                       </span>
                     </div>
+                    {lastTxHash && (
+                      <div className="p-3 bg-emerald-500/5 border border-emerald-400/20 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-400">Transaction Hash:</span>
+                          <a
+                            href={getTxUrl(lastTxHash)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-cyan-400 hover:text-cyan-300 transition-colors"
+                          >
+                            <span className="font-mono text-xs">{formatTxHash(lastTxHash)}</span>
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </div>
+                      </div>
+                    )}
                     <div className="p-4 bg-emerald-500/10 border border-emerald-400/20 rounded-lg">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-medium text-white">
@@ -564,6 +620,39 @@ export const PatientDashboard = React.memo(function PatientDashboard({
                         Midnight's ZK technology.
                       </p>
                     </div>
+                  </div>
+                )}
+
+                {uploadStatus === "error" && (
+                  <div
+                    className="space-y-3"
+                    style={smoothTransition(["opacity"], { duration: 500 })}
+                  >
+                    <div className="flex items-center gap-2 text-sm text-red-400">
+                      <Shield className="h-4 w-4" />
+                      <span className="font-medium">
+                        Registration failed
+                      </span>
+                    </div>
+                    <div className="p-3 bg-red-500/10 border border-red-400/20 rounded-lg">
+                      <p className="text-sm text-red-300 mb-2">
+                        {registrationError || "An error occurred during blockchain registration."}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        Make sure the proof server is running and you have sufficient testnet funds.
+                      </p>
+                    </div>
+                    <Button
+                      onClick={() => {
+                        setUploadStatus("idle");
+                        clearError();
+                      }}
+                      variant="outline"
+                      size="sm"
+                      className="w-full border-red-400/50 hover:bg-red-400/10"
+                    >
+                      Try Again
+                    </Button>
                   </div>
                 )}
               </div>
