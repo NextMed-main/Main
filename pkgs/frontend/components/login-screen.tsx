@@ -174,7 +174,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
                 onClick={() => onLogin("institution")}
                 className="w-full bg-white/5 border-white/20 text-white hover:bg-white/10 hover:border-emerald-400/50 transition-all h-11 sm:h-12 text-sm sm:text-base touch-manipulation"
               >
-                Login as Company
+                Login as Company & Clinic
               </Button>
             </div>
           </div>
@@ -188,7 +188,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
               <br />
               Researcher: researcher@nextmed.demo / pass123
               <br />
-              Company: company@nextmed.demo / pass123
+              Company & Clinic: company@nextmed.demo / pass123
             </p>
           </div>
         </div>

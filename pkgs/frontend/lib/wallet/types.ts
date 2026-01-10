@@ -177,6 +177,11 @@ export interface WalletState {
   address: string | null;
 
   /**
+   * 短縮形式のアドレス (例: "addr1...xyz")
+   */
+  formattedAddress: string | null;
+
+  /**
    * エラーメッセージ
    */
   error: string | null;

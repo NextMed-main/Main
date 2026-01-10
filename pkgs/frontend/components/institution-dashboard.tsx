@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WalletButton } from "@/components/wallet/wallet-button";
+import { EHR_PROVIDERS, type EHRProvider } from "@/lib/ehr-providers";
 import {
   Activity,
   CheckCircle2,
@@ -14,6 +15,7 @@ import {
   Coins,
   FileText,
   LogOut,
+  Search,
   Shield,
   TrendingUp,
   Upload,
@@ -31,6 +33,15 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [earnedTokens, setEarnedTokens] = useState(0);
   const [totalTokens, setTotalTokens] = useState(1250);
+  const [selectedEHR, setSelectedEHR] = useState<EHRProvider | null>(null);
+
+  const handleConnect = (providerId: string) => {
+    const provider = EHR_PROVIDERS.find(p => p.id === providerId);
+    if (provider) {
+      setSelectedEHR(provider);
+    }
+  };
+
 
   const handleFileUpload = () => {
     setUploadStatus("uploading");
@@ -148,7 +159,7 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
             </span>
           </div>
           <div className="flex items-center gap-2 sm:gap-4">
-            <span className="hidden md:inline text-sm text-muted-foreground">Company Portal</span>
+            <span className="hidden md:inline text-sm text-muted-foreground">Company & Clinic Portal</span>
             <WalletButton />
             <Button
               variant="ghost"
@@ -166,7 +177,7 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-6xl">
         <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 text-balance bg-linear-to-r from-indigo-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">
-            Company Dashboard
+            Company & Clinic Dashboard
           </h1>
           <p className="text-cyan-300/70 text-sm sm:text-base lg:text-lg">
             Securely upload and integrate medical records with ZK privacy
@@ -207,11 +218,19 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
               <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-cyan-500/20 flex items-center justify-center">
                 <Activity className="h-5 w-5 sm:h-6 sm:w-6 text-cyan-400" />
               </div>
-              <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-400" />
+              {selectedEHR ? (
+                <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-400" />
+              ) : (
+                <Search className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400" />
+              )}
             </div>
             <p className="text-xs sm:text-sm text-cyan-300/70 mb-1">EHR Status</p>
-            <p className="text-lg sm:text-xl font-bold text-white mb-1">Connected</p>
-            <p className="text-xs text-emerald-400">Sakura Net EHR</p>
+            <p className="text-lg sm:text-xl font-bold text-white mb-1">
+              {selectedEHR ? "Connected" : "Not Connected"}
+            </p>
+            <p className="text-xs text-emerald-400">
+              {selectedEHR ? selectedEHR.name : "Select Provider"}
+            </p>
           </GlassCard>
         </div>
 
@@ -509,81 +528,133 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
                   EHR System Integration
                 </h3>
                 <p className="text-sm text-cyan-300/70">
-                  Automated synchronization with your Electronic Health Records
-                  system
+                  {selectedEHR ? "Managed connection with your Electronic Health Records system" : "Select your EHR provider to begin integration"}
                 </p>
               </div>
-              <div className="space-y-6">
-                <div className="p-6 bg-gradient-to-br from-indigo-500/10 to-cyan-500/10 rounded-lg border border-cyan-400/30">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="h-12 w-12 rounded-lg bg-cyan-500/20 flex items-center justify-center">
-                        <Activity className="h-6 w-6 text-cyan-400" />
+
+              {!selectedEHR ? (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {EHR_PROVIDERS.map((provider) => (
+                    <GlassCard 
+                      key={provider.id} 
+                      variant="secondary" 
+                      className="p-4 flex flex-col h-full hover:border-cyan-400/50 transition-colors group"
+                    >
+                      <div className="mb-3">
+                        <Badge variant="outline" className="mb-2 border-white/20 text-xs text-cyan-300/70">
+                          {provider.categoryJa}
+                        </Badge>
+                        <h4 className="font-bold text-white text-lg group-hover:text-cyan-400 transition-colors">
+                          {provider.name}
+                        </h4>
+                        <p className="text-xs text-emerald-400 font-medium">
+                          {provider.vendorJa}
+                        </p>
+                      </div>
+                      
+                      <div className="flex-grow space-y-2 mb-4">
+                        <div className="bg-white/5 rounded p-2">
+                          <p className="text-[10px] text-cyan-300/50 uppercase tracking-wider">Target</p>
+                          <p className="text-xs text-gray-300">{provider.targetJa}</p>
+                        </div>
+                        <p className="text-xs text-gray-400 leading-snug">
+                          {provider.descriptionJa}
+                        </p>
+                      </div>
+
+                      <Button 
+                        onClick={() => handleConnect(provider.id)}
+                        className="w-full mt-auto bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 border border-cyan-500/50"
+                        size="sm"
+                      >
+                        Connect System
+                      </Button>
+                    </GlassCard>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="p-6 bg-gradient-to-br from-indigo-500/10 to-cyan-500/10 rounded-lg border border-cyan-400/30">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-12 w-12 rounded-lg bg-cyan-500/20 flex items-center justify-center">
+                          <Activity className="h-6 w-6 text-cyan-400" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-lg text-white">
+                            {selectedEHR.name}
+                          </p>
+                          <p className="text-sm text-cyan-300/70">
+                            {selectedEHR.vendorJa} / {selectedEHR.vendor}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-2">
+                        <Badge
+                          variant="secondary"
+                          className="bg-emerald-500/20 text-emerald-400 border-emerald-400/30"
+                        >
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                          Connected
+                        </Badge>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-6 text-xs text-gray-400 hover:text-white"
+                          onClick={() => setSelectedEHR(null)}
+                        >
+                          Disconnect
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
+                      <div>
+                        <p className="text-sm text-cyan-300/70 mb-1">
+                          Connection Status
+                        </p>
+                        <p className="font-semibold text-emerald-400">
+                          Active & Synchronizing
+                        </p>
                       </div>
                       <div>
-                        <p className="font-semibold text-lg text-white">
-                          Sakura Net EHR
+                        <p className="text-sm text-cyan-300/70 mb-1">Last Sync</p>
+                        <p className="font-semibold text-white">
+                          Just now
                         </p>
-                        <p className="text-sm text-cyan-300/70">
-                          Enterprise Edition
+                      </div>
+                      <div>
+                        <p className="text-sm text-cyan-300/70 mb-1">
+                          Records Processed Today
+                        </p>
+                        <p className="text-2xl font-bold text-cyan-400">320</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-cyan-300/70 mb-1">
+                          NEXT Tokens Earned Today
+                        </p>
+                        <p className="text-2xl font-bold text-emerald-400">
+                          +320
                         </p>
                       </div>
                     </div>
-                    <Badge
-                      variant="secondary"
-                      className="bg-emerald-500/20 text-emerald-400 border-emerald-400/30"
-                    >
-                      <CheckCircle2 className="h-3 w-3 mr-1" />
-                      Connected
-                    </Badge>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
-                    <div>
-                      <p className="text-sm text-cyan-300/70 mb-1">
-                        Connection Status
-                      </p>
-                      <p className="font-semibold text-emerald-400">
-                        Active & Synchronizing
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-cyan-300/70 mb-1">Last Sync</p>
-                      <p className="font-semibold text-white">
-                        02 Nov 2025, 10:48:12
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-cyan-300/70 mb-1">
-                        Records Processed Today
-                      </p>
-                      <p className="text-2xl font-bold text-cyan-400">320</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-cyan-300/70 mb-1">
-                        NEXT Tokens Earned Today
-                      </p>
-                      <p className="text-2xl font-bold text-emerald-400">
-                        +320
+                  <div className="p-4 bg-indigo-500/10 border border-indigo-400/30 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <Shield className="h-4 w-4 text-indigo-400 mt-1 flex-shrink-0" />
+                      <p className="text-sm text-cyan-300/70 leading-relaxed">
+                        <strong className="text-white">
+                          Security Assurance:
+                        </strong>{" "}
+                        Data from {selectedEHR.name} is only integrated after all PII (Name,
+                        Address) is completely masked. NextMed never stores raw
+                        patient personal data.
                       </p>
                     </div>
                   </div>
                 </div>
-
-                <div className="p-4 bg-indigo-500/10 border border-indigo-400/30 rounded-lg">
-                  <div className="flex items-start gap-2">
-                    <Shield className="h-4 w-4 text-indigo-400 mt-1 flex-shrink-0" />
-                    <p className="text-sm text-cyan-300/70 leading-relaxed">
-                      <strong className="text-white">
-                        Security Assurance:
-                      </strong>{" "}
-                      Data from your EHR is only integrated after all PII (Name,
-                      Address) is completely masked. NextMed never stores raw
-                      patient personal data.
-                    </p>
-                  </div>
-                </div>
-              </div>
+              )}
             </GlassCard>
 
             <GlassCard variant="default" className="p-6">

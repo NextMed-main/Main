@@ -262,65 +262,64 @@ export const LandingPage = React.memo(function LandingPage({ onGetStarted }: Lan
         </section>
 
         {/* Technology Section - Responsive Grid (要件 8.1, 8.2, 8.3) */}
-        <GlassCard 
-          ref={techRef} 
-          variant="default" 
-          className="p-4 sm:p-6 lg:p-8 mb-12 sm:mb-16 opacity-0"
-          as="section"
-          aria-labelledby="technology-heading"
-        >
-          <div className="text-center mb-6 sm:mb-8">
-            <h2 id="technology-heading" className="text-2xl sm:text-3xl font-bold mb-2">
-              <GradientText gradient="default">
-                Zero-Knowledge Privacy Protection
-              </GradientText>
-            </h2>
-            <p className="text-sm sm:text-base text-slate-300">
-              Built on Midnight's cutting-edge ZK technology
-            </p>
-          </div>
-          <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" role="list">
-            <article className="text-center space-y-2 touch-manipulation active:scale-95 transition-transform">
-              <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-full bg-indigo-500/20 flex items-center justify-center mx-auto neon-glow-primary" aria-hidden="true">
-                <Lock className="h-6 w-6 sm:h-8 sm:w-8 text-indigo-400" />
-              </div>
-              <h3 className="font-semibold text-sm sm:text-base text-white">Encrypted Storage</h3>
-              <p className="text-xs sm:text-sm text-slate-300">
-                All data encrypted at rest and in transit
+        <section ref={techRef} className="opacity-0" aria-labelledby="technology-heading">
+          <GlassCard 
+            variant="default" 
+            className="p-4 sm:p-6 lg:p-8 mb-12 sm:mb-16"
+          >
+            <div className="text-center mb-6 sm:mb-8">
+              <h2 id="technology-heading" className="text-2xl sm:text-3xl font-bold mb-2">
+                <GradientText gradient="default">
+                  Zero-Knowledge Privacy Protection
+                </GradientText>
+              </h2>
+              <p className="text-sm sm:text-base text-slate-300">
+                Built on Midnight's cutting-edge ZK technology
               </p>
-            </article>
+            </div>
+            <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" role="list">
+              <article className="text-center space-y-2 touch-manipulation active:scale-95 transition-transform">
+                <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-full bg-indigo-500/20 flex items-center justify-center mx-auto neon-glow-primary" aria-hidden="true">
+                  <Lock className="h-6 w-6 sm:h-8 sm:w-8 text-indigo-400" />
+                </div>
+                <h3 className="font-semibold text-sm sm:text-base text-white">Encrypted Storage</h3>
+                <p className="text-xs sm:text-sm text-slate-300">
+                  All data encrypted at rest and in transit
+                </p>
+              </article>
 
-            <article className="text-center space-y-2 touch-manipulation active:scale-95 transition-transform">
-              <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto neon-glow-secondary" aria-hidden="true">
-                <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-emerald-400" />
-              </div>
-              <h3 className="font-semibold text-sm sm:text-base text-white">ZK Proofs</h3>
-              <p className="text-xs sm:text-sm text-slate-300">
-                Verify data without revealing content
-              </p>
-            </article>
+              <article className="text-center space-y-2 touch-manipulation active:scale-95 transition-transform">
+                <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto neon-glow-secondary" aria-hidden="true">
+                  <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-emerald-400" />
+                </div>
+                <h3 className="font-semibold text-sm sm:text-base text-white">ZK Proofs</h3>
+                <p className="text-xs sm:text-sm text-slate-300">
+                  Verify data without revealing content
+                </p>
+              </article>
 
-            <article className="text-center space-y-2 touch-manipulation active:scale-95 transition-transform">
-              <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-full bg-cyan-500/20 flex items-center justify-center mx-auto neon-glow-accent" aria-hidden="true">
-                <Database className="h-6 w-6 sm:h-8 sm:w-8 text-cyan-400" />
-              </div>
-              <h3 className="font-semibold text-sm sm:text-base text-white">Confidential Computing</h3>
-              <p className="text-xs sm:text-sm text-slate-300">
-                Analysis in secure enclaves
-              </p>
-            </article>
+              <article className="text-center space-y-2 touch-manipulation active:scale-95 transition-transform">
+                <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-full bg-cyan-500/20 flex items-center justify-center mx-auto neon-glow-accent" aria-hidden="true">
+                  <Database className="h-6 w-6 sm:h-8 sm:w-8 text-cyan-400" />
+                </div>
+                <h3 className="font-semibold text-sm sm:text-base text-white">Confidential Computing</h3>
+                <p className="text-xs sm:text-sm text-slate-300">
+                  Analysis in secure enclaves
+                </p>
+              </article>
 
-            <article className="text-center space-y-2 touch-manipulation active:scale-95 transition-transform">
-              <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto neon-glow-secondary" aria-hidden="true">
-                <Zap className="h-6 w-6 sm:h-8 sm:w-8 text-emerald-400" />
-              </div>
-              <h3 className="font-semibold text-sm sm:text-base text-white">Fast & Scalable</h3>
-              <p className="text-xs sm:text-sm text-slate-300">
-                Real-time queries on millions of records
-              </p>
-            </article>
-          </div>
-        </GlassCard>
+              <article className="text-center space-y-2 touch-manipulation active:scale-95 transition-transform">
+                <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto neon-glow-secondary" aria-hidden="true">
+                  <Zap className="h-6 w-6 sm:h-8 sm:w-8 text-emerald-400" />
+                </div>
+                <h3 className="font-semibold text-sm sm:text-base text-white">Fast & Scalable</h3>
+                <p className="text-xs sm:text-sm text-slate-300">
+                  Real-time queries on millions of records
+                </p>
+              </article>
+            </div>
+          </GlassCard>
+        </section>
 
         {/* CTA Section - Responsive (要件 8.1) */}
         <section ref={ctaRef} className="text-center space-y-4 sm:space-y-6 py-8 sm:py-12 px-4 opacity-0" aria-labelledby="cta-heading">

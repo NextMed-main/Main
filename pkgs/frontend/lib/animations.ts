@@ -224,14 +224,6 @@ export const customSlide = (
   return {
     transform: 'translateX(0) translateY(0)',
     transition: `transform ${cfg.duration}ms ${cfg.easing} ${cfg.delay}ms`,
-    '@keyframes': {
-      from: {
-        transform: transformMap[direction],
-      },
-      to: {
-        transform: 'translateX(0) translateY(0)',
-      },
-    },
   };
 };
 

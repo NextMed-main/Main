@@ -35,6 +35,7 @@ export function useWallet() {
     isConnecting: false,
     walletName: null,
     address: null,
+    formattedAddress: null,
     error: null,
   });
 
@@ -83,6 +84,7 @@ export function useWallet() {
           isConnecting: false,
           walletName,
           address,
+          formattedAddress: formatAddress(address),
           error: null,
         });
 
@@ -126,6 +128,7 @@ export function useWallet() {
       isConnecting: false,
       walletName: null,
       address: null,
+      formattedAddress: null,
       error: null,
     });
 
@@ -175,6 +178,7 @@ export function useWallet() {
         isConnecting: false,
         walletName: savedConnection.walletName,
         address: savedConnection.address,
+        formattedAddress: formatAddress(savedConnection.address),
         error: null,
       });
     }

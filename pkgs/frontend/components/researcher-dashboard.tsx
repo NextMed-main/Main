@@ -26,6 +26,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { WalletButton } from "@/components/wallet/wallet-button";
+import { EHR_PROVIDERS, type EHRProvider } from "@/lib/ehr-providers";
 import {
     Activity,
     BarChart3,
@@ -63,6 +64,16 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
   const [showResults, setShowResults] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [hasSubscription, setHasSubscription] = useState(false);
+  const [selectedEHR, setSelectedEHR] = useState<EHRProvider | null>(null);
+  const [showEHRSelector, setShowEHRSelector] = useState(false);
+
+  const handleConnectEHR = (providerId: string) => {
+    const provider = EHR_PROVIDERS.find(p => p.id === providerId);
+    if (provider) {
+      setSelectedEHR(provider);
+      setShowEHRSelector(false);
+    }
+  };
 
   const handleExecuteAnalysis = () => {
     if (!hasSubscription) {
@@ -245,6 +256,86 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
         </DialogContent>
       </Dialog>
 
+      {/* EHR Provider Selection Dialog */}
+      <Dialog open={showEHRSelector} onOpenChange={setShowEHRSelector}>
+        <DialogContent className="sm:max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Database className="h-5 w-5 text-primary" />
+              Select EHR Data Source
+            </DialogTitle>
+            <DialogDescription>
+              Choose which EHR system's data you want to analyze. All data is anonymized and aggregated.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedEHR && (
+            <div className="p-4 mb-4 bg-emerald-500/10 border border-emerald-400/30 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+                  <div>
+                    <p className="font-semibold">{selectedEHR.name}</p>
+                    <p className="text-sm text-muted-foreground">{selectedEHR.vendorJa}</p>
+                  </div>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setSelectedEHR(null)}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  Change
+                </Button>
+              </div>
+            </div>
+          )}
+          
+          <div className="grid gap-3 md:grid-cols-2">
+            {EHR_PROVIDERS.map((provider) => (
+              <div 
+                key={provider.id}
+                onClick={() => handleConnectEHR(provider.id)}
+                className={`p-4 rounded-lg border-2 cursor-pointer transition-all hover:scale-[1.02] ${
+                  selectedEHR?.id === provider.id 
+                    ? 'border-emerald-400 bg-emerald-500/10' 
+                    : 'border-border hover:border-primary hover:bg-primary/5'
+                }`}
+              >
+                <div className="mb-2">
+                  <Badge variant="outline" className="mb-1 text-xs">
+                    {provider.categoryJa}
+                  </Badge>
+                  <h4 className="font-bold text-base">{provider.name}</h4>
+                  <p className="text-xs text-emerald-500">{provider.vendorJa}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">
+                    <span className="font-medium">対象:</span> {provider.targetJa}
+                  </p>
+                  <p className="text-xs text-muted-foreground line-clamp-2">
+                    {provider.descriptionJa}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="flex justify-end gap-2 mt-4 pt-4 border-t">
+            <Button variant="outline" onClick={() => setShowEHRSelector(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => setShowEHRSelector(false)}
+              disabled={!selectedEHR}
+            >
+              <CheckCircle2 className="h-4 w-4 mr-2" />
+              Confirm Selection
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Responsive Header (要件 8.1, 8.2, 8.3) */}
       <header className="relative z-10 border-b border-white/10 glass">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 flex items-center justify-between">
@@ -314,7 +405,7 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
         )}
 
         {/* Responsive Stats Grid (要件 8.1, 8.2, 8.3) */}
-        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 mb-4 sm:mb-6">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-4 sm:mb-6">
           <GlassCard variant="primary" className="p-4 sm:p-6 touch-manipulation active:scale-[0.98] transition-transform">
             <div className="space-y-2">
               <p className="text-xs sm:text-sm font-medium text-muted-foreground">
@@ -353,6 +444,34 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
               </div>
               <p className="text-xs text-muted-foreground">
                 Hypertension (1,500 records)
+              </p>
+            </div>
+          </GlassCard>
+
+          {/* EHR Status Card */}
+          <GlassCard 
+            variant="default" 
+            className="p-4 sm:p-6 touch-manipulation active:scale-[0.98] transition-transform cursor-pointer hover:border-primary/50"
+            onClick={() => setShowEHRSelector(true)}
+          >
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">
+                  EHR Data Source
+                </p>
+                {selectedEHR ? (
+                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                ) : (
+                  <Search className="h-4 w-4 text-yellow-400" />
+                )}
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-lg sm:text-xl font-bold">
+                  {selectedEHR ? "Connected" : "Select Source"}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground truncate">
+                {selectedEHR ? selectedEHR.name : "Click to choose EHR"}
               </p>
             </div>
           </GlassCard>
