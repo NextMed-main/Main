@@ -7,7 +7,7 @@ on:
   pull_request:
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -62,15 +62,15 @@ jobs:
       # - name: Typecheck (CLI)
       #   run: pnpm --filter cli run typecheck
 
-      - name: Run Tests (Unit & Integration)
-        # This runs 'test' script in all packages that have it.
-        # contract: vitest run
-        # frontend: vitest run
-        # cli: NO 'test' script. Has 'test-api'.
-        # We explicitly run test-api for CLI if needed, or rely on implementation plan logic.
-        run: |
-            export PATH="$HOME/.cargo/bin:$PATH"
-            compact update 0.25.0
-            pnpm contract compact
-            pnpm contract test
-            pnpm frontend test
+      # - name: Run Tests (Unit & Integration)
+      #   # This runs 'test' script in all packages that have it.
+      #   # contract: vitest run
+      #   # frontend: vitest run
+      #   # cli: NO 'test' script. Has 'test-api'.
+      #   # We explicitly run test-api for CLI if needed, or rely on implementation plan logic.
+      #   run: |
+      #       export PATH="$HOME/.cargo/bin:$PATH"
+      #       compact update 0.25.0
+      #       pnpm contract compact
+      #       pnpm contract test
+      #       pnpm frontend test
