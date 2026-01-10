@@ -46,7 +46,7 @@ jobs:
         run: pnpm frontend build
 
       - name: Build CLI
-        run: pnpm cli build
+        run: pnpm contract build && pnpm cli build
 
       # - name: Check Format
       #   run: pnpm exec biome format pkgs/cli pkgs/contract pkgs/frontend --diagnostic-level=error
