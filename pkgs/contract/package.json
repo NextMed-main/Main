@@ -16,7 +16,7 @@
     }
   },
   "scripts": {
-    "compact": "compact compile ./src/patient-registry.compact ./src/managed/patient-registry",
+    "compact": "compact compile +0.21.0 ./src/patient-registry.compact ./src/managed/patient-registry",
     "pretest:disabled": "pnpm compact",
     "test": "vitest run",
     "test:watch": "vitest",
