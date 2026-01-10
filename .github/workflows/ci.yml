@@ -38,6 +38,7 @@ jobs:
       - name: Build Contract (Pre-requisite)
         run: |
           export PATH="$HOME/.cargo/bin:$PATH"
+          compact update 0.25.0
           pnpm contract compact
         shell: bash
 
