@@ -256,7 +256,7 @@ const main = async () => {
 
     // 6. 患者登録
     logger.info("Registering patient...");
-    const txInfo = await api.registerPatient(contract, age, gender, condition);
+    const txInfo = await api.registerPatient(contract, BigInt(age), BigInt(gender), BigInt(condition));
 
     // 7. 結果表示
     logger.info("=".repeat(60));
