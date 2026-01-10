@@ -99,18 +99,18 @@ const mainLoop = async (providers: PatientRegistryProviders, rli: Interface): Pr
 
         const condition = await rli.question('症状を入力してください: ');
 
-        await api.registerPatient(contract, age, gender, condition);
+        await api.registerPatient(contract, BigInt(age), BigInt(gender), BigInt(condition));
         logger.info('患者データを登録しました');
         break;
       }
       case '2': {
         // 登録統計を表示
-        const stats = await api.getRegistrationStats(contract);
+        const stats = await api.getRegistrationStats(contract, providers);
         logger.info('=== 登録統計 ===');
-        logger.info(`総登録数: ${stats.totalCount}`);
-        logger.info(`男性: ${stats.maleCount}`);
-        logger.info(`女性: ${stats.femaleCount}`);
-        logger.info(`その他: ${stats.otherCount}`);
+        logger.info(`総登録数: ${stats[0]}`);
+        logger.info(`男性: ${stats[1]}`);
+        logger.info(`女性: ${stats[2]}`);
+        logger.info(`その他: ${stats[3]}`);
         break;
       }
       case '3': {

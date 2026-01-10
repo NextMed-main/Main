@@ -1,13 +1,13 @@
 import {
-  type CircuitContext,
-  constructorContext,
-  QueryContext,
-  sampleContractAddress,
+    type CircuitContext,
+    constructorContext,
+    QueryContext,
+    sampleContractAddress,
 } from "@midnight-ntwrk/compact-runtime";
 import {
-  Contract,
-  type Ledger,
-  ledger,
+    Contract,
+    type Ledger,
+    ledger,
 } from "../managed/patient-registry/contract/index.cjs";
 import { type PatientRegistryPrivateState, witnesses } from "../witnesses.js";
 
@@ -79,12 +79,14 @@ export class PatientRegistrySimulator {
    * @returns [総登録数, 男性数, 女性数, その他数]
    */
   public getRegistrationStats(): [bigint, bigint, bigint, bigint] {
-    // コントラクトのgetRegistrationStatsメソッドを呼び出しました。
-    const result = this.contract.impureCircuits.getRegistrationStats(
-      this.circuitContext,
-    );
-    this.circuitContext = result.context;
-    return result.result;
+    // ledgerから直接統計情報を取得
+    const ledgerState = this.getLedger();
+    return [
+      ledgerState.registrationCount,
+      ledgerState.maleCount,
+      ledgerState.femaleCount,
+      ledgerState.otherCount,
+    ];
   }
 
   /**
@@ -95,8 +97,14 @@ export class PatientRegistrySimulator {
    * @returns 範囲内の場合true
    */
   public verifyAgeRange(age: bigint, minAge: bigint, maxAge: bigint): boolean {
-    // verifyAgeRangeはpure circuitとしてエクスポートされていないため、
-    // 直接ロジックを実装
-    return age >= minAge && age <= maxAge;
+    // verifyAgeRangeもpure circuitなのでcircuitsから呼び出す
+    const result = this.contract.circuits.verifyAgeRange(
+      this.circuitContext,
+      age,
+      minAge,
+      maxAge,
+    );
+    this.circuitContext = result.context;
+    return result.result;
   }
 }

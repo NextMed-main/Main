@@ -6,10 +6,10 @@ import * as dotenv from "dotenv";
 import type { Logger } from "pino";
 import * as api from "../src/api.js";
 import {
-  type Config,
-  StandaloneConfig,
-  TestnetLocalConfig,
-  TestnetRemoteConfig,
+    type Config,
+    StandaloneConfig,
+    TestnetLocalConfig,
+    TestnetRemoteConfig,
 } from "../src/config.js";
 import type { RegistrationStats } from "../src/utils/common-types.js";
 import { createLogger } from "../src/utils/logger-utils.js";
@@ -134,26 +134,26 @@ const displayStats = (stats: RegistrationStats): void => {
   console.log("\n" + "=".repeat(50));
   console.log("   Patient Registry Statistics");
   console.log("=".repeat(50));
-  console.log(`Total Registrations: ${stats.totalCount ?? 'N/A'}`);
+  console.log(`Total Registrations: ${stats[0]}`);
   console.log("-".repeat(50));
   console.log("Gender Distribution:");
-  console.log(`  Male:   ${stats.maleCount ?? 'N/A'}`);
-  console.log(`  Female: ${stats.femaleCount ?? 'N/A'}`);
-  console.log(`  Other:  ${stats.otherCount ?? 'N/A'}`);
+  console.log(`  Male:   ${stats[1]}`);
+  console.log(`  Female: ${stats[2]}`);
+  console.log(`  Other:  ${stats[3]}`);
   console.log("=".repeat(50) + "\n");
 
   if (logger !== undefined) {
     logger.info(
       {
-        totalCount: stats.totalCount?.toString() ?? 'undefined',
-        maleCount: stats.maleCount?.toString() ?? 'undefined',
-        femaleCount: stats.femaleCount?.toString() ?? 'undefined',
-        otherCount: stats.otherCount?.toString() ?? 'undefined',
+        totalCount: stats[0].toString(),
+        maleCount: stats[1].toString(),
+        femaleCount: stats[2].toString(),
+        otherCount: stats[3].toString(),
       },
       "Statistics retrieved successfully",
     );
   }
-};;
+};
 
 let logger: Logger | undefined;
 
@@ -205,7 +205,7 @@ const main = async () => {
 
     // 6. 統計情報取得
     logger.info("Fetching registration statistics...");
-    const stats = await api.getRegistrationStats(contract);
+    const stats = await api.getRegistrationStats(contract, providers);
 
     // 7. 結果表示
     displayStats(stats);

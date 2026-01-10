@@ -188,9 +188,9 @@ const main = async () => {
     logger.info('='.repeat(60));
     logger.info('Test 1: Checking initial registration stats');
     logger.info('='.repeat(60));
-    const initialStats = await api.getRegistrationStats(contract);
+    const initialStats = await api.getRegistrationStats(contract, providers);
     logger.info(
-      `Initial stats - Total: ${initialStats.totalCount}, Male: ${initialStats.maleCount}, Female: ${initialStats.femaleCount}, Other: ${initialStats.otherCount}`,
+      `Initial stats - Total: ${initialStats[0]}, Male: ${initialStats[1]}, Female: ${initialStats[2]}, Other: ${initialStats[3]}`,
     );
 
     // ========================================
@@ -203,43 +203,43 @@ const main = async () => {
     
     // 男性患者を登録
     logger.info('Registering male patient (Age: 30, Gender: Male, Condition: Diabetes)...');
-    await api.registerPatient(contract, 30n, 0n, 'Diabetes');
+    await api.registerPatient(contract, BigInt(30n), BigInt(0n), BigInt('Diabetes'));
     logger.info('✅ Male patient registered successfully');
 
     // 更新後の状態を確認
     logger.info('Checking updated registration stats...');
-    const afterMaleStats = await api.getRegistrationStats(contract);
+    const afterMaleStats = await api.getRegistrationStats(contract, providers);
     logger.info(
-      `After male registration - Total: ${afterMaleStats.totalCount}, Male: ${afterMaleStats.maleCount}, Female: ${afterMaleStats.femaleCount}, Other: ${afterMaleStats.otherCount}`,
+      `After male registration - Total: ${afterMaleStats[0]}, Male: ${afterMaleStats[1]}, Female: ${afterMaleStats[2]}, Other: ${afterMaleStats[3]}`,
     );
 
     // 検証: 男性カウントが増加したか
-    if (afterMaleStats.totalCount !== initialStats.totalCount + 1n) {
-      throw new Error(`Total count verification failed. Expected: ${initialStats.totalCount + 1n}, Got: ${afterMaleStats.totalCount}`);
+    if (afterMaleStats[0] !== initialStats[0] + 1n) {
+      throw new Error(`Total count verification failed. Expected: ${initialStats[0] + 1n}, Got: ${afterMaleStats[0]}`);
     }
-    if (afterMaleStats.maleCount !== initialStats.maleCount + 1n) {
-      throw new Error(`Male count verification failed. Expected: ${initialStats.maleCount + 1n}, Got: ${afterMaleStats.maleCount}`);
+    if (afterMaleStats[1] !== initialStats[1] + 1n) {
+      throw new Error(`Male count verification failed. Expected: ${initialStats[1] + 1n}, Got: ${afterMaleStats[1]}`);
     }
     logger.info('✅ Male patient registration verified');
 
     // 女性患者を登録
     logger.info('');
     logger.info('Registering female patient (Age: 45, Gender: Female, Condition: Hypertension)...');
-    await api.registerPatient(contract, 45n, 1n, 'Hypertension');
+    await api.registerPatient(contract, BigInt(45n), BigInt(1n), BigInt('Hypertension'));
     logger.info('✅ Female patient registered successfully');
 
     // 更新後の状態を確認
-    const afterFemaleStats = await api.getRegistrationStats(contract);
+    const afterFemaleStats = await api.getRegistrationStats(contract, providers);
     logger.info(
-      `After female registration - Total: ${afterFemaleStats.totalCount}, Male: ${afterFemaleStats.maleCount}, Female: ${afterFemaleStats.femaleCount}, Other: ${afterFemaleStats.otherCount}`,
+      `After female registration - Total: ${afterFemaleStats[0]}, Male: ${afterFemaleStats[1]}, Female: ${afterFemaleStats[2]}, Other: ${afterFemaleStats[3]}`,
     );
 
     // 検証: 女性カウントが増加したか
-    if (afterFemaleStats.totalCount !== afterMaleStats.totalCount + 1n) {
-      throw new Error(`Total count verification failed. Expected: ${afterMaleStats.totalCount + 1n}, Got: ${afterFemaleStats.totalCount}`);
+    if (afterFemaleStats[0] !== afterMaleStats[0] + 1n) {
+      throw new Error(`Total count verification failed. Expected: ${afterMaleStats[0] + 1n}, Got: ${afterFemaleStats[0]}`);
     }
-    if (afterFemaleStats.femaleCount !== afterMaleStats.femaleCount + 1n) {
-      throw new Error(`Female count verification failed. Expected: ${afterMaleStats.femaleCount + 1n}, Got: ${afterFemaleStats.femaleCount}`);
+    if (afterFemaleStats[2] !== afterMaleStats[2] + 1n) {
+      throw new Error(`Female count verification failed. Expected: ${afterMaleStats[2] + 1n}, Got: ${afterFemaleStats[2]}`);
     }
     logger.info('✅ Female patient registration verified');
 
@@ -292,12 +292,12 @@ const main = async () => {
     logger.info('✅ ALL VERIFICATION TESTS PASSED!');
     logger.info('='.repeat(60));
     logger.info('Summary:');
-    logger.info(`  Initial total count: ${initialStats.totalCount}`);
-    logger.info(`  Final total count: ${afterFemaleStats.totalCount}`);
-    logger.info(`  Patients registered: ${afterFemaleStats.totalCount - initialStats.totalCount}`);
-    logger.info(`  Male patients: ${afterFemaleStats.maleCount}`);
-    logger.info(`  Female patients: ${afterFemaleStats.femaleCount}`);
-    logger.info(`  Other patients: ${afterFemaleStats.otherCount}`);
+    logger.info(`  Initial total count: ${initialStats[0]}`);
+    logger.info(`  Final total count: ${afterFemaleStats[0]}`);
+    logger.info(`  Patients registered: ${afterFemaleStats[0] - initialStats[0]}`);
+    logger.info(`  Male patients: ${afterFemaleStats[1]}`);
+    logger.info(`  Female patients: ${afterFemaleStats[2]}`);
+    logger.info(`  Other patients: ${afterFemaleStats[3]}`);
     logger.info('');
     logger.info('All contract functions are working correctly!');
     logger.info('='.repeat(60));
