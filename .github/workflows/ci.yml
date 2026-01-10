@@ -69,5 +69,8 @@ jobs:
         # cli: NO 'test' script. Has 'test-api'.
         # We explicitly run test-api for CLI if needed, or rely on implementation plan logic.
         run: |
+            export PATH="$HOME/.cargo/bin:$PATH"
+            compact update 0.25.0
+            pnpm contract compact
             pnpm contract test
             pnpm frontend test
