@@ -16,7 +16,7 @@ jobs:
       - name: Install Compact Compiler
         run: |
           # Install version 0.21.0 specifically (required by contract package)
-          curl --proto '=https' --tlsv1.2 -LsSf https://github.com/midnightntwrk/compact/releases/download/v0.21.0/compact-installer.sh | sh
+          curl --proto '=https' --tlsv1.2 -LsSf https://github.com/midnightntwrk/compact/releases/latest/download/compact-installer.sh | sh
           source $HOME/.cargo/env
           echo "$HOME/.local/bin" >> $GITHUB_PATH
         shell: bash
