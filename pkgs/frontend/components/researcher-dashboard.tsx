@@ -1,50 +1,47 @@
 "use client";
 
+import {
+  Activity,
+  BarChart3,
+  CheckCircle2,
+  Code2,
+  Coins,
+  CreditCard,
+  Database,
+  Filter,
+  LogOut,
+  MessageSquare,
+  Search,
+  Shield,
+  TrendingUp,
+  Users,
+  Wallet,
+} from "lucide-react";
+import { useState } from "react";
 import { CyberChart } from "@/components/cyber/cyber-chart";
 import { GlassCard } from "@/components/cyber/glass-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
-    Card,
-    CardContent
-} from "@/components/ui/card";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { WalletButton } from "@/components/wallet/wallet-button";
 import { EHR_PROVIDERS, type EHRProvider } from "@/lib/ehr-providers";
-import {
-    Activity,
-    BarChart3,
-    CheckCircle2,
-    Code2,
-    Coins,
-    CreditCard,
-    Database,
-    Filter,
-    LogOut,
-    MessageSquare,
-    Search,
-    Shield,
-    TrendingUp,
-    Users,
-    Wallet,
-} from "lucide-react";
-import { useState } from "react";
 
 interface ResearcherDashboardProps {
   onLogout: () => void;
@@ -68,7 +65,7 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
   const [showEHRSelector, setShowEHRSelector] = useState(false);
 
   const handleConnectEHR = (providerId: string) => {
-    const provider = EHR_PROVIDERS.find(p => p.id === providerId);
+    const provider = EHR_PROVIDERS.find((p) => p.id === providerId);
     if (provider) {
       setSelectedEHR(provider);
       setShowEHRSelector(false);
@@ -265,10 +262,11 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
               Select EHR Data Source
             </DialogTitle>
             <DialogDescription>
-              Choose which EHR system's data you want to analyze. All data is anonymized and aggregated.
+              Choose which EHR system's data you want to analyze. All data is
+              anonymized and aggregated.
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedEHR && (
             <div className="p-4 mb-4 bg-emerald-500/10 border border-emerald-400/30 rounded-lg">
               <div className="flex items-center justify-between">
@@ -276,11 +274,13 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                   <CheckCircle2 className="h-5 w-5 text-emerald-400" />
                   <div>
                     <p className="font-semibold">{selectedEHR.name}</p>
-                    <p className="text-sm text-muted-foreground">{selectedEHR.vendorJa}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedEHR.vendorJa}
+                    </p>
                   </div>
                 </div>
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="sm"
                   onClick={() => setSelectedEHR(null)}
                   className="text-muted-foreground hover:text-foreground"
@@ -290,16 +290,16 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
               </div>
             </div>
           )}
-          
+
           <div className="grid gap-3 md:grid-cols-2">
             {EHR_PROVIDERS.map((provider) => (
-              <div 
+              <div
                 key={provider.id}
                 onClick={() => handleConnectEHR(provider.id)}
                 className={`p-4 rounded-lg border-2 cursor-pointer transition-all hover:scale-[1.02] ${
-                  selectedEHR?.id === provider.id 
-                    ? 'border-emerald-400 bg-emerald-500/10' 
-                    : 'border-border hover:border-primary hover:bg-primary/5'
+                  selectedEHR?.id === provider.id
+                    ? "border-emerald-400 bg-emerald-500/10"
+                    : "border-border hover:border-primary hover:bg-primary/5"
                 }`}
               >
                 <div className="mb-2">
@@ -307,11 +307,14 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                     {provider.categoryJa}
                   </Badge>
                   <h4 className="font-bold text-base">{provider.name}</h4>
-                  <p className="text-xs text-emerald-500">{provider.vendorJa}</p>
+                  <p className="text-xs text-emerald-500">
+                    {provider.vendorJa}
+                  </p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-xs text-muted-foreground">
-                    <span className="font-medium">対象:</span> {provider.targetJa}
+                    <span className="font-medium">対象:</span>{" "}
+                    {provider.targetJa}
                   </p>
                   <p className="text-xs text-muted-foreground line-clamp-2">
                     {provider.descriptionJa}
@@ -320,12 +323,12 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
               </div>
             ))}
           </div>
-          
+
           <div className="flex justify-end gap-2 mt-4 pt-4 border-t">
             <Button variant="outline" onClick={() => setShowEHRSelector(false)}>
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={() => setShowEHRSelector(false)}
               disabled={!selectedEHR}
             >
@@ -340,9 +343,9 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
       <header className="relative z-10 border-b border-white/10 glass">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
-            <img 
-              src="/logo.jpg" 
-              alt="NextMed Logo" 
+            <img
+              src="/logo.jpg"
+              alt="NextMed Logo"
               className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg object-cover"
             />
             <span className="text-xl sm:text-2xl font-bold bg-linear-to-r from-indigo-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">
@@ -351,7 +354,10 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
           </div>
           <div className="flex items-center gap-2 sm:gap-4">
             {hasSubscription && (
-              <Badge variant="secondary" className="hidden sm:flex bg-success/10 text-success text-xs">
+              <Badge
+                variant="secondary"
+                className="hidden sm:flex bg-success/10 text-success text-xs"
+              >
                 <CheckCircle2 className="h-3 w-3 mr-1" />
                 Active
               </Badge>
@@ -360,7 +366,12 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
               Researcher Portal
             </span>
             <WalletButton />
-            <Button variant="ghost" size="sm" onClick={onLogout} className="touch-manipulation">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onLogout}
+              className="touch-manipulation"
+            >
               <LogOut className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Logout</span>
             </Button>
@@ -406,7 +417,10 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
 
         {/* Responsive Stats Grid (要件 8.1, 8.2, 8.3) */}
         <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-4 sm:mb-6">
-          <GlassCard variant="primary" className="p-4 sm:p-6 touch-manipulation active:scale-[0.98] transition-transform">
+          <GlassCard
+            variant="primary"
+            className="p-4 sm:p-6 touch-manipulation active:scale-[0.98] transition-transform"
+          >
             <div className="space-y-2">
               <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                 Analyzable Records
@@ -418,7 +432,10 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
             </div>
           </GlassCard>
 
-          <GlassCard variant="secondary" className="p-4 sm:p-6 touch-manipulation active:scale-[0.98] transition-transform">
+          <GlassCard
+            variant="secondary"
+            className="p-4 sm:p-6 touch-manipulation active:scale-[0.98] transition-transform"
+          >
             <div className="space-y-2">
               <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                 Regions Available
@@ -433,7 +450,10 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
             </div>
           </GlassCard>
 
-          <GlassCard variant="accent" className="p-4 sm:p-6 touch-manipulation active:scale-[0.98] transition-transform">
+          <GlassCard
+            variant="accent"
+            className="p-4 sm:p-6 touch-manipulation active:scale-[0.98] transition-transform"
+          >
             <div className="space-y-2">
               <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                 Conditions Tracked
@@ -449,8 +469,8 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
           </GlassCard>
 
           {/* EHR Status Card */}
-          <GlassCard 
-            variant="default" 
+          <GlassCard
+            variant="default"
             className="p-4 sm:p-6 touch-manipulation active:scale-[0.98] transition-transform cursor-pointer hover:border-primary/50"
             onClick={() => setShowEHRSelector(true)}
           >
@@ -608,7 +628,9 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                           <SelectItem value="newcastle">Newcastle</SelectItem>
                           <SelectItem value="sheffield">Sheffield</SelectItem>
                           <SelectItem value="nottingham">Nottingham</SelectItem>
-                          <SelectItem value="southampton">Southampton</SelectItem>
+                          <SelectItem value="southampton">
+                            Southampton
+                          </SelectItem>
                           <SelectItem value="cambridge">Cambridge</SelectItem>
                         </SelectContent>
                       </Select>
@@ -729,9 +751,7 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                         <p className="text-sm text-muted-foreground mb-1">
                           Total Records
                         </p>
-                        <p className="text-3xl font-bold text-primary">
-                          1,200
-                        </p>
+                        <p className="text-3xl font-bold text-primary">1,200</p>
                       </div>
                       <Database className="h-8 w-8 text-primary/20" />
                     </div>
@@ -743,9 +763,7 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                         <p className="text-sm text-muted-foreground mb-1">
                           Total Cases
                         </p>
-                        <p className="text-3xl font-bold text-secondary">
-                          342
-                        </p>
+                        <p className="text-3xl font-bold text-secondary">342</p>
                       </div>
                       <Activity className="h-8 w-8 text-secondary/20" />
                     </div>
@@ -757,9 +775,7 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                         <p className="text-sm text-muted-foreground mb-1">
                           Overall Rate
                         </p>
-                        <p className="text-3xl font-bold text-accent">
-                          28.5%
-                        </p>
+                        <p className="text-3xl font-bold text-accent">28.5%</p>
                       </div>
                       <BarChart3 className="h-8 w-8 text-accent/20" />
                     </div>
@@ -771,9 +787,7 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                         <p className="text-sm text-muted-foreground mb-1">
                           Trend
                         </p>
-                        <p className="text-3xl font-bold text-success">
-                          +2.0%
-                        </p>
+                        <p className="text-3xl font-bold text-success">+2.0%</p>
                       </div>
                       <TrendingUp className="h-8 w-8 text-success/20" />
                     </div>
@@ -792,9 +806,9 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                       </p>
                     </div>
                     <CyberChart
-                      data={ageDistributionData.map(d => ({
+                      data={ageDistributionData.map((d) => ({
                         name: d.ageGroup,
-                        value: d.rate
+                        value: d.rate,
                       }))}
                       type="bar"
                       dataKey="value"
@@ -808,15 +822,17 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                   {/* Trend Line Chart */}
                   <GlassCard className="p-6">
                     <div className="mb-4">
-                      <h3 className="text-lg font-semibold mb-1">6-Month Trend</h3>
+                      <h3 className="text-lg font-semibold mb-1">
+                        6-Month Trend
+                      </h3>
                       <p className="text-sm text-muted-foreground">
                         Hypertension rate over time
                       </p>
                     </div>
                     <CyberChart
-                      data={trendData.map(d => ({
+                      data={trendData.map((d) => ({
                         name: d.month,
-                        value: d.rate
+                        value: d.rate,
                       }))}
                       type="line"
                       dataKey="value"
@@ -827,7 +843,7 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                       colors={{
                         primary: "#10b981",
                         secondary: "#10b981",
-                        accent: "#10b981"
+                        accent: "#10b981",
                       }}
                     />
                   </GlassCard>
@@ -838,7 +854,9 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                       <h3 className="text-lg font-semibold mb-1">
                         Gender Distribution
                       </h3>
-                      <p className="text-sm text-muted-foreground">Cases by gender</p>
+                      <p className="text-sm text-muted-foreground">
+                        Cases by gender
+                      </p>
                     </div>
                     <CyberChart
                       data={genderDistributionData}
@@ -857,12 +875,14 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                       <h3 className="text-lg font-semibold mb-1">
                         Regional Comparison
                       </h3>
-                      <p className="text-sm text-muted-foreground">Top 5 regions by rate</p>
+                      <p className="text-sm text-muted-foreground">
+                        Top 5 regions by rate
+                      </p>
                     </div>
                     <CyberChart
-                      data={regionComparisonData.map(d => ({
+                      data={regionComparisonData.map((d) => ({
                         name: d.region,
-                        value: d.rate
+                        value: d.rate,
                       }))}
                       type="bar"
                       dataKey="value"
@@ -873,7 +893,7 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                       colors={{
                         primary: "#06b6d4",
                         secondary: "#06b6d4",
-                        accent: "#06b6d4"
+                        accent: "#06b6d4",
                       }}
                     />
                   </GlassCard>
@@ -908,7 +928,10 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                       </thead>
                       <tbody>
                         {ageDistributionData.map((row) => (
-                          <tr key={row.ageGroup} className="border-b border-white/5 last:border-0">
+                          <tr
+                            key={row.ageGroup}
+                            className="border-b border-white/5 last:border-0"
+                          >
                             <td className="py-3 px-4 font-medium">
                               {row.ageGroup}
                             </td>

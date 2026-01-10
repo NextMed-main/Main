@@ -1,9 +1,9 @@
 /**
  * Error Boundary Component
- * 
+ *
  * Catches JavaScript errors in child component tree and displays
  * a fallback UI instead of crashing the whole app.
- * 
+ *
  * @module components/ui/error-boundary
  */
 
@@ -39,7 +39,7 @@ interface ErrorBoundaryState {
 
 /**
  * Error Boundary component to catch and handle React errors gracefully
- * 
+ *
  * @example
  * ```tsx
  * <ErrorBoundary title="Dashboard Error">
@@ -90,7 +90,8 @@ export class ErrorBoundary extends Component<
           </div>
           <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
           <p className="text-sm text-gray-400 text-center max-w-md mb-4">
-            {error?.message || "An unexpected error occurred. Please try again."}
+            {error?.message ||
+              "An unexpected error occurred. Please try again."}
           </p>
           {showReset && (
             <Button
@@ -130,7 +131,7 @@ interface AsyncBoundaryProps {
 
 /**
  * Combined loading and error boundary for async operations
- * 
+ *
  * @example
  * ```tsx
  * <AsyncBoundary isLoading={isLoading} error={error} onRetry={refetch}>

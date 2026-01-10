@@ -1,17 +1,17 @@
 /**
  * Loading State Components
- * 
+ *
  * Provides consistent loading states across the application with
  * skeleton loaders, loading cards, and data loading indicators.
- * 
+ *
  * @module components/ui/loading
  */
 
 "use client";
 
-import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
-import React from "react";
+import type React from "react";
+import { cn } from "@/lib/utils";
 
 /**
  * Props for LoadingSpinner component
@@ -75,7 +75,7 @@ export function LoadingCard({
     <div
       className={cn(
         "rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-6 animate-pulse",
-        className
+        className,
       )}
     >
       {showHeader && (
@@ -151,7 +151,10 @@ interface LoadingStatsProps {
 export function LoadingStats({ count = 3, className }: LoadingStatsProps) {
   return (
     <div
-      className={cn("grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3", className)}
+      className={cn(
+        "grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+        className,
+      )}
     >
       {Array.from({ length: count }).map((_, i) => (
         <div

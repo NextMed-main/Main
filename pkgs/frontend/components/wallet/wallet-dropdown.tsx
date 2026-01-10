@@ -6,6 +6,7 @@
 "use client";
 
 import { Copy, LogOut, Wallet } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,10 +15,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { useWalletContext } from "./wallet-provider";
-import type { WalletName } from "@/lib/wallet/types";
 import { getWalletProvider } from "@/lib/wallet/providers";
+import type { WalletName } from "@/lib/wallet/types";
+import { useWalletContext } from "./wallet-provider";
 
 /**
  * WalletDropdown Props

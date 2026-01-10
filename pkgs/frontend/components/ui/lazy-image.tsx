@@ -1,12 +1,12 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import Image, { type ImageProps } from "next/image";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 /**
  * LazyImage コンポーネント
- * 
+ *
  * 画像の遅延読み込みとプレースホルダーを実装
  * 要件 10.2: 画像の遅延読み込みとプレースホルダーを使用
  */
@@ -42,7 +42,7 @@ export function LazyImage({
       <div
         className={cn(
           "flex items-center justify-center bg-muted text-muted-foreground",
-          className
+          className,
         )}
       >
         <span className="text-sm">Failed to load image</span>
@@ -56,7 +56,7 @@ export function LazyImage({
         <div
           className={cn(
             "absolute inset-0 animate-pulse bg-muted",
-            placeholderClassName
+            placeholderClassName,
           )}
         />
       )}
@@ -66,7 +66,7 @@ export function LazyImage({
         className={cn(
           "transition-opacity duration-300",
           isLoading ? "opacity-0" : "opacity-100",
-          className
+          className,
         )}
         onLoad={handleLoad}
         onError={handleError}

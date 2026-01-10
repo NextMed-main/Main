@@ -20,7 +20,7 @@ export function ServiceWorkerRegister() {
         .then((registration) => {
           console.log(
             "[PWA] Service Worker registered successfully:",
-            registration.scope
+            registration.scope,
           );
 
           // Check for updates periodically
