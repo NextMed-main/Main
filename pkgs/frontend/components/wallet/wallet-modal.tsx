@@ -91,7 +91,7 @@ export function WalletSelectionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md border-0 bg-transparent p-0 shadow-none">
+      <DialogContent showCloseButton={false} className="sm:max-w-md border-0 bg-transparent p-0 shadow-none">
         {/* Clean white modal container */}
         <div className="relative rounded-2xl border border-slate-200 bg-white shadow-xl overflow-hidden">
           {/* Subtle accent at top */}

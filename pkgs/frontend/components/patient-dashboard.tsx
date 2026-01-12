@@ -279,7 +279,7 @@ export const PatientDashboard = React.memo(function PatientDashboard({
               alt="NextMed Logo"
               className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg object-cover"
             />
-            <span className="text-xl sm:text-2xl font-semibold text-slate-900">
+            <span className="text-xl sm:text-2xl font-bold text-slate-900">
               NextMed
             </span>
           </div>
@@ -346,7 +346,7 @@ export const PatientDashboard = React.memo(function PatientDashboard({
                   NEXT Tokens
                 </span>
               </div>
-              <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-300">
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-500">
                 <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-emerald-600" />
                 <span>+{transactions[0].amount} tokens this week</span>
               </div>
@@ -405,7 +405,7 @@ export const PatientDashboard = React.memo(function PatientDashboard({
                   Data Consent
                 </h3>
               </div>
-              <p className="text-xs sm:text-sm text-gray-300">
+              <p className="text-xs sm:text-sm text-slate-500">
                 Control how your data is used
               </p>
             </div>
@@ -415,7 +415,7 @@ export const PatientDashboard = React.memo(function PatientDashboard({
                   <p className="font-medium text-slate-900">
                     Allow anonymized data usage
                   </p>
-                  <p className="text-sm text-gray-300">
+                  <p className="text-sm text-slate-500">
                     Earn rewards when your data is analyzed
                   </p>
                 </div>
@@ -427,13 +427,13 @@ export const PatientDashboard = React.memo(function PatientDashboard({
               <div className="space-y-2 text-sm">
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="h-4 w-4 text-emerald-600 mt-0.5 shrink-0" />
-                  <span className="text-gray-300">
+                  <span className="text-slate-500">
                     Your name and address are never revealed
                   </span>
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="h-4 w-4 text-emerald-600 mt-0.5 shrink-0" />
-                  <span className="text-gray-300">
+                  <span className="text-slate-500">
                     Protected by Midnight's ZK technology
                   </span>
                 </div>
@@ -456,7 +456,7 @@ export const PatientDashboard = React.memo(function PatientDashboard({
                 Upload Your Medical Data
               </h3>
             </div>
-            <p className="text-sm text-gray-300">
+            <p className="text-sm text-slate-500">
               Share your medical records and earn NEXT tokens
             </p>
           </div>
@@ -468,7 +468,7 @@ export const PatientDashboard = React.memo(function PatientDashboard({
                   <p className="font-semibold text-emerald-600 mb-1">
                     Earn Tokens by Uploading
                   </p>
-                  <p className="text-sm text-gray-300 leading-relaxed">
+                  <p className="text-sm text-slate-500 leading-relaxed">
                     Upload your medical records, lab results, or health data.
                     Each upload is processed securely with ZK technology and you
                     earn NEXT tokens when researchers use your anonymized data.
@@ -478,15 +478,15 @@ export const PatientDashboard = React.memo(function PatientDashboard({
               <div className="grid grid-cols-3 gap-3 text-center pt-3 border-t border-emerald-400/20">
                 <div>
                   <p className="text-lg font-bold text-emerald-600">10-30</p>
-                  <p className="text-xs text-gray-400">Tokens per upload</p>
+                  <p className="text-xs text-slate-400">Tokens per upload</p>
                 </div>
                 <div>
                   <p className="text-lg font-bold text-blue-600">100%</p>
-                  <p className="text-xs text-gray-400">Privacy protected</p>
+                  <p className="text-xs text-slate-400">Privacy protected</p>
                 </div>
                 <div>
                   <p className="text-lg font-bold text-blue-600">Instant</p>
-                  <p className="text-xs text-gray-400">Processing</p>
+                  <p className="text-xs text-slate-400">Processing</p>
                 </div>
               </div>
             </div>
@@ -510,11 +510,11 @@ export const PatientDashboard = React.memo(function PatientDashboard({
                 accept=".pdf,.csv,.json,.dcm,.dicom"
                 onChange={handleFileSelect}
               />
-              <Upload className="h-10 w-10 mx-auto mb-3 text-gray-400" />
+              <Upload className="h-10 w-10 mx-auto mb-3 text-slate-400" />
               <p className="font-medium mb-2 text-slate-900">
                 Drag & Drop Your Medical Files
               </p>
-              <p className="text-sm text-gray-300 mb-4">
+              <p className="text-sm text-slate-500 mb-4">
                 or click to select files (PDF, CSV, JSON, DICOM)
               </p>
               <Button
@@ -555,7 +555,7 @@ export const PatientDashboard = React.memo(function PatientDashboard({
                 {uploadStatus === "uploading" && (
                   <div className="space-y-1">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-300">Uploading...</span>
+                      <span className="text-slate-500">Uploading...</span>
                       <span className="font-medium text-slate-900">
                         {uploadProgress}%
                       </span>
@@ -595,7 +595,7 @@ export const PatientDashboard = React.memo(function PatientDashboard({
                     {lastTxHash && (
                       <div className="p-3 bg-emerald-500/5 border border-emerald-400/20 rounded-lg">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-400">
+                          <span className="text-xs text-slate-400">
                             Transaction Hash:
                           </span>
                           <a
@@ -624,7 +624,7 @@ export const PatientDashboard = React.memo(function PatientDashboard({
                           </span>
                         </div>
                       </div>
-                      <p className="text-xs text-gray-300 leading-relaxed">
+                      <p className="text-xs text-slate-500 leading-relaxed">
                         You'll earn tokens when researchers access your
                         anonymized data. All PII has been masked using
                         Midnight's ZK technology.
@@ -643,11 +643,11 @@ export const PatientDashboard = React.memo(function PatientDashboard({
                       <span className="font-medium">Registration failed</span>
                     </div>
                     <div className="p-3 bg-red-500/10 border border-red-400/20 rounded-lg">
-                      <p className="text-sm text-red-300 mb-2">
+                      <p className="text-sm text-red-400 mb-2">
                         {registrationError ||
                           "An error occurred during blockchain registration."}
                       </p>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-slate-400">
                         Make sure the proof server is running and you have
                         sufficient testnet funds.
                       </p>
@@ -684,7 +684,7 @@ export const PatientDashboard = React.memo(function PatientDashboard({
                 Transaction History
               </h3>
             </div>
-            <p className="text-sm text-gray-300">
+            <p className="text-sm text-slate-500">
               Recent rewards from data usage
             </p>
           </div>
@@ -703,7 +703,7 @@ export const PatientDashboard = React.memo(function PatientDashboard({
                     <p className="font-medium text-slate-900">
                       {transaction.purpose}
                     </p>
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-300">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500">
                       <span>{transaction.researcher}</span>
                       <span>•</span>
                       <span>{transaction.date}</span>
@@ -748,7 +748,7 @@ export const PatientDashboard = React.memo(function PatientDashboard({
                 Consent & Audit Log
               </h3>
             </div>
-            <p className="text-sm text-gray-300">
+            <p className="text-sm text-slate-500">
               Timeline of when your data was accessed
             </p>
           </div>
@@ -766,10 +766,10 @@ export const PatientDashboard = React.memo(function PatientDashboard({
                   <div className="absolute left-0 top-0 -translate-x-1/2 w-3 h-3 rounded-full bg-blue-500" />
                   <div className="space-y-1">
                     <p className="font-medium text-slate-900">{log.purpose}</p>
-                    <p className="text-sm text-gray-300">
+                    <p className="text-sm text-slate-500">
                       Accessed by {log.researcher}
                     </p>
-                    <div className="flex items-center gap-2 text-xs text-gray-400">
+                    <div className="flex items-center gap-2 text-xs text-slate-400">
                       <span>{log.date}</span>
                       <span>•</span>
                       <a
@@ -786,7 +786,7 @@ export const PatientDashboard = React.memo(function PatientDashboard({
                       </a>
                     </div>
                     <div className="mt-2 p-3 bg-blue-500/5 border border-blue-200 rounded-md">
-                      <p className="text-xs text-gray-300 leading-relaxed">
+                      <p className="text-xs text-slate-500 leading-relaxed">
                         <Shield className="h-3 w-3 inline mr-1 text-blue-600" />
                         Your data was used only after your PII (Name, Address)
                         was protected and masked by Midnight's ZK technology.

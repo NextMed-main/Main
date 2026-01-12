@@ -397,8 +397,6 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
                     or click to select files (CSV, JSON)
                   </p>
                   <Button
-                    variant="primary"
-                    size="md"
                     onClick={handleFileUpload}
                     disabled={uploadStatus !== "idle"}
                   >
@@ -577,11 +575,11 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
                           <p className="text-[10px] text-slate-500 uppercase tracking-wider">
                             Target
                           </p>
-                          <p className="text-xs text-gray-300">
+                          <p className="text-xs text-slate-500">
                             {provider.targetJa}
                           </p>
                         </div>
-                        <p className="text-xs text-gray-400 leading-snug">
+                        <p className="text-xs text-slate-400 leading-snug">
                           {provider.descriptionJa}
                         </p>
                       </div>
@@ -624,7 +622,7 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-6 text-xs text-gray-400 hover:text-slate-900"
+                          className="h-6 text-xs text-slate-400 hover:text-slate-900"
                           onClick={() => setSelectedEHR(null)}
                         >
                           Disconnect

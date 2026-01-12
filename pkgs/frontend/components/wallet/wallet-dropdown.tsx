@@ -75,7 +75,7 @@ export function WalletDropdown({
             {/* ウォレット情報 */}
             <div className="flex-1">
               <p className="text-sm font-semibold">{provider.displayName}</p>
-              <p className="text-xs text-gray-500">Connected</p>
+              <p className="text-xs text-slate-500">Connected</p>
             </div>
           </div>
         </DropdownMenuLabel>
@@ -84,7 +84,7 @@ export function WalletDropdown({
 
         {/* アドレス表示 */}
         <div className="px-2 py-3">
-          <p className="mb-1 text-xs text-gray-500">Wallet Address</p>
+          <p className="mb-1 text-xs text-slate-500">Wallet Address</p>
           <p className="break-all rounded bg-gray-100 p-2 font-mono text-xs">
             {address}
           </p>

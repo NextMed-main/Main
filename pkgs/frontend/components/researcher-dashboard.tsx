@@ -134,7 +134,7 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5 text-primary" />
+              <CreditCard className="h-5 w-5 text-blue-600" />
               Choose Your Payment Method
             </DialogTitle>
             <DialogDescription>
@@ -145,47 +145,47 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
             <div className="p-5 rounded-lg border-2 border-primary/20 hover:border-primary hover:bg-primary/5 transition-all cursor-pointer group">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-success/10 flex items-center justify-center">
-                    <Coins className="h-5 w-5 text-success" />
+                  <div className="h-10 w-10 rounded-full bg-emerald-50 flex items-center justify-center">
+                    <Coins className="h-5 w-5 text-emerald-600" />
                   </div>
                   <div>
                     <p className="font-semibold text-lg">
                       Pay with NEXT Tokens
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-slate-500">
                       One-time payment
                     </p>
                   </div>
                 </div>
                 <Badge
                   variant="secondary"
-                  className="bg-success/10 text-success"
+                  className="bg-emerald-50 text-emerald-600"
                 >
                   Popular
                 </Badge>
               </div>
               <div className="mb-4">
                 <div className="flex items-baseline gap-2 mb-1">
-                  <span className="text-3xl font-bold text-success">1000</span>
-                  <span className="text-lg text-muted-foreground">
+                  <span className="text-3xl font-bold text-emerald-600">1000</span>
+                  <span className="text-lg text-slate-500">
                     NEXT tokens
                   </span>
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-slate-500">
                   For 30 days of full platform access
                 </p>
               </div>
-              <ul className="space-y-2 text-sm text-muted-foreground mb-4">
+              <ul className="space-y-2 text-sm text-slate-500 mb-4">
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-success mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 mt-0.5 flex-shrink-0" />
                   <span>Unlimited queries and analysis</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-success mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 mt-0.5 flex-shrink-0" />
                   <span>Access to all 3,450+ medical records</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-success mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 mt-0.5 flex-shrink-0" />
                   <span>AI chat, filters, and SQL query tools</span>
                 </li>
               </ul>
@@ -198,14 +198,14 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
             <div className="p-5 rounded-lg border-2 border-border hover:border-primary hover:bg-primary/5 transition-all cursor-pointer group">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <CreditCard className="h-5 w-5 text-primary" />
+                  <div className="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center">
+                    <CreditCard className="h-5 w-5 text-blue-600" />
                   </div>
                   <div>
                     <p className="font-semibold text-lg">
                       Monthly Subscription
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-slate-500">
                       Recurring payment
                     </p>
                   </div>
@@ -213,24 +213,24 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
               </div>
               <div className="mb-4">
                 <div className="flex items-baseline gap-2 mb-1">
-                  <span className="text-3xl font-bold text-primary">$999</span>
-                  <span className="text-lg text-muted-foreground">/ month</span>
+                  <span className="text-3xl font-bold text-blue-600">$999</span>
+                  <span className="text-lg text-slate-500">/ month</span>
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-slate-500">
                   Billed monthly, cancel anytime
                 </p>
               </div>
-              <ul className="space-y-2 text-sm text-muted-foreground mb-4">
+              <ul className="space-y-2 text-sm text-slate-500 mb-4">
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
                   <span>Unlimited queries and analysis</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
                   <span>Access to all 3,450+ medical records</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
                   <span>Priority support and early feature access</span>
                 </li>
               </ul>
@@ -245,7 +245,7 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
               </Button>
             </div>
           </div>
-          <div className="text-xs text-muted-foreground text-center pt-2 border-t">
+          <div className="text-xs text-slate-500 text-center pt-2 border-t">
             <Shield className="h-3 w-3 inline mr-1" />
             All payments are secure and encrypted. Cancel subscription anytime.
           </div>
@@ -257,7 +257,7 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
         <DialogContent className="sm:max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Database className="h-5 w-5 text-primary" />
+              <Database className="h-5 w-5 text-blue-600" />
               Select EHR Data Source
             </DialogTitle>
             <DialogDescription>
@@ -273,7 +273,7 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                   <CheckCircle2 className="h-5 w-5 text-emerald-600" />
                   <div>
                     <p className="font-semibold">{selectedEHR.name}</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-slate-500">
                       {selectedEHR.vendorJa}
                     </p>
                   </div>
@@ -282,7 +282,7 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                   variant="ghost"
                   size="sm"
                   onClick={() => setSelectedEHR(null)}
-                  className="text-muted-foreground hover:text-foreground"
+                  className="text-slate-500 hover:text-foreground"
                 >
                   Change
                 </Button>
@@ -306,16 +306,16 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                     {provider.categoryJa}
                   </Badge>
                   <h4 className="font-bold text-base">{provider.name}</h4>
-                  <p className="text-xs text-emerald-500">
+                  <p className="text-xs text-emerald-600">
                     {provider.vendorJa}
                   </p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-slate-500">
                     <span className="font-medium">対象:</span>{" "}
                     {provider.targetJa}
                   </p>
-                  <p className="text-xs text-muted-foreground line-clamp-2">
+                  <p className="text-xs text-slate-500 line-clamp-2">
                     {provider.descriptionJa}
                   </p>
                 </div>
@@ -355,13 +355,13 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
             {hasSubscription && (
               <Badge
                 variant="secondary"
-                className="hidden sm:flex bg-success/10 text-success text-xs"
+                className="hidden sm:flex bg-emerald-50 text-emerald-600 text-xs"
               >
                 <CheckCircle2 className="h-3 w-3 mr-1" />
                 Active
               </Badge>
             )}
-            <span className="hidden md:inline text-sm text-muted-foreground">
+            <span className="hidden md:inline text-sm text-slate-500">
               Researcher Portal
             </span>
             <WalletButton />
@@ -383,7 +383,7 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 text-balance">
             Confidential Sandbox
           </h1>
-          <p className="text-muted-foreground text-sm sm:text-base lg:text-lg">
+          <p className="text-slate-500 text-sm sm:text-base lg:text-lg">
             Analyze medical data without compromising patient privacy
           </p>
         </div>
@@ -393,14 +393,14 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
             <CardContent className="pt-6">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <CreditCard className="h-6 w-6 text-primary" />
+                  <div className="h-12 w-12 rounded-full bg-blue-50 flex items-center justify-center">
+                    <CreditCard className="h-6 w-6 text-blue-600" />
                   </div>
                   <div>
                     <p className="font-semibold text-lg mb-1">
                       Subscribe to Access Research Data
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-slate-500">
                       Choose between NEXT token payment or monthly subscription
                       to start analyzing medical data
                     </p>
@@ -421,12 +421,12 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
             className="p-4 sm:p-6 touch-manipulation active:scale-[0.98] transition-transform"
           >
             <div className="space-y-2">
-              <p className="text-xs sm:text-sm font-medium text-muted-foreground">
+              <p className="text-xs sm:text-sm font-medium text-slate-500">
                 Analyzable Records
               </p>
               <div className="flex items-baseline gap-2">
                 <span className="text-2xl sm:text-3xl font-bold">3,450</span>
-                <Database className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                <Database className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
               </div>
             </div>
           </Card>
@@ -436,14 +436,14 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
             className="p-4 sm:p-6 touch-manipulation active:scale-[0.98] transition-transform"
           >
             <div className="space-y-2">
-              <p className="text-xs sm:text-sm font-medium text-muted-foreground">
+              <p className="text-xs sm:text-sm font-medium text-slate-500">
                 Regions Available
               </p>
               <div className="flex items-baseline gap-2">
                 <span className="text-2xl sm:text-3xl font-bold">15</span>
-                <Users className="h-4 w-4 sm:h-5 sm:w-5 text-secondary" />
+                <Users className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-slate-500">
                 London (2,400 records)
               </p>
             </div>
@@ -454,14 +454,14 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
             className="p-4 sm:p-6 touch-manipulation active:scale-[0.98] transition-transform"
           >
             <div className="space-y-2">
-              <p className="text-xs sm:text-sm font-medium text-muted-foreground">
+              <p className="text-xs sm:text-sm font-medium text-slate-500">
                 Conditions Tracked
               </p>
               <div className="flex items-baseline gap-2">
                 <span className="text-2xl sm:text-3xl font-bold">12</span>
-                <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-accent" />
+                <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-slate-500">
                 Hypertension (1,500 records)
               </p>
             </div>
@@ -475,7 +475,7 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
           >
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <p className="text-xs sm:text-sm font-medium text-muted-foreground">
+                <p className="text-xs sm:text-sm font-medium text-slate-500">
                   EHR Data Source
                 </p>
                 {selectedEHR ? (
@@ -489,7 +489,7 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                   {selectedEHR ? "Connected" : "Select Source"}
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground truncate">
+              <p className="text-xs text-slate-500 truncate">
                 {selectedEHR ? selectedEHR.name : "Click to choose EHR"}
               </p>
             </div>
@@ -499,10 +499,10 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
         <Card className="mb-6 p-6">
           <div className="mb-6">
             <h2 className="text-2xl font-bold flex items-center gap-2 mb-2">
-              <Search className="h-5 w-5 text-primary" />
+              <Search className="h-5 w-5 text-blue-600" />
               Data Analysis Tools
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-slate-500">
               Multiple ways to query and analyze anonymized medical data
             </p>
           </div>
@@ -536,7 +536,7 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                     placeholder="Ask questions in natural language..."
                     className="min-h-[100px] font-sans"
                   />
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-slate-500">
                     Example: "Show me diabetes prevalence in patients over 60"
                     or "Compare cardiovascular disease rates between regions"
                   </p>
@@ -681,7 +681,7 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                     placeholder="Write your SQL query..."
                     className="min-h-[150px] font-mono text-sm"
                   />
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-slate-500">
                     Available tables: medical_records, conditions, demographics,
                     lab_results
                   </p>
@@ -715,18 +715,18 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-2">
                   <h2 className="text-2xl font-bold flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5 text-success" />
+                    <BarChart3 className="h-5 w-5 text-emerald-600" />
                     Analysis Results Dashboard
                   </h2>
                   <Badge
                     variant="secondary"
-                    className="bg-success/10 text-success"
+                    className="bg-emerald-50 text-emerald-600"
                   >
                     <CheckCircle2 className="h-3 w-3 mr-1" />
                     ZK-Proof Verified
                   </Badge>
                 </div>
-                <p className="text-muted-foreground">
+                <p className="text-slate-500">
                   Hypertension Analysis - Aggregated results from confidential
                   computing
                 </p>
@@ -734,8 +734,8 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
               <div className="space-y-6">
                 <div className="p-4 bg-muted/30 rounded-lg border border-success/20">
                   <div className="flex items-start gap-2">
-                    <Shield className="h-4 w-4 text-success mt-1 flex-shrink-0" />
-                    <p className="text-sm text-muted-foreground leading-relaxed">
+                    <Shield className="h-4 w-4 text-emerald-600 mt-1 flex-shrink-0" />
+                    <p className="text-sm text-slate-500 leading-relaxed">
                       This analysis was executed via Confidential Computing. All
                       PII was masked using Midnight's ZK technology. Only
                       aggregated results are displayed.
@@ -747,48 +747,48 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                   <Card variant="primary" className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-muted-foreground mb-1">
+                        <p className="text-sm text-slate-500 mb-1">
                           Total Records
                         </p>
-                        <p className="text-3xl font-bold text-primary">1,200</p>
+                        <p className="text-3xl font-bold text-blue-600">1,200</p>
                       </div>
-                      <Database className="h-8 w-8 text-primary/20" />
+                      <Database className="h-8 w-8 text-blue-600/20" />
                     </div>
                   </Card>
 
                   <Card variant="secondary" className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-muted-foreground mb-1">
+                        <p className="text-sm text-slate-500 mb-1">
                           Total Cases
                         </p>
-                        <p className="text-3xl font-bold text-secondary">342</p>
+                        <p className="text-3xl font-bold text-slate-600">342</p>
                       </div>
-                      <Activity className="h-8 w-8 text-secondary/20" />
+                      <Activity className="h-8 w-8 text-slate-600/20" />
                     </div>
                   </Card>
 
                   <Card variant="accent" className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-muted-foreground mb-1">
+                        <p className="text-sm text-slate-500 mb-1">
                           Overall Rate
                         </p>
-                        <p className="text-3xl font-bold text-accent">28.5%</p>
+                        <p className="text-3xl font-bold text-blue-600">28.5%</p>
                       </div>
-                      <BarChart3 className="h-8 w-8 text-accent/20" />
+                      <BarChart3 className="h-8 w-8 text-blue-600/20" />
                     </div>
                   </Card>
 
                   <Card variant="default" className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-muted-foreground mb-1">
+                        <p className="text-sm text-slate-500 mb-1">
                           Trend
                         </p>
-                        <p className="text-3xl font-bold text-success">+2.0%</p>
+                        <p className="text-3xl font-bold text-emerald-600">+2.0%</p>
                       </div>
-                      <TrendingUp className="h-8 w-8 text-success/20" />
+                      <TrendingUp className="h-8 w-8 text-emerald-600/20" />
                     </div>
                   </Card>
                 </div>
@@ -800,7 +800,7 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                       <h3 className="text-lg font-semibold mb-1">
                         Hypertension Rate by Age Group
                       </h3>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-slate-500">
                         Distribution across different age ranges
                       </p>
                     </div>
@@ -824,7 +824,7 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                       <h3 className="text-lg font-semibold mb-1">
                         6-Month Trend
                       </h3>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-slate-500">
                         Hypertension rate over time
                       </p>
                     </div>
@@ -853,7 +853,7 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                       <h3 className="text-lg font-semibold mb-1">
                         Gender Distribution
                       </h3>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-slate-500">
                         Cases by gender
                       </p>
                     </div>
@@ -874,7 +874,7 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                       <h3 className="text-lg font-semibold mb-1">
                         Regional Comparison
                       </h3>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-slate-500">
                         Top 5 regions by rate
                       </p>
                     </div>

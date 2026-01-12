@@ -278,9 +278,11 @@ export const LandingPage = React.memo(function LandingPage({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-lg flex items-center justify-center">
-                <Shield className="w-5 h-5 text-white" />
-              </div>
+              <img
+                src="/logo.jpg"
+                alt="NextMed Logo"
+                className="h-8 w-8 rounded-lg object-cover"
+              />
               <span className="text-xl font-bold text-slate-900">NextMed</span>
             </div>
 
@@ -574,9 +576,11 @@ export const LandingPage = React.memo(function LandingPage({
       >
         <div className="max-w-7xl mx-auto text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-lg flex items-center justify-center">
-              <Shield className="w-5 h-5 text-white" />
-            </div>
+            <img
+              src="/logo.jpg"
+              alt="NextMed Logo"
+              className="h-8 w-8 rounded-lg object-cover"
+            />
             <span className="text-xl font-bold text-white">NextMed</span>
           </div>
           <p className="text-slate-400">

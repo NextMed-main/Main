@@ -72,7 +72,7 @@ export default function Home() {
   }
 
   if (!userRole) {
-    return <LoginScreen onLogin={setUserRole} />;
+    return <LoginScreen onLogin={setUserRole} onBack={() => setShowLanding(true)} />;
   }
 
   if (userRole === "patient") {

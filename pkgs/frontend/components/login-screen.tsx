@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
 import type { UserRole } from "@/app/page";
@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 
 interface LoginScreenProps {
   onLogin: (role: UserRole) => void;
+  onBack?: () => void;
 }
 
 const DEMO_ACCOUNTS = {
@@ -25,7 +26,7 @@ const DEMO_ACCOUNTS = {
   },
 };
 
-export function LoginScreen({ onLogin }: LoginScreenProps) {
+export function LoginScreen({ onLogin, onBack }: LoginScreenProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -61,6 +62,17 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         className="w-full max-w-md z-10 p-6 sm:p-8"
       >
         <div className="space-y-4 sm:space-y-6">
+          {/* Back to Home Button */}
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="flex items-center gap-2 text-sm text-slate-600 hover:text-blue-600 transition-colors group"
+            >
+              <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+              Back to Home
+            </button>
+          )}
+
           {/* ヘッダー - Responsive (要件 8.1) */}
           <div className="space-y-3 sm:space-y-4 text-center">
             <div className="flex justify-center">
@@ -96,7 +108,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="bg-white/5 border-white/20 text-slate-900 placeholder:text-gray-400 focus:border-blue-300 focus:ring-blue-400 h-11 sm:h-12 text-sm sm:text-base touch-manipulation"
+                className="bg-white/5 border-white/20 text-slate-900 placeholder:text-slate-400 focus:border-blue-300 focus:ring-blue-400 h-11 sm:h-12 text-sm sm:text-base touch-manipulation"
               />
             </div>
             <div className="space-y-2">
@@ -111,12 +123,12 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="bg-white/5 border-white/20 text-slate-900 placeholder:text-gray-400 focus:border-blue-300 focus:ring-blue-400 h-11 sm:h-12 text-sm sm:text-base touch-manipulation"
+                  className="bg-white/5 border-white/20 text-slate-900 placeholder:text-slate-400 focus:border-blue-300 focus:ring-blue-400 h-11 sm:h-12 text-sm sm:text-base touch-manipulation"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors touch-manipulation p-2"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600 transition-colors touch-manipulation p-2"
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -144,10 +156,10 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           {/* 区切り線 */}
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-white/20" />
+              <span className="w-full border-t border-slate-200" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-slate-900/50 px-2 text-gray-400">
+              <span className="bg-white px-2 text-slate-500">
                 Demo Quick Login
               </span>
             </div>
@@ -173,7 +185,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
               <Button
                 variant="outline"
                 onClick={() => onLogin("institution")}
-                className="w-full bg-white/5 border-white/20 text-slate-900 hover:bg-white/10 hover:border-emerald-400/50 transition-all h-11 sm:h-12 text-sm sm:text-base touch-manipulation"
+                className="w-full bg-white/5 border-white/20 text-slate-900 hover:bg-white/10 hover:border-blue-300 transition-all h-11 sm:h-12 text-sm sm:text-base touch-manipulation"
               >
                 Login as Company & Clinic
               </Button>
@@ -181,8 +193,8 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           </div>
 
           {/* デモ認証情報 - Responsive */}
-          <div className="pt-3 sm:pt-4 border-t border-white/20">
-            <p className="text-xs text-gray-400 text-center leading-relaxed">
+          <div className="pt-3 sm:pt-4 border-t border-slate-200">
+            <p className="text-xs text-slate-500 text-center leading-relaxed">
               <span className="font-semibold text-blue-600">
                 Demo Credentials:
               </span>

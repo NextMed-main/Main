@@ -204,7 +204,7 @@ export function LoadingOverlay({
         <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm rounded-xl z-10">
           <div className="flex flex-col items-center gap-3">
             <LoadingSpinner size="lg" />
-            <p className="text-sm text-gray-300 font-medium">{message}</p>
+            <p className="text-sm text-slate-500 font-medium">{message}</p>
           </div>
         </div>
       )}
@@ -262,7 +262,7 @@ export function DataLoader<T>({
             <span className="text-2xl">⚠️</span>
           </div>
           <p className="text-sm text-red-400 font-medium">{error}</p>
-          <p className="text-xs text-gray-400 mt-1">Please try again later</p>
+          <p className="text-xs text-slate-400 mt-1">Please try again later</p>
         </div>
       )
     );
@@ -275,7 +275,7 @@ export function DataLoader<T>({
           <div className="h-12 w-12 rounded-full bg-gray-500/10 flex items-center justify-center mb-3">
             <span className="text-2xl">📭</span>
           </div>
-          <p className="text-sm text-gray-400 font-medium">No data available</p>
+          <p className="text-sm text-slate-400 font-medium">No data available</p>
         </div>
       )
     );
