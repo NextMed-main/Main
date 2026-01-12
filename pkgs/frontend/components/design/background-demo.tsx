@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ParticleBackground } from "./particle-background";
+import { ParticleBackground } from "./background";
 
 export function ParticleBackgroundDemo() {
   const [particleCount, setParticleCount] = useState(50);

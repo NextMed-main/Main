@@ -1,6 +1,6 @@
 "use client";
 
-import { GradientText } from "./gradient-text";
+import { GradientText } from "./heading";
 
 /**
  * GradientText デモコンポーネント

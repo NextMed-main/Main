@@ -5,28 +5,28 @@
  * Clean light design matching NextMed SaaS aesthetic
  */
 
-"use client";
+'use client';
 
-import { Check, ExternalLink, Shield, Sparkles, X, Zap } from "lucide-react";
-import Image from "next/image";
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Check, ExternalLink, Shield, Sparkles, X, Zap } from 'lucide-react';
+import Image from 'next/image';
+import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
-import { isLaceInstalled } from "@/lib/wallet/midnight-wallet";
+} from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
+import { isLaceInstalled } from '@/lib/wallet/midnight-wallet';
 import {
   type ExtendedWalletProvider,
   getAllWalletProviders,
-} from "@/lib/wallet/providers";
-import type { WalletName } from "@/lib/wallet/types";
-import { detectWallets, openWalletInstallPage } from "@/lib/wallet/wallet-api";
-import { useMidnightWalletContext } from "./midnight-wallet-provider";
-import { useWalletContext } from "./wallet-provider";
+} from '@/lib/wallet/providers';
+import type { WalletName } from '@/lib/wallet/types';
+import { detectWallets, openWalletInstallPage } from '@/lib/wallet/wallet-api';
+import { useMidnightWalletContext } from './midnight-wallet-provider';
+import { useWalletContext } from './wallet-provider';
 
 /**
  * WalletSelectionModal Props
@@ -51,9 +51,35 @@ export function WalletSelectionModal({
   // インストール済みウォレットを検出
   useEffect(() => {
     if (isOpen) {
-      const detected = detectWallets();
-      setInstalledWallets(detected);
-      setMidnightInstalled(isLaceInstalled());
+      // Intial detection
+      const detect = () => {
+        const detected = detectWallets();
+        setInstalledWallets(detected);
+        const hasLace = isLaceInstalled();
+        setMidnightInstalled(hasLace);
+        return hasLace;
+      };
+
+      detect();
+
+      // Poll for asynchronous injection (e.g. Lace Midnight)
+      // Some wallets take a moment to inject into window object
+      const intervalId = setInterval(() => {
+        const found = detect();
+        if (found) {
+          clearInterval(intervalId); // Stop polling if found
+        }
+      }, 500);
+
+      // Stop polling after 2 seconds
+      const timeoutId = setTimeout(() => {
+        clearInterval(intervalId);
+      }, 2000);
+
+      return () => {
+        clearInterval(intervalId);
+        clearTimeout(timeoutId);
+      };
     }
   }, [isOpen]);
 
@@ -80,7 +106,7 @@ export function WalletSelectionModal({
    */
   const handleInstall = (provider: ExtendedWalletProvider) => {
     if (provider.isMidnight) {
-      window.open(provider.installUrl, "_blank");
+      window.open(provider.installUrl, '_blank');
     } else {
       openWalletInstallPage(provider.name);
     }
@@ -133,10 +159,10 @@ export function WalletSelectionModal({
                 <div
                   key={provider.name}
                   className={cn(
-                    "relative rounded-xl p-4 transition-all duration-200",
+                    'relative rounded-xl p-4 transition-all duration-200',
                     provider.isMidnight
-                      ? "bg-blue-50 border border-blue-200 hover:border-blue-300"
-                      : "bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50",
+                      ? 'bg-blue-50 border border-blue-200 hover:border-blue-300'
+                      : 'bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50',
                   )}
                 >
                   {/* Recommended badge for Midnight */}
@@ -154,10 +180,10 @@ export function WalletSelectionModal({
                       {/* Wallet icon */}
                       <div
                         className={cn(
-                          "relative h-12 w-12 rounded-xl overflow-hidden flex items-center justify-center",
+                          'relative h-12 w-12 rounded-xl overflow-hidden flex items-center justify-center',
                           provider.isMidnight
-                            ? "bg-blue-100 border border-blue-200"
-                            : "bg-slate-100 border border-slate-200",
+                            ? 'bg-blue-100 border border-blue-200'
+                            : 'bg-slate-100 border border-slate-200',
                         )}
                       >
                         <Image
@@ -179,10 +205,10 @@ export function WalletSelectionModal({
                         <div className="flex items-center gap-2">
                           <h3
                             className={cn(
-                              "font-semibold",
+                              'font-semibold',
                               provider.isMidnight
-                                ? "text-slate-900"
-                                : "text-slate-900",
+                                ? 'text-slate-900'
+                                : 'text-slate-900',
                             )}
                           >
                             {provider.displayName}
@@ -203,10 +229,10 @@ export function WalletSelectionModal({
                         </div>
                         <p
                           className={cn(
-                            "text-xs mt-0.5",
+                            'text-xs mt-0.5',
                             provider.isMidnight
-                              ? "text-blue-600"
-                              : "text-slate-500",
+                              ? 'text-blue-600'
+                              : 'text-slate-500',
                           )}
                         >
                           {provider.description}
@@ -234,10 +260,10 @@ export function WalletSelectionModal({
                         disabled={isAnyConnecting}
                         size="sm"
                         className={cn(
-                          "min-w-[90px] font-medium",
+                          'min-w-[90px] font-medium',
                           provider.isMidnight
-                            ? "bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/10"
-                            : "bg-slate-900 hover:bg-slate-800 text-white",
+                            ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/10'
+                            : 'bg-slate-900 hover:bg-slate-800 text-white',
                         )}
                       >
                         {isAnyConnecting ? (
@@ -246,7 +272,7 @@ export function WalletSelectionModal({
                             <span>...</span>
                           </span>
                         ) : (
-                          "Connect"
+                          'Connect'
                         )}
                       </Button>
                     ) : (
@@ -275,7 +301,7 @@ export function WalletSelectionModal({
               <div className="text-xs text-slate-600 leading-relaxed">
                 <span className="text-blue-700 font-medium">
                   Midnight wallets
-                </span>{" "}
+                </span>{' '}
                 enable zero-knowledge privacy features. Your medical data stays
                 private while still being verifiable.
               </div>

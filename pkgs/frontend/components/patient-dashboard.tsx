@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   CheckCircle2,
@@ -11,22 +11,23 @@ import {
   TrendingUp,
   Upload,
   Wallet,
-} from "lucide-react";
-import React, { useEffect, useRef, useState } from "react";
-import { Card } from "@/components/design/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { useMidnightWalletContext } from "@/components/wallet/midnight-wallet-provider";
-import { WalletButton } from "@/components/wallet/wallet-button";
-import { WalletSelectionModal } from "@/components/wallet/wallet-modal";
-import { usePatientRegistry } from "@/hooks/use-patient-registry";
+} from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Card } from '@/components/design/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { FileUploadDropzone } from '@/components/ui/file-upload-dropzone';
+import { Switch } from '@/components/ui/switch';
+import { useMidnightWalletContext } from '@/components/wallet/midnight-wallet-provider';
+import { WalletButton } from '@/components/wallet/wallet-button';
+import { WalletSelectionModal } from '@/components/wallet/wallet-modal';
+import { usePatientRegistry } from '@/hooks/use-patient-registry';
 import {
   calculateCountUp,
   easingFunctions,
   smoothTransition,
-} from "@/lib/animations";
-import { formatTxHash, getTxUrl } from "@/lib/explorer";
+} from '@/lib/animations';
+import { formatTxHash, getTxUrl } from '@/lib/explorer';
 
 interface PatientDashboardProps {
   onLogout: () => void;
@@ -49,8 +50,8 @@ export const PatientDashboard = React.memo(function PatientDashboard({
 
   const [dataConsent, setDataConsent] = useState(true);
   const [uploadStatus, setUploadStatus] = useState<
-    "idle" | "uploading" | "processing" | "complete" | "error"
-  >("idle");
+    'idle' | 'uploading' | 'processing' | 'complete' | 'error'
+  >('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
   const [potentialEarnings, setPotentialEarnings] = useState(0);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -64,7 +65,7 @@ export const PatientDashboard = React.memo(function PatientDashboard({
 
   // Derive wallet state from context
   const walletConnected = midnightWallet.isConnected;
-  const walletAddress = midnightWallet.formattedAddress || "";
+  const walletAddress = midnightWallet.formattedAddress || '';
 
   // useCallback for event handlers (要件 10.4)
   const handleWalletConnectClick = React.useCallback(() => {
@@ -79,41 +80,41 @@ export const PatientDashboard = React.memo(function PatientDashboard({
     {
       id: 1,
       amount: 10,
-      purpose: "Public Health Analysis",
-      date: "2025-02-01",
-      researcher: "Researcher X",
+      purpose: 'Public Health Analysis',
+      date: '2025-02-01',
+      researcher: 'Researcher X',
       txHash:
-        "00000000cedb75e9c6315a3fa646718dc64290399e92dcc7401f00d7a1ab1dfc",
+        '00000000cedb75e9c6315a3fa646718dc64290399e92dcc7401f00d7a1ab1dfc',
       blockHeight: 2599043,
     },
     {
       id: 2,
       amount: 25,
-      purpose: "Hypertension Study",
-      date: "2025-01-28",
-      researcher: "Researcher Y",
+      purpose: 'Hypertension Study',
+      date: '2025-01-28',
+      researcher: 'Researcher Y',
       txHash:
-        "00000000f8a721bc5e4d903281a6f3c92b8e47d156c904ea23f701b8cd92ef41",
+        '00000000f8a721bc5e4d903281a6f3c92b8e47d156c904ea23f701b8cd92ef41',
       blockHeight: 2598012,
     },
     {
       id: 3,
       amount: 15,
-      purpose: "Diabetes Research",
-      date: "2025-01-25",
-      researcher: "Researcher Z",
+      purpose: 'Diabetes Research',
+      date: '2025-01-25',
+      researcher: 'Researcher Z',
       txHash:
-        "00000000a3e8b2c94f1d6078e52a9b3c71d4e8f609a2b5c8d7e6f0123456789a",
+        '00000000a3e8b2c94f1d6078e52a9b3c71d4e8f609a2b5c8d7e6f0123456789a',
       blockHeight: 2596847,
     },
     {
       id: 4,
       amount: 20,
-      purpose: "Cardiovascular Analysis",
-      date: "2025-01-20",
-      researcher: "Researcher X",
+      purpose: 'Cardiovascular Analysis',
+      date: '2025-01-20',
+      researcher: 'Researcher X',
       txHash:
-        "000000007b2c4d5e6f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e",
+        '000000007b2c4d5e6f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e',
       blockHeight: 2594521,
     },
   ];
@@ -121,27 +122,27 @@ export const PatientDashboard = React.memo(function PatientDashboard({
   const auditLog = [
     {
       id: 1,
-      researcher: "Researcher X",
-      purpose: "Hypertension Study",
-      date: "2025-02-01 14:30",
+      researcher: 'Researcher X',
+      purpose: 'Hypertension Study',
+      date: '2025-02-01 14:30',
       txHash:
-        "00000000d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f7081920304050",
+        '00000000d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f7081920304050',
     },
     {
       id: 2,
-      researcher: "Researcher Y",
-      purpose: "Public Health Analysis",
-      date: "2025-01-28 10:15",
+      researcher: 'Researcher Y',
+      purpose: 'Public Health Analysis',
+      date: '2025-01-28 10:15',
       txHash:
-        "00000000e5f6a7b8c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f70819203040506",
+        '00000000e5f6a7b8c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f70819203040506',
     },
     {
       id: 3,
-      researcher: "Researcher Z",
-      purpose: "Diabetes Research",
-      date: "2025-01-25 16:45",
+      researcher: 'Researcher Z',
+      purpose: 'Diabetes Research',
+      date: '2025-01-25 16:45',
       txHash:
-        "00000000f6a7b8c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f7081920304050607",
+        '00000000f6a7b8c9d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f7081920304050607',
     },
   ];
 
@@ -153,7 +154,7 @@ export const PatientDashboard = React.memo(function PatientDashboard({
 
   const handleWithdraw = React.useCallback(() => {
     if (!walletConnected) {
-      alert("Please connect your wallet first");
+      alert('Please connect your wallet first');
       return;
     }
     alert(`Withdrawing ${totalEarnings} NEXT tokens to ${walletAddress}`);
@@ -163,13 +164,13 @@ export const PatientDashboard = React.memo(function PatientDashboard({
     async (_file: File) => {
       // Check wallet connection first
       if (!walletConnected) {
-        alert("Please connect your wallet first to register health data.");
+        alert('Please connect your wallet first to register health data.');
         setShowWalletModal(true);
         return;
       }
 
       clearError();
-      setUploadStatus("uploading");
+      setUploadStatus('uploading');
       setUploadProgress(0);
       setPotentialEarnings(15);
       setLastTxHash(null);
@@ -189,24 +190,24 @@ export const PatientDashboard = React.memo(function PatientDashboard({
       await new Promise((resolve) => setTimeout(resolve, 2200));
       clearInterval(progressInterval);
       setUploadProgress(100);
-      setUploadStatus("processing");
+      setUploadStatus('processing');
 
       try {
         // Call the real blockchain contract!
         // Using demo data: age 30, male, condition "Hypertension"
-        const result = await registerPatient(30, "male", "Hypertension");
+        const result = await registerPatient(30, 'male', 'Hypertension');
 
         if (result) {
-          console.log("Registration successful! TX:", result.txId);
+          console.log('Registration successful! TX:', result.txId);
           setLastTxHash(result.txId);
-          setUploadStatus("complete");
+          setUploadStatus('complete');
         } else {
           // Registration failed (error is set in the hook)
-          setUploadStatus("error");
+          setUploadStatus('error');
         }
       } catch (err) {
-        console.error("Registration error:", err);
-        setUploadStatus("error");
+        console.error('Registration error:', err);
+        setUploadStatus('error');
       }
     },
     [walletConnected, registerPatient, clearError],
@@ -318,7 +319,7 @@ export const PatientDashboard = React.memo(function PatientDashboard({
             variant="accent"
             glow
             className="p-4 sm:p-6 touch-manipulation active:scale-[0.98] transition-transform"
-            style={smoothTransition(["all"], { duration: 300 })}
+            style={smoothTransition(['all'], { duration: 300 })}
           >
             <div className="space-y-2 mb-4">
               <div className="flex items-center gap-2">
@@ -335,10 +336,12 @@ export const PatientDashboard = React.memo(function PatientDashboard({
               {/* Count-up animation - Responsive (要件 3.3, 8.1) */}
               <div
                 className="flex flex-col sm:flex-row items-start sm:items-baseline gap-1 sm:gap-2"
-                style={smoothTransition(["opacity"], { duration: 500 })}
+                style={smoothTransition(['opacity'], { duration: 500 })}
               >
                 <span
-                  className={`text-3xl sm:text-4xl lg:text-5xl font-bold text-blue-600 ${isAnimating ? "opacity-80" : "opacity-100"}`}
+                  className={`text-3xl sm:text-4xl lg:text-5xl font-bold text-blue-600 ${
+                    isAnimating ? 'opacity-80' : 'opacity-100'
+                  }`}
                 >
                   {displayedEarnings}
                 </span>
@@ -396,7 +399,7 @@ export const PatientDashboard = React.memo(function PatientDashboard({
             variant="primary"
             glow
             className="p-4 sm:p-6 touch-manipulation active:scale-[0.98] transition-transform"
-            style={smoothTransition(["all"], { duration: 300 })}
+            style={smoothTransition(['all'], { duration: 300 })}
           >
             <div className="space-y-2 mb-4">
               <div className="flex items-center gap-2">
@@ -447,7 +450,7 @@ export const PatientDashboard = React.memo(function PatientDashboard({
           variant="secondary"
           glow
           className="p-6 mb-6"
-          style={smoothTransition(["all"], { duration: 300 })}
+          style={smoothTransition(['all'], { duration: 300 })}
         >
           <div className="space-y-2 mb-4">
             <div className="flex items-center gap-2">
@@ -491,46 +494,28 @@ export const PatientDashboard = React.memo(function PatientDashboard({
               </div>
             </div>
 
-            <div
-              role="button"
-              tabIndex={0}
-              className="w-full border-2 border-dashed border-slate-200 rounded-lg p-8 text-center hover:border-emerald-400/50 transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
-              onClick={handleUploadClick}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  handleUploadClick();
-                }
+            <FileUploadDropzone
+              onFileSelect={handleFileUpload}
+              onFileRemove={() => {
+                setSelectedFile(null);
+                setUploadStatus('idle');
+                setUploadProgress(0);
               }}
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                className="hidden"
-                accept=".pdf,.csv,.json,.dcm,.dicom"
-                onChange={handleFileSelect}
-              />
-              <Upload className="h-10 w-10 mx-auto mb-3 text-slate-400" />
-              <p className="font-medium mb-2 text-slate-900">
-                Drag & Drop Your Medical Files
-              </p>
-              <p className="text-sm text-slate-500 mb-4">
-                or click to select files (PDF, CSV, JSON, DICOM)
-              </p>
-              <Button
-                type="button"
-                disabled={uploadStatus !== "idle"}
-                className="bg-emerald-500 hover:bg-emerald-600 pointer-events-none"
-              >
-                Select File to Upload
-              </Button>
-            </div>
+              accept=".pdf,.csv,.json,.dcm,.dicom"
+              maxSize={100}
+              disabled={!dataConsent}
+              isUploading={
+                uploadStatus === 'uploading' || uploadStatus === 'processing'
+              }
+              uploadProgress={uploadProgress}
+              validateMagicBytes={true}
+            />
 
             {/* Data update transitions (要件 3.5: データ更新時のトランジション) */}
-            {uploadStatus !== "idle" && (
+            {uploadStatus !== 'idle' && (
               <div
                 className="space-y-3 p-4 bg-slate-50 rounded-lg border border-slate-200"
-                style={smoothTransition(["opacity", "transform"], {
+                style={smoothTransition(['opacity', 'transform'], {
                   duration: 500,
                 })}
               >
@@ -538,10 +523,10 @@ export const PatientDashboard = React.memo(function PatientDashboard({
                   <div className="flex items-center gap-2">
                     <FileText className="h-4 w-4 text-blue-600" />
                     <span className="text-sm font-medium text-slate-900">
-                      {selectedFile?.name || "my_lab_results_2025.pdf"}
+                      {selectedFile?.name || 'my_lab_results_2025.pdf'}
                     </span>
                   </div>
-                  {uploadStatus === "complete" && (
+                  {uploadStatus === 'complete' && (
                     <Badge
                       variant="secondary"
                       className="bg-emerald-500/10 text-emerald-600 border-emerald-400/20"
@@ -552,7 +537,7 @@ export const PatientDashboard = React.memo(function PatientDashboard({
                   )}
                 </div>
 
-                {uploadStatus === "uploading" && (
+                {uploadStatus === 'uploading' && (
                   <div className="space-y-1">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-slate-500">Uploading...</span>
@@ -569,21 +554,21 @@ export const PatientDashboard = React.memo(function PatientDashboard({
                   </div>
                 )}
 
-                {uploadStatus === "processing" && (
+                {uploadStatus === 'processing' && (
                   <div className="flex items-center gap-2 text-sm">
                     <div className="h-4 w-4 border-2 border-blue-200 border-t-blue-500 rounded-full animate-spin" />
                     <span className="font-medium text-blue-600">
                       {isRegistering
-                        ? "Submitting to blockchain via Midnight ZK..."
-                        : "Preparing ZK proof..."}
+                        ? 'Submitting to blockchain via Midnight ZK...'
+                        : 'Preparing ZK proof...'}
                     </span>
                   </div>
                 )}
 
-                {uploadStatus === "complete" && (
+                {uploadStatus === 'complete' && (
                   <div
                     className="space-y-3"
-                    style={smoothTransition(["opacity"], { duration: 500 })}
+                    style={smoothTransition(['opacity'], { duration: 500 })}
                   >
                     <div className="flex items-center gap-2 text-sm text-emerald-600">
                       <CheckCircle2 className="h-4 w-4" />
@@ -626,17 +611,17 @@ export const PatientDashboard = React.memo(function PatientDashboard({
                       </div>
                       <p className="text-xs text-slate-500 leading-relaxed">
                         You'll earn tokens when researchers access your
-                        anonymized data. All PII has been masked using
-                        Midnight's ZK technology.
+                        anonymized data. Your personal information is protected
+                        using Midnight's ZK technology.
                       </p>
                     </div>
                   </div>
                 )}
 
-                {uploadStatus === "error" && (
+                {uploadStatus === 'error' && (
                   <div
                     className="space-y-3"
-                    style={smoothTransition(["opacity"], { duration: 500 })}
+                    style={smoothTransition(['opacity'], { duration: 500 })}
                   >
                     <div className="flex items-center gap-2 text-sm text-red-400">
                       <Shield className="h-4 w-4" />
@@ -645,7 +630,7 @@ export const PatientDashboard = React.memo(function PatientDashboard({
                     <div className="p-3 bg-red-500/10 border border-red-400/20 rounded-lg">
                       <p className="text-sm text-red-400 mb-2">
                         {registrationError ||
-                          "An error occurred during blockchain registration."}
+                          'An error occurred during blockchain registration.'}
                       </p>
                       <p className="text-xs text-slate-400">
                         Make sure the proof server is running and you have
@@ -654,7 +639,7 @@ export const PatientDashboard = React.memo(function PatientDashboard({
                     </div>
                     <Button
                       onClick={() => {
-                        setUploadStatus("idle");
+                        setUploadStatus('idle');
                         clearError();
                       }}
                       variant="outline"
@@ -675,7 +660,7 @@ export const PatientDashboard = React.memo(function PatientDashboard({
           variant="secondary"
           glow
           className="p-6 mb-6"
-          style={smoothTransition(["all"], { duration: 300 })}
+          style={smoothTransition(['all'], { duration: 300 })}
         >
           <div className="space-y-2 mb-4">
             <div className="flex items-center gap-2">
@@ -694,7 +679,7 @@ export const PatientDashboard = React.memo(function PatientDashboard({
                 <div
                   key={transaction.id}
                   className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors border border-slate-200"
-                  style={smoothTransition(["background-color", "transform"], {
+                  style={smoothTransition(['background-color', 'transform'], {
                     duration: 300,
                     delay: index * 50,
                   })}
@@ -739,7 +724,7 @@ export const PatientDashboard = React.memo(function PatientDashboard({
           variant="accent"
           glow
           className="p-6"
-          style={smoothTransition(["all"], { duration: 300 })}
+          style={smoothTransition(['all'], { duration: 300 })}
         >
           <div className="space-y-2 mb-4">
             <div className="flex items-center gap-2">
@@ -758,7 +743,7 @@ export const PatientDashboard = React.memo(function PatientDashboard({
                 <div
                   key={log.id}
                   className="relative pl-6 pb-4 border-l-2 border-blue-200 last:pb-0"
-                  style={smoothTransition(["opacity"], {
+                  style={smoothTransition(['opacity'], {
                     duration: 300,
                     delay: index * 100,
                   })}
@@ -788,8 +773,8 @@ export const PatientDashboard = React.memo(function PatientDashboard({
                     <div className="mt-2 p-3 bg-blue-500/5 border border-blue-200 rounded-md">
                       <p className="text-xs text-slate-500 leading-relaxed">
                         <Shield className="h-3 w-3 inline mr-1 text-blue-600" />
-                        Your data was used only after your PII (Name, Address)
-                        was protected and masked by Midnight's ZK technology.
+                        Your personal information (Name, Address) is protected
+                        using Midnight's ZK technology.
                       </p>
                     </div>
                   </div>

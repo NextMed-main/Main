@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   Activity,
@@ -11,15 +11,16 @@ import {
   Shield,
   TrendingUp,
   Upload,
-} from "lucide-react";
-import { useState } from "react";
-import { Card } from "@/components/design/card";
-import { Chart } from "@/components/design/chart";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { WalletButton } from "@/components/wallet/wallet-button";
-import { EHR_PROVIDERS, type EHRProvider } from "@/lib/ehr-providers";
+} from 'lucide-react';
+import { useState } from 'react';
+import { Card } from '@/components/design/card';
+import { Chart } from '@/components/design/chart';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { FileUploadDropzone } from '@/components/ui/file-upload-dropzone';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { WalletButton } from '@/components/wallet/wallet-button';
+import { EHR_PROVIDERS, type EHRProvider } from '@/lib/ehr-providers';
 
 interface InstitutionDashboardProps {
   onLogout: () => void;
@@ -27,11 +28,12 @@ interface InstitutionDashboardProps {
 
 export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
   const [uploadStatus, setUploadStatus] = useState<
-    "idle" | "uploading" | "processing" | "complete"
-  >("idle");
+    'idle' | 'uploading' | 'processing' | 'complete'
+  >('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
   const [earnedTokens, setEarnedTokens] = useState(0);
   const [totalTokens, setTotalTokens] = useState(1250);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedEHR, setSelectedEHR] = useState<EHRProvider | null>(null);
 
   const handleConnect = (providerId: string) => {
@@ -41,8 +43,9 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
     }
   };
 
-  const handleFileUpload = () => {
-    setUploadStatus("uploading");
+  const handleFileUpload = (file: File) => {
+    setSelectedFile(file);
+    setUploadStatus('uploading');
     setUploadProgress(0);
     const tokensForUpload = 150;
 
@@ -50,9 +53,9 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
       setUploadProgress((prev) => {
         if (prev >= 100) {
           clearInterval(uploadInterval);
-          setUploadStatus("processing");
+          setUploadStatus('processing');
           setTimeout(() => {
-            setUploadStatus("complete");
+            setUploadStatus('complete');
             setEarnedTokens(tokensForUpload);
             setTotalTokens((prev) => prev + tokensForUpload);
           }, 2000);
@@ -63,82 +66,89 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
     }, 500);
   };
 
+  const handleFileRemove = () => {
+    setSelectedFile(null);
+    setUploadStatus('idle');
+    setUploadProgress(0);
+    setEarnedTokens(0);
+  };
+
   const uploadHistory = [
     {
       id: 1,
-      filename: "patient_records_2025_01.csv",
-      date: "2025-02-01 14:30",
+      filename: 'patient_records_2025_01.csv',
+      date: '2025-02-01 14:30',
       records: 150,
-      status: "complete",
+      status: 'complete',
       tokens: 150,
     },
     {
       id: 2,
-      filename: "lab_results_jan.json",
-      date: "2025-01-28 10:15",
+      filename: 'lab_results_jan.json',
+      date: '2025-01-28 10:15',
       records: 89,
-      status: "complete",
+      status: 'complete',
       tokens: 90,
     },
     {
       id: 3,
-      filename: "medical_history_q4.csv",
-      date: "2025-01-20 16:45",
+      filename: 'medical_history_q4.csv',
+      date: '2025-01-20 16:45',
       records: 203,
-      status: "complete",
+      status: 'complete',
       tokens: 200,
     },
   ];
 
   const syncLogs = [
     {
-      time: "10:47",
-      action: "50 new records fetched from EHR",
-      status: "info",
+      time: '10:47',
+      action: '50 new records fetched from EHR',
+      status: 'info',
     },
     {
-      time: "10:47",
-      action: "Processing: Masking PII with Midnight ZK...",
-      status: "processing",
+      time: '10:47',
+      action: 'Processing: Masking PII with Midnight ZK...',
+      status: 'processing',
     },
     {
-      time: "10:48",
-      action: "Complete. 50 records securely added.",
-      status: "success",
+      time: '10:48',
+      action: 'Complete. 50 records securely added.',
+      status: 'success',
     },
     {
-      time: "10:45",
-      action: "32 new records fetched from EHR",
-      status: "info",
+      time: '10:45',
+      action: '32 new records fetched from EHR',
+      status: 'info',
     },
     {
-      time: "10:45",
-      action: "Processing: Masking PII with Midnight ZK...",
-      status: "processing",
+      time: '10:45',
+      action: 'Processing: Masking PII with Midnight ZK...',
+      status: 'processing',
     },
     {
-      time: "10:46",
-      action: "Complete. 32 records securely added.",
-      status: "success",
+      time: '10:46',
+      action: 'Complete. 32 records securely added.',
+      status: 'success',
     },
   ];
 
   // Chart data for statistics
   const uploadTrendData = [
-    { name: "Mon", records: 45 },
-    { name: "Tue", records: 52 },
-    { name: "Wed", records: 61 },
-    { name: "Thu", records: 70 },
-    { name: "Fri", records: 82 },
-    { name: "Sat", records: 50 },
-    { name: "Sun", records: 60 },
+    { name: 'Mon', records: 45 },
+    { name: 'Tue', records: 52 },
+    { name: 'Wed', records: 61 },
+    { name: 'Thu', records: 70 },
+    { name: 'Fri', records: 82 },
+    { name: 'Sat', records: 50 },
+    { name: 'Sun', records: 60 },
   ];
 
   const tokenEarningsData = [
-    { name: "Week 1", tokens: 280 },
-    { name: "Week 2", tokens: 350 },
-    { name: "Week 3", tokens: 420 },
-    { name: "Week 4", tokens: 500 },
+    { name: 'Week 1', tokens: 280 },
+    { name: 'Week 2', tokens: 350 },
+    { name: 'Week 3', tokens: 420 },
+    { name: 'Week 4', tokens: 500 },
   ];
 
   return (
@@ -243,10 +253,10 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
             </div>
             <p className="text-xs sm:text-sm text-slate-600 mb-1">EHR Status</p>
             <p className="text-lg sm:text-xl font-bold text-slate-900 mb-1">
-              {selectedEHR ? "Connected" : "Not Connected"}
+              {selectedEHR ? 'Connected' : 'Not Connected'}
             </p>
             <p className="text-xs text-emerald-600">
-              {selectedEHR ? selectedEHR.name : "Select Provider"}
+              {selectedEHR ? selectedEHR.name : 'Select Provider'}
             </p>
           </Card>
         </div>
@@ -388,23 +398,21 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
                   </div>
                 </div>
 
-                <div className="border-2 border-dashed border-slate-200 rounded-lg p-12 text-center hover:border-blue-300 transition-colors cursor-pointer bg-slate-50">
-                  <Upload className="h-12 w-12 mx-auto mb-4 text-blue-600" />
-                  <p className="text-lg font-medium mb-2 text-slate-900">
-                    Drag & Drop Files Here
-                  </p>
-                  <p className="text-sm text-slate-600 mb-4">
-                    or click to select files (CSV, JSON)
-                  </p>
-                  <Button
-                    onClick={handleFileUpload}
-                    disabled={uploadStatus !== "idle"}
-                  >
-                    Select File
-                  </Button>
-                </div>
+                <FileUploadDropzone
+                  onFileSelect={handleFileUpload}
+                  onFileRemove={handleFileRemove}
+                  accept=".csv,.json"
+                  maxSize={100}
+                  disabled={false}
+                  isUploading={
+                    uploadStatus === 'uploading' ||
+                    uploadStatus === 'processing'
+                  }
+                  uploadProgress={uploadProgress}
+                  validateMagicBytes={false}
+                />
 
-                {uploadStatus !== "idle" && (
+                {uploadStatus !== 'idle' && (
                   <div className="space-y-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -413,7 +421,7 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
                           patient_records_demo.csv
                         </span>
                       </div>
-                      {uploadStatus === "complete" && (
+                      {uploadStatus === 'complete' && (
                         <Badge
                           variant="secondary"
                           className="bg-emerald-50 text-emerald-600 border-emerald-200"
@@ -424,7 +432,7 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
                       )}
                     </div>
 
-                    {uploadStatus === "uploading" && (
+                    {uploadStatus === 'uploading' && (
                       <>
                         <div className="space-y-1">
                           <div className="flex items-center justify-between text-sm">
@@ -443,7 +451,7 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
                       </>
                     )}
 
-                    {uploadStatus === "processing" && (
+                    {uploadStatus === 'processing' && (
                       <div className="flex items-center gap-2 text-sm">
                         <div className="h-4 w-4 border-2 border-blue-200 border-t-blue-500 rounded-full animate-spin" />
                         <span className="font-medium text-blue-600">
@@ -452,7 +460,7 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
                       </div>
                     )}
 
-                    {uploadStatus === "complete" && (
+                    {uploadStatus === 'complete' && (
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 text-sm text-emerald-600">
                           <CheckCircle2 className="h-4 w-4" />
@@ -542,8 +550,8 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
                 </h3>
                 <p className="text-sm text-slate-600">
                   {selectedEHR
-                    ? "Managed connection with your Electronic Health Records system"
-                    : "Select your EHR provider to begin integration"}
+                    ? 'Managed connection with your Electronic Health Records system'
+                    : 'Select your EHR provider to begin integration'}
                 </p>
               </div>
 
@@ -666,7 +674,7 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
                       <p className="text-sm text-slate-600 leading-relaxed">
                         <strong className="text-slate-900">
                           Security Assurance:
-                        </strong>{" "}
+                        </strong>{' '}
                         Data from {selectedEHR.name} is only integrated after
                         all PII (Name, Address) is completely masked. NextMed
                         never stores raw patient personal data.
@@ -698,11 +706,11 @@ export function InstitutionDashboard({ onLogout }: InstitutionDashboardProps) {
                     </span>
                     <span
                       className={
-                        log.status === "success"
-                          ? "text-emerald-600"
-                          : log.status === "processing"
-                            ? "text-blue-600 font-semibold"
-                            : "text-slate-900"
+                        log.status === 'success'
+                          ? 'text-emerald-600'
+                          : log.status === 'processing'
+                          ? 'text-blue-600 font-semibold'
+                          : 'text-slate-900'
                       }
                     >
                       {log.action}

@@ -54,7 +54,17 @@ export function isLaceInstalled(): boolean {
   if (typeof window === "undefined") {
     return false; // SSR environment
   }
-  return window.midnight !== undefined && window.midnight.mnLace !== undefined;
+  
+  const hasMidnight = window.midnight !== undefined;
+  // @ts-ignore - Debug check
+  const hasMnLace = hasMidnight && window.midnight.mnLace !== undefined;
+  
+  // Debug log only if midnight exists but lace is missing (common issue)
+  if (hasMidnight && !hasMnLace) {
+    console.debug('Midnight object found, but mnLace is missing:', Object.keys(window.midnight || {}));
+  }
+
+  return hasMnLace;
 }
 
 /**
