@@ -39,8 +39,9 @@ jobs:
         run: |
           export PATH="$HOME/.cargo/bin:$PATH"
           compact update 0.25.0
-          # Install version 0.21.0 specifically (required by contract package)
-          compact toolchain add 0.21.0 --target x86_64-unknown-linux-musl
+          # Install version 0.21.0 specifically (required by contract package) - REMOVED legacy command
+          # compact update 0.21.0 --no-set-default # Optional if really needed, but 0.25.0 works locally.
+          # For now, we stick to 0.25.0 which is installed above.
           pnpm contract compact
         shell: bash
 
