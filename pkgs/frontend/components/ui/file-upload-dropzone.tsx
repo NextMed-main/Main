@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   AlertCircle,
@@ -10,9 +10,10 @@ import {
   Trash2,
   Upload,
   X,
-} from 'lucide-react';
-import React, { useCallback, useRef, useState } from 'react';
-import { Button } from '@/components/ui/button';
+} from "lucide-react";
+import type React from "react";
+import { useCallback, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 interface FileUploadDropzoneProps {
   onFileSelect: (file: File) => void;
@@ -34,40 +35,46 @@ interface FilePreview {
 }
 
 const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 Bytes';
+  if (bytes === 0) return "0 Bytes";
   const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const sizes = ["Bytes", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return `${Number.parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
 };
 
 const validateFileSignature = async (file: File): Promise<boolean> => {
   const arr = new Uint8Array(await file.slice(0, 4).arrayBuffer());
-  const header = arr.reduce((acc, b) => acc + b.toString(16).padStart(2, '0'), '').toUpperCase();
-  const extension = file.name.split('.').pop()?.toLowerCase();
+  const header = arr
+    .reduce((acc, b) => acc + b.toString(16).padStart(2, "0"), "")
+    .toUpperCase();
+  const extension = file.name.split(".").pop()?.toLowerCase();
 
   // PDF: Starts with %PDF (25 50 44 46)
-  if (extension === 'pdf') {
-    return header.startsWith('25504446');
+  if (extension === "pdf") {
+    return header.startsWith("25504446");
   }
 
   // DICOM: Validation is complex (header at offset 128), checks for DICM at 128-131
-  if (extension === 'dcm' || extension === 'dicom') {
+  if (extension === "dcm" || extension === "dicom") {
     if (file.size < 132) return false;
-    const dicomHeader = new Uint8Array(await file.slice(128, 132).arrayBuffer());
-    const dicomSig = Array.from(dicomHeader).map(b => String.fromCharCode(b)).join('');
-    return dicomSig === 'DICM';
+    const dicomHeader = new Uint8Array(
+      await file.slice(128, 132).arrayBuffer(),
+    );
+    const dicomSig = Array.from(dicomHeader)
+      .map((b) => String.fromCharCode(b))
+      .join("");
+    return dicomSig === "DICM";
   }
 
   // JSON: Basic check if it starts with { or [
-  if (extension === 'json') {
+  if (extension === "json") {
     const text = await file.text();
     const trimmed = text.trim();
-    return trimmed.startsWith('{') || trimmed.startsWith('[');
+    return trimmed.startsWith("{") || trimmed.startsWith("[");
   }
 
   // CSV: Basic check - just ensure it's text and has matching extension
-  if (extension === 'csv') {
+  if (extension === "csv") {
     return true; // Difficult to strictly validate signatures for CSV without parsing
   }
 
@@ -75,18 +82,18 @@ const validateFileSignature = async (file: File): Promise<boolean> => {
 };
 
 const getFileIcon = (type: string, name: string) => {
-  const extension = name.split('.').pop()?.toLowerCase();
+  const extension = name.split(".").pop()?.toLowerCase();
 
-  if (extension === 'csv' || type.includes('csv')) {
+  if (extension === "csv" || type.includes("csv")) {
     return <FileSpreadsheet className="h-8 w-8 text-emerald-600" />;
   }
-  if (extension === 'json' || type.includes('json')) {
+  if (extension === "json" || type.includes("json")) {
     return <FileText className="h-8 w-8 text-blue-600" />;
   }
-  if (extension === 'pdf' || type.includes('pdf')) {
+  if (extension === "pdf" || type.includes("pdf")) {
     return <FileText className="h-8 w-8 text-red-500" />;
   }
-  if (extension === 'dcm' || extension === 'dicom') {
+  if (extension === "dcm" || extension === "dicom") {
     return <File className="h-8 w-8 text-purple-600" />;
   }
   return <File className="h-8 w-8 text-slate-500" />;
@@ -95,13 +102,13 @@ const getFileIcon = (type: string, name: string) => {
 export function FileUploadDropzone({
   onFileSelect,
   onFileRemove,
-  accept = '.pdf,.csv,.json,.dcm,.dicom',
+  accept = ".pdf,.csv,.json,.dcm,.dicom",
   maxSize = 100,
   disabled = false,
   isUploading = false,
   uploadProgress = 0,
   validateMagicBytes = false,
-  className = '',
+  className = "",
 }: FileUploadDropzoneProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [selectedFile, setSelectedFile] = useState<FilePreview | null>(null);
@@ -117,18 +124,18 @@ export function FileUploadDropzone({
       }
 
       const acceptedTypes = accept
-        .split(',')
+        .split(",")
         .map((t) => t.trim().toLowerCase());
-      const extension = `.${file.name.split('.').pop()?.toLowerCase()}`;
+      const extension = `.${file.name.split(".").pop()?.toLowerCase()}`;
       const mimeType = file.type.toLowerCase();
 
       const isValidType = acceptedTypes.some(
         (type) =>
           extension === type ||
-          mimeType.includes(type.replace('.', '')) ||
-          (type === '.csv' && mimeType === 'text/csv') ||
-          (type === '.json' && mimeType === 'application/json') ||
-          (type === '.pdf' && mimeType === 'application/pdf'),
+          mimeType.includes(type.replace(".", "")) ||
+          (type === ".csv" && mimeType === "text/csv") ||
+          (type === ".json" && mimeType === "application/json") ||
+          (type === ".pdf" && mimeType === "application/pdf"),
       );
 
       if (!isValidType) {
@@ -154,14 +161,16 @@ export function FileUploadDropzone({
         try {
           const isValid = await validateFileSignature(file);
           if (!isValid) {
-            setError(`Invalid file format. The file content does not match its extension.`);
+            setError(
+              `Invalid file format. The file content does not match its extension.`,
+            );
             setSelectedFile(null);
             setIsValidating(false);
             return;
           }
         } catch (e) {
-          console.error('Validation error:', e);
-          setError('Failed to validate file. Please try again.');
+          console.error("Validation error:", e);
+          setError("Failed to validate file. Please try again.");
           setSelectedFile(null);
           setIsValidating(false);
           return;
@@ -246,7 +255,7 @@ export function FileUploadDropzone({
       setSelectedFile(null);
       setError(null);
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
       onFileRemove?.();
     },
@@ -255,7 +264,7 @@ export function FileUploadDropzone({
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter' || e.key === ' ') {
+      if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
         handleClick();
       }
@@ -279,15 +288,15 @@ export function FileUploadDropzone({
           outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2
           ${
             isDragOver
-              ? 'border-emerald-500 bg-emerald-50 scale-[1.02]'
-              : 'border-slate-200 hover:border-emerald-400/50 bg-slate-50/50'
+              ? "border-emerald-500 bg-emerald-50 scale-[1.02]"
+              : "border-slate-200 hover:border-emerald-400/50 bg-slate-50/50"
           }
           ${
             disabled || isUploading || isValidating
-              ? 'opacity-60 cursor-not-allowed'
-              : ''
+              ? "opacity-60 cursor-not-allowed"
+              : ""
           }
-          ${error ? 'border-red-300 bg-red-50/50' : ''}
+          ${error ? "border-red-300 bg-red-50/50" : ""}
         `}
       >
         <input
@@ -327,12 +336,12 @@ export function FileUploadDropzone({
                 or click to browse from your computer
               </p>
               <div className="flex flex-wrap justify-center gap-2 mb-4">
-                {accept.split(',').map((type) => (
+                {accept.split(",").map((type) => (
                   <span
                     key={type}
                     className="px-2 py-1 text-xs font-medium bg-slate-100 text-slate-600 rounded-md"
                   >
-                    {type.replace('.', '').toUpperCase()}
+                    {type.replace(".", "").toUpperCase()}
                   </span>
                 ))}
               </div>

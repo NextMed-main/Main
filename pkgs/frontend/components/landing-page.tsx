@@ -583,9 +583,7 @@ export const LandingPage = React.memo(function LandingPage({
             />
             <span className="text-xl font-bold text-white">NextMed</span>
           </div>
-          <p className="text-slate-400">
-            © 2026 NextMed. All rights reserved.
-          </p>
+          <p className="text-slate-400">© 2026 NextMed. All rights reserved.</p>
         </div>
       </footer>
     </div>

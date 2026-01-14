@@ -275,7 +275,9 @@ export function DataLoader<T>({
           <div className="h-12 w-12 rounded-full bg-gray-500/10 flex items-center justify-center mb-3">
             <span className="text-2xl">📭</span>
           </div>
-          <p className="text-sm text-slate-400 font-medium">No data available</p>
+          <p className="text-sm text-slate-400 font-medium">
+            No data available
+          </p>
         </div>
       )
     );
