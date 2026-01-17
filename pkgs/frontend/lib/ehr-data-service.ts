@@ -3,7 +3,7 @@
  *
  * This service reads and processes the NextMed EHR demo CSV file,
  * providing pre-computed statistics and intelligent data sampling
- * for the Gemini AI to analyze.
+ * for the AI to analyze.
  */
 
 import { promises as fs } from "node:fs";
@@ -393,9 +393,9 @@ export async function getSampleRecords(count = 10): Promise<EHRRecord[]> {
 }
 
 /**
- * Generate a context summary for Gemini
+ * Generate a context summary for AI analysis
  */
-export async function generateGeminiContext(): Promise<string> {
+export async function generateAIContext(): Promise<string> {
   const stats = await getEHRStatistics();
   const sampleRecords = await getSampleRecords(5);
 

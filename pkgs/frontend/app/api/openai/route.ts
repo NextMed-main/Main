@@ -1,24 +1,20 @@
 import { type NextRequest, NextResponse } from "next/server";
 import {
-  generateGeminiContext,
+  generateAIContext,
   getEHRStatistics,
   searchRecords,
 } from "@/lib/ehr-data-service";
+import OpenAI from "openai";
 
 /**
- * Gemini API Route for Researchers
+ * OpenAI API Route for Researchers
  *
  * This endpoint processes natural language queries from researchers
- * and uses Gemini AI to analyze EHR (Electronic Health Record) data.
+ * and uses OpenAI GPT models to analyze EHR (Electronic Health Record) data.
  *
  * Security: API key is kept server-side, never exposed to client.
- *
- * Data Source: Reads from /public/demo-data/nextmed_ehr_demo_300k.csv
- * - 300,000 patient records
- * - Includes demographics, conditions, medications, visit history
  */
 
-// System prompt for Gemini to act as an EHR research assistant
 const SYSTEM_PROMPT_TEMPLATE = `You are an AI research assistant specialized in analyzing Electronic Health Record (EHR) data for the NextMed platform.
 
 You have access to a comprehensive EHR database with the following statistics and sample data:
@@ -49,7 +45,7 @@ AVAILABLE DATA:
 
 Remember: You are analyzing REAL aggregated EHR data. Be precise and clinically relevant in your responses.`;
 
-interface GeminiRequest {
+interface OpenAIRequest {
   query: string;
   conversationHistory?: Array<{ role: string; content: string }>;
   filters?: {
@@ -62,7 +58,7 @@ interface GeminiRequest {
   };
 }
 
-interface GeminiResponse {
+interface OpenAIResponse {
   success: boolean;
   response?: string;
   error?: string;
@@ -77,7 +73,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const startTime = Date.now();
 
   try {
-    const body: GeminiRequest = await request.json();
+    const body: OpenAIRequest = await request.json();
     const { query, conversationHistory = [], filters } = body;
 
     if (!query || typeof query !== "string" || query.trim().length === 0) {
@@ -85,28 +81,31 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         {
           success: false,
           error: "Query is required and must be a non-empty string",
-        } as GeminiResponse,
+        } as OpenAIResponse,
         { status: 400 },
       );
     }
 
     // Get API key from environment variable
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.OPENAI_API_KEY;
 
     if (!apiKey) {
-      console.error("GEMINI_API_KEY environment variable is not set");
+      console.error("OPENAI_API_KEY environment variable is not set");
       return NextResponse.json(
         {
           success: false,
-          error:
-            "Gemini API is not configured. Please set GEMINI_API_KEY environment variable.",
-        } as GeminiResponse,
+          error: "OpenAI API is not configured. Please set OPENAI_API_KEY environment variable.",
+        } as OpenAIResponse,
         { status: 500 },
       );
     }
 
+    const openai = new OpenAI({
+      apiKey,
+    });
+
     // Generate context from actual EHR data
-    let ehrContext = await generateGeminiContext();
+    let ehrContext = await generateAIContext();
 
     // If filters are provided, add filtered sample data
     if (
@@ -135,87 +134,31 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       ehrContext,
     );
 
-    // Gemini API endpoint
-    const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    // Prepare messages for OpenAI
+    const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+      { role: "developer", content: systemPrompt },
+    ];
 
-    // Build conversation contents for Gemini
-    const contents = [];
-
-    // Add conversation history if present
+    // Add conversation history
     for (const msg of conversationHistory) {
-      contents.push({
-        role: msg.role === "assistant" ? "model" : "user",
-        parts: [{ text: msg.content }],
+      messages.push({
+        role: (msg.role === "assistant" ? "assistant" : "user") as "assistant" | "user",
+        content: msg.content,
       });
     }
 
-    // Add the current user query
-    contents.push({
-      role: "user",
-      parts: [{ text: query }],
+    // Add current query
+    messages.push({ role: "user", content: query });
+
+    // Request to OpenAI
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o", // Using gpt-4o as a powerful default
+      messages,
+      temperature: 0.7,
+      max_tokens: 2048,
     });
 
-    // Make request to Gemini API
-    const geminiResponse = await fetch(GEMINI_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        contents,
-        systemInstruction: {
-          parts: [{ text: systemPrompt }],
-        },
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 2048,
-        },
-        safetySettings: [
-          {
-            category: "HARM_CATEGORY_HARASSMENT",
-            threshold: "BLOCK_MEDIUM_AND_ABOVE",
-          },
-          {
-            category: "HARM_CATEGORY_HATE_SPEECH",
-            threshold: "BLOCK_MEDIUM_AND_ABOVE",
-          },
-          {
-            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-            threshold: "BLOCK_MEDIUM_AND_ABOVE",
-          },
-          {
-            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-            threshold: "BLOCK_MEDIUM_AND_ABOVE",
-          },
-        ],
-      }),
-    });
-
-    if (!geminiResponse.ok) {
-      const errorText = await geminiResponse.text();
-      console.error("Gemini API error:", errorText);
-      return NextResponse.json(
-        {
-          success: false,
-          error: `Gemini API returned an error: ${geminiResponse.status}`,
-        } as GeminiResponse,
-        { status: 502 },
-      );
-    }
-
-    const geminiData = await geminiResponse.json();
-
-    // Extract the response text
-    const responseText =
-      geminiData.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "I apologize, but I was unable to generate a response. Please try rephrasing your query.";
-
-    // Calculate approximate tokens used
-    const tokensUsed =
-      geminiData.usageMetadata?.totalTokenCount ||
-      Math.ceil((query.length + responseText.length) / 4);
+    const responseText = completion.choices[0]?.message?.content || "I apologize, but I was unable to generate a response.";
 
     // Get stats for response metadata
     const stats = await getEHRStatistics();
@@ -224,22 +167,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({
       success: true,
       response: responseText,
-      tokensUsed,
+      tokensUsed: completion.usage?.total_tokens,
       dataStats: {
         totalRecords: stats.totalRecords,
         queryTime,
       },
-    } as GeminiResponse);
+    } as OpenAIResponse);
+
   } catch (error) {
-    console.error("Error processing Gemini request:", error);
+    console.error("Error processing OpenAI request:", error);
     return NextResponse.json(
       {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "An unexpected error occurred",
-      } as GeminiResponse,
+        error: error instanceof Error ? error.message : "An unexpected error occurred",
+      } as OpenAIResponse,
       { status: 500 },
     );
   }
@@ -247,14 +188,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
 // GET endpoint for health check and data summary
 export async function GET(): Promise<NextResponse> {
-  const hasApiKey = !!process.env.GEMINI_API_KEY;
+  const hasApiKey = !!process.env.OPENAI_API_KEY;
 
   try {
     const stats = await getEHRStatistics();
 
     return NextResponse.json({
       status: "ok",
-      service: "NextMed EHR Research Assistant",
+      service: "NextMed EHR Research Assistant (OpenAI)",
       configured: hasApiKey,
       dataSource: "/public/demo-data/nextmed_ehr_demo_300k.csv",
       statistics: {
@@ -262,19 +203,9 @@ export async function GET(): Promise<NextResponse> {
         totalVisits: stats.visitStats.totalVisits,
         avgVisitsPerPatient: stats.visitStats.avgVisitsPerPatient,
         regionsCount: Object.keys(stats.demographics.regionDistribution).length,
-        conditionsTracked: Object.keys(stats.conditions.chronicConditions)
-          .length,
-        medicationsTracked: Object.keys(stats.medications.topMedications)
-          .length,
+        conditionsTracked: Object.keys(stats.conditions.chronicConditions).length,
+        medicationsTracked: Object.keys(stats.medications.topMedications).length,
       },
-      capabilities: [
-        "Natural language EHR data queries",
-        "Demographic analysis (age, gender, region)",
-        "Condition prevalence insights",
-        "Medication usage patterns",
-        "Visit history analysis",
-        "Cross-regional comparisons",
-      ],
     });
   } catch (error) {
     return NextResponse.json(

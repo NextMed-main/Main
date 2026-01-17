@@ -24,7 +24,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { type ChatMessage, useGeminiChat } from "@/hooks/use-gemini-chat";
+import { type ChatMessage, useOpenAIChat } from "@/hooks/use-openai-chat";
 
 /**
  * Suggested queries for researchers - EHR focused
@@ -154,7 +154,7 @@ function ChatMessageItem({
  * AI Chat Panel Component for Researchers
  *
  * This component provides a chat interface for researchers to query
- * EHR data using natural language powered by Gemini AI.
+ * EHR data using natural language powered by OpenAI GPT-4o.
  */
 export function AiChatPanel() {
   const {
@@ -165,7 +165,7 @@ export function AiChatPanel() {
     sendMessage,
     clearChat,
     retryLastMessage,
-  } = useGeminiChat();
+  } = useOpenAIChat();
 
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -229,7 +229,7 @@ export function AiChatPanel() {
               EHR Research Assistant
             </h3>
             <p className="text-xs text-slate-500">
-              Powered by Gemini AI • 300,000 Patient Records
+              Powered by OpenAI GPT-4o • 300,000 Patient Records
             </p>
           </div>
         </div>
