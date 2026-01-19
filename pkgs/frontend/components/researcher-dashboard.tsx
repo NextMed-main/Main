@@ -19,6 +19,9 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Chart } from "@/components/design/chart";
+import { AiChatPanel } from "@/components/research/ai-chat-panel";
+import { FilterPanel } from "@/components/research/filter-panel";
+import { SQLQueryPanel } from "@/components/research/sql-query-panel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,16 +32,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
 import { WalletButton } from "@/components/wallet/wallet-button";
 import { EHR_PROVIDERS, type EHRProvider } from "@/lib/ehr-providers";
 
@@ -48,15 +42,6 @@ interface ResearcherDashboardProps {
 
 export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
   const [activeTab, setActiveTab] = useState("ai-chat");
-  const [aiQuery, setAiQuery] = useState(
-    "Show me hypertension rates by age group in Suginami District",
-  );
-  const [sqlQuery, setSqlQuery] = useState(
-    "SELECT age_group, COUNT(*) as count\nFROM medical_records\nWHERE condition = 'hypertension'\nGROUP BY age_group",
-  );
-  const [ageFilter, setAgeFilter] = useState("");
-  const [symptomFilter, setSymptomFilter] = useState("");
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [hasSubscription, setHasSubscription] = useState(false);
@@ -69,19 +54,6 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
       setSelectedEHR(provider);
       setShowEHRSelector(false);
     }
-  };
-
-  const handleExecuteAnalysis = () => {
-    if (!hasSubscription) {
-      setShowPaymentModal(true);
-      return;
-    }
-
-    setIsAnalyzing(true);
-    setTimeout(() => {
-      setIsAnalyzing(false);
-      setShowResults(true);
-    }, 2000);
   };
 
   const handleTokenPayment = () => {
@@ -152,9 +124,7 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                     <p className="font-semibold text-lg">
                       Pay with NEXT Tokens
                     </p>
-                    <p className="text-sm text-slate-500">
-                      One-time payment
-                    </p>
+                    <p className="text-sm text-slate-500">One-time payment</p>
                   </div>
                 </div>
                 <Badge
@@ -166,10 +136,10 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
               </div>
               <div className="mb-4">
                 <div className="flex items-baseline gap-2 mb-1">
-                  <span className="text-3xl font-bold text-emerald-600">1000</span>
-                  <span className="text-lg text-slate-500">
-                    NEXT tokens
+                  <span className="text-3xl font-bold text-emerald-600">
+                    1000
                   </span>
+                  <span className="text-lg text-slate-500">NEXT tokens</span>
                 </div>
                 <p className="text-xs text-slate-500">
                   For 30 days of full platform access
@@ -205,9 +175,7 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                     <p className="font-semibold text-lg">
                       Monthly Subscription
                     </p>
-                    <p className="text-sm text-slate-500">
-                      Recurring payment
-                    </p>
+                    <p className="text-sm text-slate-500">Recurring payment</p>
                   </div>
                 </div>
               </div>
@@ -443,9 +411,7 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                 <span className="text-2xl sm:text-3xl font-bold">15</span>
                 <Users className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
               </div>
-              <p className="text-xs text-slate-500">
-                London (2,400 records)
-              </p>
+              <p className="text-xs text-slate-500">London (2,400 records)</p>
             </div>
           </Card>
 
@@ -528,182 +494,15 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
               </TabsList>
 
               <TabsContent value="ai-chat" className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Ask AI to Analyze Data</Label>
-                  <Textarea
-                    value={aiQuery}
-                    onChange={(e) => setAiQuery(e.target.value)}
-                    placeholder="Ask questions in natural language..."
-                    className="min-h-[100px] font-sans"
-                  />
-                  <p className="text-xs text-slate-500">
-                    Example: "Show me diabetes prevalence in patients over 60"
-                    or "Compare cardiovascular disease rates between regions"
-                  </p>
-                </div>
-                <Button
-                  onClick={handleExecuteAnalysis}
-                  disabled={isAnalyzing}
-                  className="w-full"
-                  size="lg"
-                >
-                  {isAnalyzing ? (
-                    <>
-                      <div className="h-4 w-4 mr-2 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                      Analyzing with AI...
-                    </>
-                  ) : (
-                    <>
-                      <MessageSquare className="h-4 w-4 mr-2" />
-                      Ask AI
-                    </>
-                  )}
-                </Button>
+                <AiChatPanel />
               </TabsContent>
 
               <TabsContent value="filters" className="space-y-4">
-                <Card variant="default" className="p-4">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label>Age Range</Label>
-                      <Select value={ageFilter} onValueChange={setAgeFilter}>
-                        <SelectTrigger className="backdrop-blur-sm bg-slate-50 border-slate-200">
-                          <SelectValue placeholder="Select age range" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Ages</SelectItem>
-                          <SelectItem value="0-19">0-19 years</SelectItem>
-                          <SelectItem value="20-39">20-39 years</SelectItem>
-                          <SelectItem value="40-59">40-59 years</SelectItem>
-                          <SelectItem value="60+">60+ years</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Condition/Symptom</Label>
-                      <Select
-                        value={symptomFilter}
-                        onValueChange={setSymptomFilter}
-                      >
-                        <SelectTrigger className="backdrop-blur-sm bg-slate-50 border-slate-200">
-                          <SelectValue placeholder="Select condition" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Conditions</SelectItem>
-                          <SelectItem value="hypertension">
-                            Hypertension
-                          </SelectItem>
-                          <SelectItem value="diabetes">Diabetes</SelectItem>
-                          <SelectItem value="cardiovascular">
-                            Cardiovascular Disease
-                          </SelectItem>
-                          <SelectItem value="respiratory">
-                            Respiratory Issues
-                          </SelectItem>
-                          <SelectItem value="cancer">Cancer</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Region</Label>
-                      <Select>
-                        <SelectTrigger className="backdrop-blur-sm bg-slate-50 border-slate-200">
-                          <SelectValue placeholder="Select region" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Regions</SelectItem>
-                          <SelectItem value="london">London</SelectItem>
-                          <SelectItem value="manchester">Manchester</SelectItem>
-                          <SelectItem value="birmingham">Birmingham</SelectItem>
-                          <SelectItem value="leeds">Leeds</SelectItem>
-                          <SelectItem value="glasgow">Glasgow</SelectItem>
-                          <SelectItem value="liverpool">Liverpool</SelectItem>
-                          <SelectItem value="edinburgh">Edinburgh</SelectItem>
-                          <SelectItem value="bristol">Bristol</SelectItem>
-                          <SelectItem value="cardiff">Cardiff</SelectItem>
-                          <SelectItem value="belfast">Belfast</SelectItem>
-                          <SelectItem value="newcastle">Newcastle</SelectItem>
-                          <SelectItem value="sheffield">Sheffield</SelectItem>
-                          <SelectItem value="nottingham">Nottingham</SelectItem>
-                          <SelectItem value="southampton">
-                            Southampton
-                          </SelectItem>
-                          <SelectItem value="cambridge">Cambridge</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Gender</Label>
-                      <Select>
-                        <SelectTrigger className="backdrop-blur-sm bg-slate-50 border-slate-200">
-                          <SelectValue placeholder="Select gender" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All</SelectItem>
-                          <SelectItem value="male">Male</SelectItem>
-                          <SelectItem value="female">Female</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </Card>
-
-                <Button
-                  onClick={handleExecuteAnalysis}
-                  disabled={isAnalyzing}
-                  className="w-full"
-                  size="lg"
-                >
-                  {isAnalyzing ? (
-                    <>
-                      <div className="h-4 w-4 mr-2 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                      Applying Filters...
-                    </>
-                  ) : (
-                    <>
-                      <Filter className="h-4 w-4 mr-2" />
-                      Apply Filters & Analyze
-                    </>
-                  )}
-                </Button>
+                <FilterPanel />
               </TabsContent>
 
               <TabsContent value="sql" className="space-y-4">
-                <div className="space-y-2">
-                  <Label>SQL Query</Label>
-                  <Textarea
-                    value={sqlQuery}
-                    onChange={(e) => setSqlQuery(e.target.value)}
-                    placeholder="Write your SQL query..."
-                    className="min-h-[150px] font-mono text-sm"
-                  />
-                  <p className="text-xs text-slate-500">
-                    Available tables: medical_records, conditions, demographics,
-                    lab_results
-                  </p>
-                </div>
-                <Button
-                  onClick={handleExecuteAnalysis}
-                  disabled={isAnalyzing}
-                  className="w-full"
-                  size="lg"
-                >
-                  {isAnalyzing ? (
-                    <>
-                      <div className="h-4 w-4 mr-2 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                      Executing Query...
-                    </>
-                  ) : (
-                    <>
-                      <Code2 className="h-4 w-4 mr-2" />
-                      Execute SQL Query
-                    </>
-                  )}
-                </Button>
+                <SQLQueryPanel />
               </TabsContent>
             </Tabs>
           </div>
@@ -750,7 +549,9 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                         <p className="text-sm text-slate-500 mb-1">
                           Total Records
                         </p>
-                        <p className="text-3xl font-bold text-blue-600">1,200</p>
+                        <p className="text-3xl font-bold text-blue-600">
+                          1,200
+                        </p>
                       </div>
                       <Database className="h-8 w-8 text-blue-600/20" />
                     </div>
@@ -774,7 +575,9 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                         <p className="text-sm text-slate-500 mb-1">
                           Overall Rate
                         </p>
-                        <p className="text-3xl font-bold text-blue-600">28.5%</p>
+                        <p className="text-3xl font-bold text-blue-600">
+                          28.5%
+                        </p>
                       </div>
                       <BarChart3 className="h-8 w-8 text-blue-600/20" />
                     </div>
@@ -783,10 +586,10 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                   <Card variant="default" className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-slate-500 mb-1">
-                          Trend
+                        <p className="text-sm text-slate-500 mb-1">Trend</p>
+                        <p className="text-3xl font-bold text-emerald-600">
+                          +2.0%
                         </p>
-                        <p className="text-3xl font-bold text-emerald-600">+2.0%</p>
                       </div>
                       <TrendingUp className="h-8 w-8 text-emerald-600/20" />
                     </div>
@@ -853,9 +656,7 @@ export function ResearcherDashboard({ onLogout }: ResearcherDashboardProps) {
                       <h3 className="text-lg font-semibold mb-1">
                         Gender Distribution
                       </h3>
-                      <p className="text-sm text-slate-500">
-                        Cases by gender
-                      </p>
+                      <p className="text-sm text-slate-500">Cases by gender</p>
                     </div>
                     <Chart
                       data={genderDistributionData}
