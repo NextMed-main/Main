@@ -12,10 +12,7 @@ import { findDeployedContract } from "@midnight-ntwrk/midnight-js-contracts";
 import { FetchZkConfigProvider } from "@midnight-ntwrk/midnight-js-fetch-zk-config-provider";
 import { httpClientProofProvider } from "@midnight-ntwrk/midnight-js-http-client-proof-provider";
 import { indexerPublicDataProvider } from "@midnight-ntwrk/midnight-js-indexer-public-data-provider";
-import {
-  NetworkId,
-  setNetworkId,
-} from "@midnight-ntwrk/midnight-js-network-id";
+import { setNetworkId } from "@midnight-ntwrk/midnight-js-network-id";
 import { getServiceConfig, getWalletState } from "../wallet/midnight-wallet";
 import { browserPrivateStateProvider } from "./browser-private-state-provider";
 import {
@@ -30,7 +27,7 @@ import {
 } from "./types";
 
 // Set network to TestNet
-setNetworkId(NetworkId.TestNet);
+setNetworkId("testnet-02");
 
 // ============================================
 // Contract Constants
@@ -83,6 +80,12 @@ export async function configureBrowserProviders(
       .replace("https://", "wss://")
       .replace("/graphql", "/graphql/ws");
 
+  // FetchZkConfigProvider takes (circuitName, baseUrl) in some versions
+  const zkConfigProvider = new (FetchZkConfigProvider as any)(
+    "registerPatient",
+    ZK_CONFIG_BASE_URL,
+  );
+
   return {
     // Use type assertion to bypass strict type checking - browser environment differs from Node.js
     privateStateProvider: browserPrivateStateProvider<typeof PRIVATE_STATE_ID>({
@@ -93,12 +96,11 @@ export async function configureBrowserProviders(
       serviceConfig.indexer,
       indexerWsUrl,
     ),
-    // FetchZkConfigProvider takes (circuitName, baseUrl) in some versions
-    zkConfigProvider: new (FetchZkConfigProvider as any)(
-      "registerPatient",
-      ZK_CONFIG_BASE_URL,
-    ),
-    proofProvider: httpClientProofProvider(serviceConfig.proofServer) as any,
+    zkConfigProvider,
+    proofProvider: httpClientProofProvider(
+      serviceConfig.proofServer,
+      zkConfigProvider,
+    ) as any,
     // For browser, we pass the wallet API directly - it handles balancing and proving
     walletProvider: walletApi as any,
     midnightProvider: walletApi as any,

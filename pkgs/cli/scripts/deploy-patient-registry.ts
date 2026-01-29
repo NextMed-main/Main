@@ -13,6 +13,7 @@ import {
   StandaloneConfig,
   TestnetLocalConfig,
   TestnetRemoteConfig,
+  PreviewNetConfig,
 } from "../src/config.js";
 import { createLogger } from "../src/utils/logger-utils.js";
 
@@ -33,24 +34,24 @@ type SupportedNetwork =
   | "standalone"
   | "testnet-local"
   | "testnet"
-  | "testnet-remote";
+  | "testnet-remote"
+  | "preview";
 
 /**
  * 環境変数からネットワークを解決
  */
 const resolveNetwork = (value: string | undefined): SupportedNetwork => {
-  const normalized = (value ?? "testnet").toLowerCase();
-  if (normalized === "testnet") {
-    return "testnet";
-  }
+  const normalized = (value ?? "preview").toLowerCase();
   switch (normalized) {
+    case "testnet":
     case "testnet-remote":
     case "standalone":
     case "testnet-local":
+    case "preview":
       return normalized;
     default:
       throw new Error(
-        `Unsupported network '${value}'. Supported: standalone, testnet-local, testnet`,
+        `Unsupported network '${value}'. Supported: standalone, testnet-local, testnet, preview`,
       );
   }
 };
@@ -66,8 +67,10 @@ const buildConfig = (network: SupportedNetwork): Config => {
       return new TestnetLocalConfig();
     case "testnet":
     case "testnet-remote":
-    default:
       return new TestnetRemoteConfig();
+    case "preview":
+    default:
+      return new PreviewNetConfig();
   }
 };
 

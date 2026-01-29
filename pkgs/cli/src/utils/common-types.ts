@@ -15,7 +15,14 @@
 
 import type { DeployedContract, FoundContract } from '@midnight-ntwrk/midnight-js-contracts';
 import type { ImpureCircuitId, MidnightProviders } from '@midnight-ntwrk/midnight-js-types';
-import { PatientRegistry, type PatientRegistryPrivateState } from 'contract';
+import { 
+  PatientRegistry, type PatientRegistryPrivateState,
+  ConsentRegistry,
+  IncentivePool,
+  MedicalUploadVerifier,
+  ZKDataMasking, type ZKDataMaskingPrivateState,
+  ViewingKeyManager, type ViewingKeyManagerPrivateState
+} from 'contract';
 
 // ========================================
 // Patient Registry Types
@@ -40,6 +47,120 @@ export type DeployedPatientRegistryContract =
 	| FoundContract<PatientRegistryContract>;
 
 export type { PatientRegistryPrivateState };
+
+// ========================================
+// Consent Registry Types
+// ========================================
+
+export type ConsentRegistryCircuits = ImpureCircuitId<
+  ConsentRegistry.Contract<PatientRegistryPrivateState>
+>;
+
+export const ConsentRegistryPrivateStateId = "consentRegistryPrivateState";
+
+export type ConsentRegistryProviders = MidnightProviders<
+  ConsentRegistryCircuits,
+  typeof ConsentRegistryPrivateStateId,
+  PatientRegistryPrivateState
+>;
+
+export type ConsentRegistryContract = ConsentRegistry.Contract<PatientRegistryPrivateState>;
+
+export type DeployedConsentRegistryContract =
+	| DeployedContract<ConsentRegistryContract>
+	| FoundContract<ConsentRegistryContract>;
+
+// ========================================
+// Incentive Pool Types
+// ========================================
+
+export type IncentivePoolCircuits = ImpureCircuitId<
+  IncentivePool.Contract<PatientRegistryPrivateState>
+>;
+
+export const IncentivePoolPrivateStateId = "incentivePoolPrivateState";
+
+export type IncentivePoolProviders = MidnightProviders<
+  IncentivePoolCircuits,
+  typeof IncentivePoolPrivateStateId,
+  PatientRegistryPrivateState
+>;
+
+export type IncentivePoolContract = IncentivePool.Contract<PatientRegistryPrivateState>;
+
+export type DeployedIncentivePoolContract =
+	| DeployedContract<IncentivePoolContract>
+	| FoundContract<IncentivePoolContract>;
+
+// ========================================
+// Medical Upload Verifier Types
+// ========================================
+
+export type MedicalUploadVerifierCircuits = ImpureCircuitId<
+  MedicalUploadVerifier.Contract<PatientRegistryPrivateState>
+>;
+
+export const MedicalUploadVerifierPrivateStateId = "medicalUploadVerifierPrivateState";
+
+export type MedicalUploadVerifierProviders = MidnightProviders<
+  MedicalUploadVerifierCircuits,
+  typeof MedicalUploadVerifierPrivateStateId,
+  PatientRegistryPrivateState
+>;
+
+export type MedicalUploadVerifierContract = MedicalUploadVerifier.Contract<PatientRegistryPrivateState>;
+
+export type DeployedMedicalUploadVerifierContract =
+	| DeployedContract<MedicalUploadVerifierContract>
+	| FoundContract<MedicalUploadVerifierContract>;
+
+// ========================================
+// ZK Data Masking Types
+// ========================================
+
+export type ZKDataMaskingCircuits = ImpureCircuitId<
+  ZKDataMasking.Contract<ZKDataMaskingPrivateState>
+>;
+
+export const ZKDataMaskingPrivateStateId = "zkDataMaskingPrivateState";
+
+export type ZKDataMaskingProviders = MidnightProviders<
+  ZKDataMaskingCircuits,
+  typeof ZKDataMaskingPrivateStateId,
+  ZKDataMaskingPrivateState
+>;
+
+export type ZKDataMaskingContract = ZKDataMasking.Contract<ZKDataMaskingPrivateState>;
+
+export type DeployedZKDataMaskingContract =
+	| DeployedContract<ZKDataMaskingContract>
+	| FoundContract<ZKDataMaskingContract>;
+
+export type { ZKDataMaskingPrivateState };
+
+// ========================================
+// Viewing Key Manager Types
+// ========================================
+
+export type ViewingKeyManagerCircuits = ImpureCircuitId<
+  ViewingKeyManager.Contract<ViewingKeyManagerPrivateState>
+>;
+
+export const ViewingKeyManagerPrivateStateId = "viewingKeyManagerPrivateState";
+
+export type ViewingKeyManagerProviders = MidnightProviders<
+  ViewingKeyManagerCircuits,
+  typeof ViewingKeyManagerPrivateStateId,
+  ViewingKeyManagerPrivateState
+>;
+
+export type ViewingKeyManagerContract = ViewingKeyManager.Contract<ViewingKeyManagerPrivateState>;
+
+export type DeployedViewingKeyManagerContract =
+	| DeployedContract<ViewingKeyManagerContract>
+	| FoundContract<ViewingKeyManagerContract>;
+
+export type { ViewingKeyManagerPrivateState };
 
 // RegistrationStats type
 export type RegistrationStats = [bigint, bigint, bigint, bigint];

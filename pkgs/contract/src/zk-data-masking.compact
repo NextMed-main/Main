@@ -1,0 +1,196 @@
+// This file is part of NextMed Patient Registry
+// Copyright (C) 2026 NextMed Team
+// SPDX-License-Identifier: Apache-2.0
+
+// ============================================================================
+// ZK DATA MASKING CONTRACT
+// Purpose: Selective data disclosure using Zero-Knowledge proofs
+// Pattern: Verified via Midnight MCP server
+// ============================================================================
+
+pragma language_version 0.19.0;
+
+import CompactStandardLibrary;
+
+// ============================================================================
+// TYPE DEFINITIONS
+// ============================================================================
+
+// Masking levels for different data sensitivity
+export enum MaskingLevel { 
+    FULL,       // Completely hidden
+    PARTIAL,    // Partially revealed
+    DISCLOSED   // Fully disclosed
+}
+
+// ============================================================================
+// LEDGER STATE
+// ============================================================================
+
+// Map: user_id -> data_commitment (hash of masked data)
+export ledger dataCommitments: Map<Bytes<32>, Bytes<32>>;
+
+// Map: user_id -> masking_policy_hash
+export ledger maskingPolicies: Map<Bytes<32>, Bytes<32>>;
+
+// Map: access_key -> granted (flattened from nested map)
+export ledger accessGrantKeys: Map<Bytes<32>, Boolean>;
+
+// Counter for total masked data entries
+export ledger totalMaskedEntries: Counter;
+
+// Counter for access grants issued
+export ledger totalAccessGrants: Counter;
+
+// ============================================================================
+// WITNESSES
+// ============================================================================
+
+// Get the user's private data from local state
+witness local_private_data(): Bytes<32>;
+
+// Get the user's secret key for authentication
+witness local_secret_key(): Bytes<32>;
+
+// Get the masking salt for commitment generation
+witness local_masking_salt(): Bytes<32>;
+
+// ============================================================================
+// INTERNAL CIRCUITS
+// ============================================================================
+
+// Generate a public key from secret key using domain separation
+circuit publicKey(sk: Bytes<32>): Bytes<32> {
+    return persistentHash<Vector<2, Bytes<32>>>(
+        [pad(32, "nextmed:zkmasking:pk"), sk]
+    );
+}
+
+// Generate data commitment from raw data and salt
+circuit generateCommitment(data: Bytes<32>, salt: Bytes<32>): Bytes<32> {
+    return persistentHash<Vector<3, Bytes<32>>>(
+        [pad(32, "nextmed:zkmasking:commit"), data, salt]
+    );
+}
+
+// Generate access key from user_id and viewer_id
+circuit generateAccessKey(user_id: Bytes<32>, viewer_id: Bytes<32>): Bytes<32> {
+    return persistentHash<Vector<3, Bytes<32>>>(
+        [pad(32, "nextmed:access:key"), user_id, viewer_id]
+    );
+}
+
+// ============================================================================
+// EXPORT CIRCUITS
+// ============================================================================
+
+// Store masked data commitment for a user
+// The actual data never leaves the user's device - only the commitment is stored
+export circuit storeMaskedData(user_id: Bytes<32>): [] {
+    // Get private data and salt from witness
+    const private_data = local_private_data();
+    const salt = local_masking_salt();
+    
+    // Generate commitment (hash of data + salt)
+    const commitment = generateCommitment(private_data, salt);
+    
+    // Store commitment on-chain (data remains private)
+    const disclosed_user = disclose(user_id);
+    const disclosed_commitment = disclose(commitment);
+    
+    dataCommitments.insert(disclosed_user, disclosed_commitment);
+    totalMaskedEntries.increment(1);
+}
+
+// Verify that a user's private data matches their stored commitment
+// Returns true if the data matches, false otherwise
+export circuit verifyDataIntegrity(user_id: Bytes<32>): Boolean {
+    const disclosed_user = disclose(user_id);
+    
+    // Check commitment exists
+    assert(dataCommitments.member(disclosed_user), "No commitment found for user");
+    
+    // Get stored commitment
+    const stored_commitment = dataCommitments.lookup(disclosed_user);
+    
+    // Recompute commitment from witness data
+    const private_data = local_private_data();
+    const salt = local_masking_salt();
+    const computed_commitment = generateCommitment(private_data, salt);
+    
+    // Return whether commitments match (ZK proof of data integrity)
+    return disclose(computed_commitment == stored_commitment);
+}
+
+// Grant access to a specific viewer
+export circuit grantAccess(user_id: Bytes<32>, viewer_id: Bytes<32>): [] {
+    const disclosed_user = disclose(user_id);
+    const disclosed_viewer = disclose(viewer_id);
+    
+    // Generate combined access key
+    const accessKey = generateAccessKey(disclosed_user, disclosed_viewer);
+    
+    // Store grant
+    accessGrantKeys.insert(accessKey, true);
+    totalAccessGrants.increment(1);
+}
+
+// Check if a viewer has access to a user's data
+export circuit checkAccess(user_id: Bytes<32>, viewer_id: Bytes<32>): Boolean {
+    const disclosed_user = disclose(user_id);
+    const disclosed_viewer = disclose(viewer_id);
+    
+    // Generate the grant key
+    const accessKey = generateAccessKey(disclosed_user, disclosed_viewer);
+    
+    // Check if grant exists and is true
+    if (accessGrantKeys.member(accessKey)) {
+        return accessGrantKeys.lookup(accessKey);
+    }
+    return false;
+}
+
+// Revoke access from a specific viewer
+export circuit revokeAccess(user_id: Bytes<32>, viewer_id: Bytes<32>): [] {
+    const disclosed_user = disclose(user_id);
+    const disclosed_viewer = disclose(viewer_id);
+    
+    // Generate the grant key
+    const accessKey = generateAccessKey(disclosed_user, disclosed_viewer);
+    
+    // Check grant exists before revoking
+    assert(accessGrantKeys.member(accessKey), "No access grant found");
+    
+    // Revoke by setting to false
+    accessGrantKeys.insert(accessKey, false);
+}
+
+// Get total number of masked data entries
+export circuit getTotalMaskedEntries(): Uint<64> {
+    return totalMaskedEntries.read();
+}
+
+// Get total number of access grants
+export circuit getTotalAccessGrants(): Uint<64> {
+    return totalAccessGrants.read();
+}
+
+// Store a masking policy for a user
+export circuit setMaskingPolicy(user_id: Bytes<32>, policy_hash: Bytes<32>): [] {
+    const disclosed_user = disclose(user_id);
+    const disclosed_policy = disclose(policy_hash);
+    
+    maskingPolicies.insert(disclosed_user, disclosed_policy);
+}
+
+// Get masking policy for a user
+export circuit getMaskingPolicy(user_id: Bytes<32>): Bytes<32> {
+    const disclosed_user = disclose(user_id);
+    assert(maskingPolicies.member(disclosed_user), "No masking policy found");
+    return maskingPolicies.lookup(disclosed_user);
+}
+
+// Check if a user has a data commitment stored
+export circuit hasDataCommitment(user_id: Bytes<32>): Boolean {
+    return dataCommitments.member(disclose(user_id));
+}

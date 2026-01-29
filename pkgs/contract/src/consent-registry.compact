@@ -1,0 +1,58 @@
+// This file is part of NextMed Patient Registry
+// Copyright (C) 2026 NextMed Team
+// SPDX-License-Identifier: Apache-2.0
+
+pragma language_version 0.19.0;
+
+import CompactStandardLibrary;
+
+// ============================================================================
+// CONSENT REGISTRY CONTRACT
+// Purpose: Track patient consent for data sharing with researchers/institutions
+// ============================================================================
+
+// Ledger state: Map from user ID (Bytes<32>) to consent status (Boolean)
+export ledger consents: Map<Bytes<32>, Boolean>;
+
+// Ledger state: Counter for total consents (for stats)
+export ledger total_consents: Counter;
+
+// Witness: Access private key from user's local state
+witness local_secret_key(): Bytes<32>;
+
+// ============================================================================
+// CIRCUITS
+// ============================================================================
+
+// Update consent status for a user
+// Requires: user_id and consent value must be disclosed before ledger operations
+export circuit updateConsent(user_id: Bytes<32>, consent: Boolean): [] {
+    const disclosed_id = disclose(user_id);
+    const disclosed_consent = disclose(consent);
+    
+    // Check if this is a new consent (for counter)
+    const exists = consents.member(disclosed_id);
+    
+    consents.insert(disclosed_id, disclosed_consent);
+    
+    // Increment counter only for new consents
+    if (disclose(!exists && consent)) {
+        total_consents.increment(1);
+    }
+}
+
+// Check consent status for a user (read-only)
+export circuit checkConsent(user_id: Bytes<32>): Boolean {
+    const disclosed_id = disclose(user_id);
+    
+    // Return false if user not found, otherwise return stored value
+    if (consents.member(disclosed_id)) {
+        return consents.lookup(disclosed_id);
+    }
+    return false;
+}
+
+// Get total consent count (for statistics)
+export circuit getTotalConsents(): Uint<64> {
+    return total_consents.read();
+}

@@ -24,6 +24,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { type ChatMessage, useOpenAIChat } from "@/hooks/use-openai-chat";
 
 /**
@@ -105,8 +107,61 @@ function ChatMessageItem({
               </span>
             </div>
           ) : (
-            <div className="text-sm whitespace-pre-wrap leading-relaxed">
-              {message.content}
+            <div className="text-sm prose prose-slate max-w-none dark:prose-invert">
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  h1: ({ children }) => (
+                    <h1 className="text-base font-bold mb-2">{children}</h1>
+                  ),
+                  h2: ({ children }) => (
+                    <h2 className="text-sm font-bold mb-1.5">{children}</h2>
+                  ),
+                  h3: ({ children }) => (
+                    <h3 className="text-sm font-semibold mb-1">{children}</h3>
+                  ),
+                  p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                  ul: ({ children }) => (
+                    <ul className="list-disc pl-4 mb-2 space-y-0.5">{children}</ul>
+                  ),
+                  ol: ({ children }) => (
+                    <ol className="list-decimal pl-4 mb-2 space-y-0.5">
+                      {children}
+                    </ol>
+                  ),
+                  li: ({ children }) => <li className="text-sm">{children}</li>,
+                  table: ({ children }) => (
+                    <div className="overflow-x-auto mb-2 border rounded-lg">
+                      <table className="min-w-full divide-y divide-slate-200">
+                        {children}
+                      </table>
+                    </div>
+                  ),
+                  thead: ({ children }) => (
+                    <thead className="bg-slate-50">{children}</thead>
+                  ),
+                  th: ({ children }) => (
+                    <th className="px-3 py-1.5 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                      {children}
+                    </th>
+                  ),
+                  td: ({ children }) => (
+                    <td className="px-3 py-1.5 text-xs text-slate-600 border-t">
+                      {children}
+                    </td>
+                  ),
+                  strong: ({ children }) => (
+                    <strong className="font-bold text-current">{children}</strong>
+                  ),
+                  blockquote: ({ children }) => (
+                    <blockquote className="border-l-4 border-slate-300 pl-3 italic my-2">
+                      {children}
+                    </blockquote>
+                  ),
+                }}
+              >
+                {message.content}
+              </ReactMarkdown>
             </div>
           )}
         </div>

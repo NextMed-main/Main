@@ -29,7 +29,7 @@ import {
 import path from "path";
 import * as api from "../api";
 import * as Rx from "rxjs";
-import { nativeToken } from "@midnight-ntwrk/ledger";
+import { nativeToken } from "@midnight-ntwrk/ledger-v6";
 import type { Logger } from "pino";
 import type { Wallet } from "@midnight-ntwrk/wallet-api";
 import type { Resource } from "@midnight-ntwrk/wallet";
@@ -225,7 +225,7 @@ export class TestEnvironment {
     );
     expect(this.wallet).not.toBeNull();
     const state = await Rx.firstValueFrom(this.wallet.state());
-    expect(state.balances[nativeToken()].valueOf()).toBeGreaterThan(BigInt(0));
+    expect(state.balances[nativeToken() as any].valueOf()).toBeGreaterThan(BigInt(0));
     return this.wallet;
   };
 

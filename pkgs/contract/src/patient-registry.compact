@@ -1,11 +1,11 @@
 // Specify Compact compiler version
-pragma language_version >= 0.16.0;
+pragma language_version 0.19.0;
 // Import Midnight standard library
 import CompactStandardLibrary;
 
 // Enumeration representing gender
 // Manages patient gender in three categories
-enum Gender {
+export enum Gender {
 	MALE,    // Male
 	FEMALE,  // Female
 	OTHER    // Other
@@ -13,7 +13,7 @@ enum Gender {
 
 // Enumeration representing registration status
 // Manages the progress of patient data registration process
-enum RegistrationState {
+export enum RegistrationState {
 	UNREGISTERED,  // Not yet registered
 	REGISTERED,    // Registered
 	VERIFIED       // Verified

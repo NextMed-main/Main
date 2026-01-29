@@ -6,7 +6,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "packageManager": "pnpm@10.20.0",
+  "packageManager": "pnpm@10.28.2",
   "scripts": {
     "cli": "pnpm --filter cli",
     "contract": "pnpm --filter contract",

@@ -1,0 +1,91 @@
+// This file is part of NextMed Patient Registry
+// Copyright (C) 2026 NextMed Team
+// SPDX-License-Identifier: Apache-2.0
+
+pragma language_version 0.19.0;
+
+import CompactStandardLibrary;
+
+// ============================================================================
+// INCENTIVE POOL CONTRACT
+// Purpose: NEXT token reward distribution for patient data contributions
+// ============================================================================
+
+// Ledger state: Total supply counter
+export ledger supply: Counter;
+
+// Ledger state: User balances - Map from user ID to token amount
+export ledger balances: Map<Bytes<32>, Uint<64>>;
+
+// Ledger state: Total rewards distributed
+export ledger total_distributed: Counter;
+
+// Witness: Access private key from user's local state
+witness local_secret_key(): Bytes<32>;
+
+// ============================================================================
+// CIRCUITS
+// ============================================================================
+
+// Mint reward tokens to a user
+// Called after successful data upload verification
+export circuit mintReward(user: Bytes<32>, amount: Uint<64>): [] {
+    const disclosed_user = disclose(user);
+    const disclosed_amount = disclose(amount);
+    
+    // Get current balance (0 if not exists)
+    const current_balance: Uint<64> = balances.member(disclosed_user) 
+        ? balances.lookup(disclosed_user) 
+        : 0 as Uint<64>;
+    
+    // Calculate new balance with explicit casting
+    const new_balance = (current_balance + disclosed_amount) as Uint<64>;
+    
+    // Update balance
+    balances.insert(disclosed_user, new_balance);
+    
+    // Increment supply and distribution counters
+    supply.increment(1);
+    total_distributed.increment(1);
+}
+
+// Get balance for a user
+export circuit getBalance(user: Bytes<32>): Uint<64> {
+    const disclosed_user = disclose(user);
+    
+    if (balances.member(disclosed_user)) {
+        return balances.lookup(disclosed_user);
+    }
+    return 0 as Uint<64>;
+}
+
+// Transfer tokens between users
+export circuit transfer(sender: Bytes<32>, recipient: Bytes<32>, amount: Uint<64>): [] {
+    const disclosed_from = disclose(sender);
+    const disclosed_to = disclose(recipient);
+    const disclosed_amount = disclose(amount);
+    
+    // Check sender has sufficient balance
+    assert(balances.member(disclosed_from), "Sender has no balance");
+    const from_balance = balances.lookup(disclosed_from);
+    assert(from_balance >= disclosed_amount, "Insufficient balance");
+    
+    // Get receiver balance (0 if not exists)
+    const to_balance: Uint<64> = balances.member(disclosed_to) 
+        ? balances.lookup(disclosed_to) 
+        : 0 as Uint<64>;
+    
+    // Update balances with explicit casting
+    balances.insert(disclosed_from, (from_balance - disclosed_amount) as Uint<64>);
+    balances.insert(disclosed_to, (to_balance + disclosed_amount) as Uint<64>);
+}
+
+// Get total supply count
+export circuit getTotalSupply(): Uint<64> {
+    return supply.read();
+}
+
+// Get total rewards distributed count
+export circuit getTotalDistributed(): Uint<64> {
+    return total_distributed.read();
+}

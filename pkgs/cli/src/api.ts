@@ -18,34 +18,53 @@ import * as fsAsync from 'node:fs/promises';
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { type ContractAddress } from '@midnight-ntwrk/compact-runtime';
-import { type CoinInfo, nativeToken, Transaction, type TransactionId } from '@midnight-ntwrk/ledger';
+import { type ShieldedCoinInfo, nativeToken, Transaction, type TransactionId, type UnprovenTransaction } from '@midnight-ntwrk/ledger-v6';
 import { deployContract, findDeployedContract } from '@midnight-ntwrk/midnight-js-contracts';
 import { httpClientProofProvider } from '@midnight-ntwrk/midnight-js-http-client-proof-provider';
 import { indexerPublicDataProvider } from '@midnight-ntwrk/midnight-js-indexer-public-data-provider';
 import { levelPrivateStateProvider } from '@midnight-ntwrk/midnight-js-level-private-state-provider';
-import { getLedgerNetworkId, getZswapNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { setNetworkId, getNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
 import { NodeZkConfigProvider } from '@midnight-ntwrk/midnight-js-node-zk-config-provider';
 import {
-    type BalancedTransaction,
-    createBalancedTx,
-    type FinalizedTxData,
+    type BalancedProvingRecipe,
+    NOTHING_TO_PROVE,
     type MidnightProvider,
-    type UnbalancedTransaction,
     type WalletProvider,
+    type FinalizedTxData,
 } from '@midnight-ntwrk/midnight-js-types';
 import { assertIsContractAddress, toHex } from '@midnight-ntwrk/midnight-js-utils';
 import { type Resource, WalletBuilder } from '@midnight-ntwrk/wallet';
 import { type Wallet } from '@midnight-ntwrk/wallet-api';
-import { Transaction as ZswapTransaction } from '@midnight-ntwrk/zswap';
+import { Transaction as ZswapTransaction, NetworkId as ZswapNetworkId } from '@midnight-ntwrk/zswap';
 import { webcrypto } from 'crypto';
 import { type Logger } from 'pino';
 import * as Rx from 'rxjs';
 import { WebSocket } from 'ws';
+import * as bip39 from 'bip39';
+import { HDWallet, Roles } from '@midnight-ntwrk/wallet-sdk-hd';
 import {
     PatientRegistry,
+    ConsentRegistry,
+    IncentivePool,
+    MedicalUploadVerifier,
+    ZKDataMasking,
+    ViewingKeyManager,
     witnesses as patientRegistryWitnesses,
+    viewingKeyManagerWitnesses,
+    zkDataMaskingWitnesses,
+    createPrivateState,
+    createZKMaskingPrivateState,
+    createViewingKeyPrivateState,
 } from '../../contract/dist/index.js';
-import { type Config, patientRegistryConfig } from './config';
+import {
+    type Config,
+    patientRegistryConfig,
+    consentRegistryConfig,
+    incentivePoolConfig,
+    medicalUploadVerifierConfig,
+    zkDataMaskingConfig,
+    viewingKeyManagerConfig,
+} from './config';
 import {
     type DeployedPatientRegistryContract,
     type PatientRegistryCircuits,
@@ -53,6 +72,31 @@ import {
     PatientRegistryPrivateStateId,
     type PatientRegistryProviders,
     type RegistrationStats,
+    type DeployedConsentRegistryContract,
+    type ConsentRegistryContract,
+    ConsentRegistryPrivateStateId,
+    type ConsentRegistryProviders,
+    type ConsentRegistryCircuits,
+    type DeployedIncentivePoolContract,
+    type IncentivePoolContract,
+    IncentivePoolPrivateStateId,
+    type IncentivePoolProviders,
+    type IncentivePoolCircuits,
+    type DeployedMedicalUploadVerifierContract,
+    type MedicalUploadVerifierContract,
+    MedicalUploadVerifierPrivateStateId,
+    type MedicalUploadVerifierProviders,
+    type MedicalUploadVerifierCircuits,
+    type DeployedZKDataMaskingContract,
+    type ZKDataMaskingContract,
+    ZKDataMaskingPrivateStateId,
+    type ZKDataMaskingProviders,
+    type ZKDataMaskingCircuits,
+    type DeployedViewingKeyManagerContract,
+    type ViewingKeyManagerContract,
+    ViewingKeyManagerPrivateStateId,
+    type ViewingKeyManagerProviders,
+    type ViewingKeyManagerCircuits,
 } from './utils/common-types';
 
 let logger: Logger;
@@ -62,57 +106,161 @@ let logger: Logger;
 globalThis.WebSocket = WebSocket;
 
 // ========================================
-// Patient Registry Contract Instance
+// Contract Instances
 // ========================================
-/**
- * Patient Registryコントラクトのインスタンス
- * witnessesを注入してコントラクトを初期化
- */
+
 export const patientRegistryContractInstance: PatientRegistryContract = new PatientRegistry.Contract(
   patientRegistryWitnesses,
 );
 
-// ========================================
-// Patient Registry Functions
-// ========================================
+export const consentRegistryContractInstance: ConsentRegistryContract = new ConsentRegistry.Contract(
+  patientRegistryWitnesses,
+);
 
-export const joinContract = async (
-  providers: PatientRegistryProviders,
-  contractAddress: string,
-): Promise<DeployedPatientRegistryContract> => {
-  const patientRegistryContract = await findDeployedContract(providers, {
-    contractAddress,
-    contract: patientRegistryContractInstance,
-    privateStateId: 'patientRegistryPrivateState',
-    initialPrivateState: {},
-  });
-  logger.info(`Joined Patient Registry contract at: ${patientRegistryContract.deployTxData.public.contractAddress}`);
-  return patientRegistryContract;
-};
+export const incentivePoolContractInstance: IncentivePoolContract = new IncentivePool.Contract(
+  patientRegistryWitnesses,
+);
+
+export const medicalUploadVerifierContractInstance: MedicalUploadVerifierContract = new MedicalUploadVerifier.Contract(
+  patientRegistryWitnesses as any, // Witness shapes are compatible, Ledger types differ
+);
+
+export const zkDataMaskingContractInstance: ZKDataMaskingContract = new ZKDataMasking.Contract(
+  zkDataMaskingWitnesses,
+);
+
+export const viewingKeyManagerContractInstance: ViewingKeyManagerContract = new ViewingKeyManager.Contract(
+  viewingKeyManagerWitnesses,
+);
+
+// ========================================
+// Deployment Functions
+// ========================================
 
 /**
  * Patient Registryコントラクトをデプロイ
- *
- * @param providers - Midnight.jsプロバイダー群（ウォレット、証明サーバー等）
- * @returns デプロイされたコントラクトのインスタンス
- *
- * 新しいPatient Registryコントラクトをブロックチェーンにデプロイします。
- * デプロイ後、コントラクトアドレスが生成され、そのアドレスを使って
- * 他のユーザーもコントラクトに接続できるようになります。
  */
 export const deployPatientRegistry = async (
   providers: PatientRegistryProviders,
 ): Promise<DeployedPatientRegistryContract> => {
   logger.info('Deploying Patient Registry contract...');
+  const secretKey = new Uint8Array(32);
+  webcrypto.getRandomValues(secretKey);
+  
   const patientRegistryContract = await deployContract(providers, {
     contract: patientRegistryContractInstance,
-    privateStateId: 'patientRegistryPrivateState',
-    initialPrivateState: {},
+    privateStateId: PatientRegistryPrivateStateId,
+    initialPrivateState: createPrivateState(secretKey),
   });
   logger.info(
     `Deployed Patient Registry contract at address: ${patientRegistryContract.deployTxData.public.contractAddress}`,
   );
   return patientRegistryContract;
+};
+
+/**
+ * Consent Registryコントラクトをデプロイ
+ */
+export const deployConsentRegistry = async (
+  providers: ConsentRegistryProviders,
+): Promise<DeployedConsentRegistryContract> => {
+  logger.info('Deploying Consent Registry contract...');
+  const secretKey = new Uint8Array(32);
+  webcrypto.getRandomValues(secretKey);
+  
+  const consentRegistryContract = await deployContract(providers, {
+    contract: consentRegistryContractInstance,
+    privateStateId: ConsentRegistryPrivateStateId,
+    initialPrivateState: createPrivateState(secretKey),
+  });
+  logger.info(
+    `Deployed Consent Registry contract at address: ${consentRegistryContract.deployTxData.public.contractAddress}`,
+  );
+  return consentRegistryContract;
+};
+
+/**
+ * Incentive Poolコントラクトをデプロイ
+ */
+export const deployIncentivePool = async (
+  providers: IncentivePoolProviders,
+): Promise<DeployedIncentivePoolContract> => {
+  logger.info('Deploying Incentive Pool contract...');
+  const secretKey = new Uint8Array(32);
+  webcrypto.getRandomValues(secretKey);
+  
+  const incentivePoolContract = await deployContract(providers, {
+    contract: incentivePoolContractInstance,
+    privateStateId: IncentivePoolPrivateStateId,
+    initialPrivateState: createPrivateState(secretKey),
+  });
+  logger.info(
+    `Deployed Incentive Pool contract at address: ${incentivePoolContract.deployTxData.public.contractAddress}`,
+  );
+  return incentivePoolContract;
+};
+
+/**
+ * Medical Upload Verifierコントラクトをデプロイ
+ */
+export const deployMedicalUploadVerifier = async (
+  providers: MedicalUploadVerifierProviders,
+): Promise<DeployedMedicalUploadVerifierContract> => {
+  logger.info('Deploying Medical Upload Verifier contract...');
+  const secretKey = new Uint8Array(32);
+  webcrypto.getRandomValues(secretKey);
+  
+  const medicalUploadVerifierContract = await deployContract(providers, {
+    contract: medicalUploadVerifierContractInstance,
+    privateStateId: MedicalUploadVerifierPrivateStateId,
+    initialPrivateState: createPrivateState(secretKey),
+  });
+  logger.info(
+    `Deployed Medical Upload Verifier contract at address: ${medicalUploadVerifierContract.deployTxData.public.contractAddress}`,
+  );
+  return medicalUploadVerifierContract;
+};
+
+/**
+ * ZK Data Maskingコントラクトをデプロイ
+ */
+export const deployZKDataMasking = async (
+  providers: ZKDataMaskingProviders,
+): Promise<DeployedZKDataMaskingContract> => {
+  logger.info('Deploying ZK Data Masking contract...');
+  const secretKey = new Uint8Array(32);
+  webcrypto.getRandomValues(secretKey);
+  
+  const zkDataMaskingContract = await deployContract(providers, {
+    contract: zkDataMaskingContractInstance,
+    privateStateId: ZKDataMaskingPrivateStateId,
+    initialPrivateState: createZKMaskingPrivateState(secretKey),
+  });
+  logger.info(
+    `Deployed ZK Data Masking contract at address: ${zkDataMaskingContract.deployTxData.public.contractAddress}`,
+  );
+  return zkDataMaskingContract;
+};
+
+/**
+ * Viewing Key Managerコントラクトをデプロイ
+ */
+export const deployViewingKeyManager = async (
+  providers: ViewingKeyManagerProviders,
+): Promise<DeployedViewingKeyManagerContract> => {
+  logger.info('Deploying Viewing Key Manager contract...');
+  const secretKey = new Uint8Array(32);
+  webcrypto.getRandomValues(secretKey);
+  
+  const viewingKeyManagerContract = await deployContract(providers, {
+    contract: viewingKeyManagerContractInstance,
+    privateStateId: ViewingKeyManagerPrivateStateId,
+    initialPrivateState: createViewingKeyPrivateState(secretKey),
+  });
+  logger.info(
+    `Deployed Viewing Key Manager contract at address: ${viewingKeyManagerContract.deployTxData.public.contractAddress}`,
+  );
+  return viewingKeyManagerContract;
 };
 
 /**
@@ -139,7 +287,7 @@ export const getPatientRegistryLedgerState = async (
   logger.info('Checking Patient Registry contract ledger state...');
   const state = await providers.publicDataProvider
     .queryContractState(contractAddress)
-    .then((contractState) => (contractState != null ? PatientRegistry.ledger(contractState.data) : null));
+    .then((contractState) => (contractState != null ? PatientRegistry.ledger(contractState.data as any) : null));
   if (state !== null) {
     logger.info(
       `Ledger state: registrationCount=${state.registrationCount}, maleCount=${state.maleCount}, femaleCount=${state.femaleCount}, otherCount=${state.otherCount}`,
@@ -154,11 +302,16 @@ export const joinPatientRegistryContract = async (
   providers: PatientRegistryProviders,
   contractAddress: string,
 ): Promise<DeployedPatientRegistryContract> => {
+  // Generate a deterministic secret key for the private state
+  // In production, this should be derived from the user's wallet
+  const secretKey = new Uint8Array(32);
+  webcrypto.getRandomValues(secretKey);
+  
   const patientRegistryContract = await findDeployedContract(providers, {
     contractAddress,
     contract: patientRegistryContractInstance,
     privateStateId: 'patientRegistryPrivateState',
-    initialPrivateState: {},
+    initialPrivateState: createPrivateState(secretKey),
   });
   logger.info(
     `Joined Patient Registry contract at address: ${patientRegistryContract.deployTxData.public.contractAddress}`,
@@ -194,8 +347,8 @@ export const getRegistrationStats = async (
     throw new Error('Contract state not found');
   }
   
-  const { ledger } = await import('../../contract/dist/managed/patient-registry/contract/index.cjs');
-  const ledgerState = ledger(state.data);
+  const { ledger } = await import('../../contract/dist/managed/patient-registry/contract/index.js');
+  const ledgerState = ledger(state.data as any);
   
   logger.debug('Ledger state accessed successfully');
   logger.debug(`registrationCount: ${ledgerState.registrationCount}`);
@@ -273,18 +426,14 @@ export const registerPatient = async (
  * 年齢範囲を検証
  *
  * @param contract - デプロイ済みのPatient Registryコントラクト
+ * @param age - 検証する年齢
  * @param minAge - 最小年齢
  * @param maxAge - 最大年齢
- * @returns 指定された年齢範囲に該当する患者が存在するかどうか
+ * @returns 指定された年齢範囲に該当するかどうか
  *
- * 指定された年齢範囲（minAge以上、maxAge以下）に該当する
- * 患者が登録されているかをゼロ知識証明で検証します。
- *
- * 例: minAge=20, maxAge=30 の場合、20歳以上30歳以下の患者が
- * 存在すればtrueを返します。
- *
- * 個々の患者の年齢は公開されず、範囲内に該当する患者の
- * 存在のみが証明されます。
+ * コントラクトのverifyAgeRange circuitを使用して検証します。
+ * これはpure circuit（状態変更なし）なので、ZK証明は生成われませんが、
+ * Compact言語で定義されたロジックが使用されます。
  */
 export const verifyAgeRange = async (
   contract: DeployedPatientRegistryContract,
@@ -298,12 +447,13 @@ export const verifyAgeRange = async (
       minAge: minAge.toString(),
       maxAge: maxAge.toString(),
     },
-    'Verifying age range...',
+    'Verifying age range using contract circuit...',
   );
 
-  // verifyAgeRange circuitのロジックをローカルで実行
-  // コントラクトのcircuitと同じロジック: age >= minAge && age <= maxAge
-  const isInRange = age >= minAge && age <= maxAge;
+  // Use the contract's pure circuit for verification
+  // pureCircuits.verifyAgeRange is the Compact-compiled logic
+  const { pureCircuits } = PatientRegistry;
+  const isInRange = pureCircuits.verifyAgeRange(age, minAge, maxAge);
   
   logger.info(
     {
@@ -312,11 +462,12 @@ export const verifyAgeRange = async (
       maxAge: maxAge.toString(),
       isInRange,
     },
-    'Age range verification completed',
+    'Age range verification completed via contract circuit',
   );
 
   return isInRange;
-};;;
+};
+;
 
 /**
  * ウォレットとMidnightプロバイダーを作成
@@ -333,25 +484,45 @@ export const verifyAgeRange = async (
  * - balanceTx: トランザクションのバランス調整とゼロ知識証明の生成
  * - submitTx: トランザクションのブロックチェーンへの送信
  */
+// Helper to convert string network ID to ZswapNetworkId enum
+const getZswapNetworkId = (): ZswapNetworkId => {
+  const networkId = getNetworkId();
+  switch (networkId) {
+    case 'preview':
+    case 'testnet':
+    case 'testnet-02':
+      return ZswapNetworkId.TestNet;
+    case 'devnet':
+      return ZswapNetworkId.DevNet;
+    case 'mainnet':
+      return ZswapNetworkId.MainNet;
+    default:
+      return ZswapNetworkId.Undeployed;
+  }
+};
+
 export const createWalletAndMidnightProvider = async (wallet: Wallet): Promise<WalletProvider & MidnightProvider> => {
   const state = await Rx.firstValueFrom(wallet.state());
   return {
-    coinPublicKey: state.coinPublicKey,
-    encryptionPublicKey: state.encryptionPublicKey,
-    balanceTx(tx: UnbalancedTransaction, newCoins: CoinInfo[]): Promise<BalancedTransaction> {
+    getCoinPublicKey: () => Promise.resolve(state.coinPublicKey),
+    getEncryptionPublicKey: () => Promise.resolve(state.encryptionPublicKey),
+    balanceTx(tx: UnprovenTransaction, newCoins: any[]): Promise<BalancedProvingRecipe> {
       return wallet
         .balanceTransaction(
-          ZswapTransaction.deserialize(tx.serialize(getLedgerNetworkId()), getZswapNetworkId()),
+          ZswapTransaction.deserialize(tx.serialize(), getZswapNetworkId()),
           newCoins,
         )
         .then((tx) => wallet.proveTransaction(tx))
-        .then((zswapTx) => Transaction.deserialize(zswapTx.serialize(getZswapNetworkId()), getLedgerNetworkId()))
-        .then(createBalancedTx);
+        .then((zswapTx) => Transaction.deserialize('signature', 'proof', 'binding', zswapTx.serialize(getZswapNetworkId())))
+        .then((finalizedTx) => ({
+          type: NOTHING_TO_PROVE,
+          transaction: finalizedTx,
+        } as any));
     },
-    submitTx(tx: BalancedTransaction): Promise<TransactionId> {
-      return wallet.submitTransaction(tx);
+    submitTx(tx: Transaction<any, any, any>): Promise<TransactionId> {
+      return wallet.submitTransaction(tx as any);
     },
-  };
+  } as any;
 };
 
 /**
@@ -375,15 +546,13 @@ export const waitForSync = (wallet: Wallet) =>
     wallet.state().pipe(
       Rx.throttleTime(5_000),
       Rx.tap((state) => {
-        const applyGap = state.syncProgress?.lag.applyGap ?? 0n;
-        const sourceGap = state.syncProgress?.lag.sourceGap ?? 0n;
         logger.info(
-          `Waiting for funds. Backend lag: ${sourceGap}, wallet lag: ${applyGap}, transactions=${state.transactionHistory.length}`,
+          `Waiting for funds. Transactions=${state.transactionHistory.length}`,
         );
       }),
       Rx.filter((state) => {
         // ウォレットが完全に同期された場合のみ進行を許可
-        return state.syncProgress !== undefined && state.syncProgress.synced;
+        return state.syncProgress !== undefined && Boolean(state.syncProgress.synced);
       }),
     ),
   );
@@ -406,10 +575,8 @@ export const waitForSyncProgress = async (wallet: Wallet) =>
     wallet.state().pipe(
       Rx.throttleTime(5_000),
       Rx.tap((state) => {
-        const applyGap = state.syncProgress?.lag.applyGap ?? 0n;
-        const sourceGap = state.syncProgress?.lag.sourceGap ?? 0n;
         logger.info(
-          `Waiting for funds. Backend lag: ${sourceGap}, wallet lag: ${applyGap}, transactions=${state.transactionHistory.length}`,
+          `Waiting for funds. Transactions=${state.transactionHistory.length}`,
         );
       }),
       Rx.filter((state) => {
@@ -439,46 +606,75 @@ export const waitForFunds = (wallet: Wallet) =>
     wallet.state().pipe(
       Rx.throttleTime(10_000),
       Rx.tap((state) => {
-        const applyGap = state.syncProgress?.lag.applyGap ?? 0n;
-        const sourceGap = state.syncProgress?.lag.sourceGap ?? 0n;
         logger.info(
-          `Waiting for funds. Backend lag: ${sourceGap}, wallet lag: ${applyGap}, transactions=${state.transactionHistory.length}`,
+          `Waiting for funds. Transactions=${state.transactionHistory.length}`,
         );
       }),
       Rx.filter((state) => {
         // ウォレットが同期されている場合のみ進行を許可
-        return state.syncProgress?.synced === true;
+        return Boolean(state.syncProgress?.synced);
       }),
-      Rx.map((s) => s.balances[nativeToken()] ?? 0n),
+      Rx.map((s) => s.balances[nativeToken() as any] ?? 0n),
       Rx.filter((balance) => balance > 0n),
     ),
   );
 
 /**
+ * Derive the default wallet seed from a 32-byte private key part of a seed.
+ * Based on Midnight developer guide.
+ */
+function deriveDefaultWalletSeed(seed: Uint8Array): Uint8Array {
+  const generatedWallet = HDWallet.fromSeed(seed);
+  if (generatedWallet.type !== "seedOk") {
+    throw new Error("Error initializing HD Wallet");
+  }
+  const zswapKey = generatedWallet.hdWallet
+    .selectAccount(0)
+    .selectRole(Roles.Zswap)
+    .deriveKeyAt(0);
+  
+  if (zswapKey.type === "keyDerived") {
+    return zswapKey.key;
+  } else {
+    throw new Error("Error deriving key");
+  }
+}
+
+/**
  * ウォレットを構築し、資金が入金されるまで待機
  *
  * @param config - Midnight設定（indexer, node, proofServer等）
- * @param seed - ウォレットのシード（秘密鍵の元）
+ * @param seedOrMnemonic - ウォレットのシード（秘密鍵の元）またはニーモニック
  * @param filename - ウォレット状態の保存ファイル名
  * @returns 資金が入金されたウォレットインスタンス
- *
- * ウォレットの構築プロセス:
- * 1. 保存されたウォレット状態があれば復元を試みる
- * 2. 復元に失敗した場合や状態がない場合は新規作成
- * 3. チェーンがリセットされていないか確認
- * 4. ウォレットを同期
- * 5. 資金が入金されるまで待機
- *
- * SYNC_CACHE環境変数でキャッシュディレクトリを指定できます。
- * これにより、再起動時にウォレット状態を復元し、同期時間を短縮できます。
  */
 export const buildWalletAndWaitForFunds = async (
   { indexer, indexerWS, node, proofServer }: Config,
-  seed: string,
+  seedOrMnemonic: string,
   filename: string,
 ): Promise<Wallet & Resource> => {
   const directoryPath = process.env.SYNC_CACHE;
   let wallet: Wallet & Resource;
+
+  // Resolve seed from mnemonic if necessary
+  let seed = seedOrMnemonic;
+  if (seedOrMnemonic.includes(' ')) {
+    logger.info('Mnemonic detected, deriving wallet seed using BIP39 + HDWallet (Lace-compatible)...');
+    // 1. Convert mnemonic to 64-byte BIP39 seed using PBKDF2
+    const bip39Seed = bip39.mnemonicToSeedSync(seedOrMnemonic.trim());
+    logger.info(`BIP39 seed length: ${bip39Seed.length} bytes`);
+    // 2. Use the full 64-byte seed with HDWallet for proper derivation
+    // HDWallet uses BIP-32 derivation path: m / 44' / 2400' / account' / role / index
+    const derivedSeed = deriveDefaultWalletSeed(bip39Seed.subarray(0, 32));
+    seed = toHex(derivedSeed);
+    logger.info(`Derived Zswap key: ${seed.substring(0, 16)}...`);
+  } else if (seed.length === 128) {
+    logger.info('64-byte hex seed detected, deriving via HDWallet...');
+    const bip39Seed = Buffer.from(seed, 'hex');
+    const derivedSeed = deriveDefaultWalletSeed(bip39Seed.subarray(0, 32));
+    seed = toHex(derivedSeed);
+  }
+
   if (directoryPath !== undefined) {
     if (fs.existsSync(`${directoryPath}/${filename}`)) {
       logger.info(`Attempting to restore state from ${directoryPath}/${filename}`);
@@ -490,7 +686,7 @@ export const buildWalletAndWaitForFunds = async (
           serializedStream.close();
         });
         // ウォレットを復元
-        wallet = await WalletBuilder.restore(indexer, indexerWS, proofServer, node, seed, serialized, 'info');
+        wallet = await WalletBuilder.restore(indexer, indexerWS, proofServer, node, serialized, 'info' as any);
         wallet.start();
         const stateObject = JSON.parse(serialized);
         // チェーンがリセットされていないか確認
@@ -503,7 +699,7 @@ export const buildWalletAndWaitForFunds = async (
             node,
             seed,
             getZswapNetworkId(),
-            'info',
+            'info' as any,
           );
           wallet.start();
         } else {
@@ -513,8 +709,7 @@ export const buildWalletAndWaitForFunds = async (
             logger.info('Wallet was able to sync from restored state');
           } else {
             logger.info(`Offset: ${stateObject.offset}`);
-            logger.info(`SyncProgress.lag.applyGap: ${newState.syncProgress?.lag.applyGap}`);
-            logger.info(`SyncProgress.lag.sourceGap: ${newState.syncProgress?.lag.sourceGap}`);
+            logger.info(`SyncProgress: ${newState.syncProgress}`);
             logger.warn('Wallet was not able to sync from restored state, building wallet from scratch');
             wallet = await WalletBuilder.buildFromSeed(
               indexer,
@@ -523,7 +718,7 @@ export const buildWalletAndWaitForFunds = async (
               node,
               seed,
               getZswapNetworkId(),
-              'info',
+              'info' as any,
             );
             wallet.start();
           }
@@ -544,7 +739,7 @@ export const buildWalletAndWaitForFunds = async (
           node,
           seed,
           getZswapNetworkId(),
-          'info',
+          'info' as any,
         );
         wallet.start();
       }
@@ -557,28 +752,29 @@ export const buildWalletAndWaitForFunds = async (
         node,
         seed,
         getZswapNetworkId(),
-        'info',
+        'info' as any,
       );
       wallet.start();
     }
   } else {
-    logger.info('File path for save file not found, building wallet from scratch');
-    wallet = await WalletBuilder.buildFromSeed(
-      indexer,
-      indexerWS,
-      proofServer,
-      node,
-      seed,
-      getZswapNetworkId(),
-      'info',
-    );
+  logger.info(`Building wallet with: indexer=${indexer}, node=${node}, proofServer=${proofServer}, networkId=${getZswapNetworkId()}`);
+  const seedBytes = Buffer.from(seed, 'hex');
+  logger.info(`Seed hex length: ${seed.length}, Byte length: ${seedBytes.length}`);
+  wallet = await WalletBuilder.buildFromSeed(
+    indexer,
+    indexerWS,
+    proofServer,
+    node,
+    seed,
+    getZswapNetworkId(),
+    'info' as any,
+  );
     wallet.start();
   }
 
   const state = await Rx.firstValueFrom(wallet.state());
-  logger.info(`Your wallet seed is: ${seed}`);
   logger.info(`Your wallet address is: ${state.address}`);
-  let balance = state.balances[nativeToken()];
+  let balance = state.balances[nativeToken() as unknown as string];
   if (balance === undefined || balance === 0n) {
     logger.info(`Your wallet balance is: 0`);
     logger.info(`Waiting to receive tokens...`);
@@ -641,12 +837,115 @@ export const configurePatientRegistryProviders = async (
   config: Config,
 ): Promise<PatientRegistryProviders> => {
   const walletAndMidnightProvider = await createWalletAndMidnightProvider(wallet);
+  const zkConfigProvider = new NodeZkConfigProvider<PatientRegistryCircuits>(patientRegistryConfig.zkConfigPath);
+  
   return {
     privateStateProvider: levelPrivateStateProvider<typeof PatientRegistryPrivateStateId>({
       privateStateStoreName: patientRegistryConfig.privateStateStoreName,
+      privateStoragePasswordProvider: async () => process.env.STORAGE_PASSWORD || "password123",
     }),
     publicDataProvider: indexerPublicDataProvider(config.indexer, config.indexerWS),
-    zkConfigProvider: new NodeZkConfigProvider<PatientRegistryCircuits>(patientRegistryConfig.zkConfigPath),
+    zkConfigProvider,
+    proofProvider: httpClientProofProvider(config.proofServer),
+    walletProvider: walletAndMidnightProvider,
+    midnightProvider: walletAndMidnightProvider,
+  };
+};
+
+export const configureConsentRegistryProviders = async (
+  wallet: Wallet & Resource,
+  config: Config,
+): Promise<ConsentRegistryProviders> => {
+  const walletAndMidnightProvider = await createWalletAndMidnightProvider(wallet);
+  const zkConfigProvider = new NodeZkConfigProvider<ConsentRegistryCircuits>(consentRegistryConfig.zkConfigPath);
+  
+  return {
+    privateStateProvider: levelPrivateStateProvider<typeof ConsentRegistryPrivateStateId>({
+      privateStateStoreName: consentRegistryConfig.privateStateStoreName,
+      privateStoragePasswordProvider: async () => process.env.STORAGE_PASSWORD || "password123",
+    }),
+    publicDataProvider: indexerPublicDataProvider(config.indexer, config.indexerWS),
+    zkConfigProvider,
+    proofProvider: httpClientProofProvider(config.proofServer),
+    walletProvider: walletAndMidnightProvider,
+    midnightProvider: walletAndMidnightProvider,
+  };
+};
+
+export const configureIncentivePoolProviders = async (
+  wallet: Wallet & Resource,
+  config: Config,
+): Promise<IncentivePoolProviders> => {
+  const walletAndMidnightProvider = await createWalletAndMidnightProvider(wallet);
+  const zkConfigProvider = new NodeZkConfigProvider<IncentivePoolCircuits>(incentivePoolConfig.zkConfigPath);
+  
+  return {
+    privateStateProvider: levelPrivateStateProvider<typeof IncentivePoolPrivateStateId>({
+      privateStateStoreName: incentivePoolConfig.privateStateStoreName,
+      privateStoragePasswordProvider: async () => process.env.STORAGE_PASSWORD || "password123",
+    }),
+    publicDataProvider: indexerPublicDataProvider(config.indexer, config.indexerWS),
+    zkConfigProvider,
+    proofProvider: httpClientProofProvider(config.proofServer),
+    walletProvider: walletAndMidnightProvider,
+    midnightProvider: walletAndMidnightProvider,
+  };
+};
+
+export const configureMedicalUploadVerifierProviders = async (
+  wallet: Wallet & Resource,
+  config: Config,
+): Promise<MedicalUploadVerifierProviders> => {
+  const walletAndMidnightProvider = await createWalletAndMidnightProvider(wallet);
+  const zkConfigProvider = new NodeZkConfigProvider<MedicalUploadVerifierCircuits>(medicalUploadVerifierConfig.zkConfigPath);
+  
+  return {
+    privateStateProvider: levelPrivateStateProvider<typeof MedicalUploadVerifierPrivateStateId>({
+      privateStateStoreName: medicalUploadVerifierConfig.privateStateStoreName,
+      privateStoragePasswordProvider: async () => process.env.STORAGE_PASSWORD || "password123",
+    }),
+    publicDataProvider: indexerPublicDataProvider(config.indexer, config.indexerWS),
+    zkConfigProvider,
+    proofProvider: httpClientProofProvider(config.proofServer),
+    walletProvider: walletAndMidnightProvider,
+    midnightProvider: walletAndMidnightProvider,
+  };
+};
+
+export const configureZKDataMaskingProviders = async (
+  wallet: Wallet & Resource,
+  config: Config,
+): Promise<ZKDataMaskingProviders> => {
+  const walletAndMidnightProvider = await createWalletAndMidnightProvider(wallet);
+  const zkConfigProvider = new NodeZkConfigProvider<ZKDataMaskingCircuits>(zkDataMaskingConfig.zkConfigPath);
+  
+  return {
+    privateStateProvider: levelPrivateStateProvider<typeof ZKDataMaskingPrivateStateId>({
+      privateStateStoreName: zkDataMaskingConfig.privateStateStoreName,
+      privateStoragePasswordProvider: async () => process.env.STORAGE_PASSWORD || "password123",
+    }),
+    publicDataProvider: indexerPublicDataProvider(config.indexer, config.indexerWS),
+    zkConfigProvider,
+    proofProvider: httpClientProofProvider(config.proofServer),
+    walletProvider: walletAndMidnightProvider,
+    midnightProvider: walletAndMidnightProvider,
+  };
+};
+
+export const configureViewingKeyManagerProviders = async (
+  wallet: Wallet & Resource,
+  config: Config,
+): Promise<ViewingKeyManagerProviders> => {
+  const walletAndMidnightProvider = await createWalletAndMidnightProvider(wallet);
+  const zkConfigProvider = new NodeZkConfigProvider<ViewingKeyManagerCircuits>(viewingKeyManagerConfig.zkConfigPath);
+  
+  return {
+    privateStateProvider: levelPrivateStateProvider<typeof ViewingKeyManagerPrivateStateId>({
+      privateStateStoreName: viewingKeyManagerConfig.privateStateStoreName,
+      privateStoragePasswordProvider: async () => process.env.STORAGE_PASSWORD || "password123",
+    }),
+    publicDataProvider: indexerPublicDataProvider(config.indexer, config.indexerWS),
+    zkConfigProvider,
     proofProvider: httpClientProofProvider(config.proofServer),
     walletProvider: walletAndMidnightProvider,
     midnightProvider: walletAndMidnightProvider,

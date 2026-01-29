@@ -1,0 +1,84 @@
+// This file is part of NextMed Patient Registry
+// Copyright (C) 2026 NextMed Team
+// SPDX-License-Identifier: Apache-2.0
+
+pragma language_version 0.19.0;
+
+import CompactStandardLibrary;
+
+// ============================================================================
+// MEDICAL UPLOAD VERIFIER CONTRACT
+// Purpose: Zero-Knowledge file integrity verification for medical records
+// ============================================================================
+
+// Ledger state: Map from user ID to their file commitment hash
+export ledger commitments: Map<Bytes<32>, Bytes<32>>;
+
+// Ledger state: Counter for total verified uploads
+export ledger total_uploads: Counter;
+
+// Witness: Access file hash computed locally (never leaves user's device)
+witness local_file_hash(): Bytes<32>;
+
+// Witness: Access private key from user's local state
+witness local_secret_key(): Bytes<32>;
+
+// ============================================================================
+// CIRCUITS
+// ============================================================================
+
+// Verify a medical file upload using ZK proof
+// The user provides a public commitment, and we verify it matches the local file hash
+export circuit verifyUpload(user_id: Bytes<32>, commitment: Bytes<32>): [] {
+    // Get the private file hash from witness (computed locally on user's device)
+    const file_hash = local_file_hash();
+    
+    // Compute the hash of the file hash for comparison
+    const computed_commitment = persistentHash<Bytes<32>>(file_hash);
+    
+    // Verify the commitment matches
+    assert(computed_commitment == commitment, "Hash mismatch: file integrity verification failed");
+    
+    // Store the commitment on-chain (only the hash, not the file data)
+    const disclosed_user = disclose(user_id);
+    const disclosed_commitment = disclose(commitment);
+    commitments.insert(disclosed_user, disclosed_commitment);
+    
+    // Increment upload counter
+    total_uploads.increment(1);
+}
+
+// Check if a user has a stored commitment
+export circuit hasCommitment(user_id: Bytes<32>): Boolean {
+    return commitments.member(disclose(user_id));
+}
+
+// Get commitment for a user
+export circuit getCommitment(user_id: Bytes<32>): Bytes<32> {
+    const disclosed_user = disclose(user_id);
+    assert(commitments.member(disclosed_user), "No commitment found for user");
+    return commitments.lookup(disclosed_user);
+}
+
+// Get total upload count (for statistics)
+export circuit getTotalUploads(): Uint<64> {
+    return total_uploads.read();
+}
+
+// Verify that a file matches a stored commitment (re-verification)
+export circuit verifyExistingCommitment(user_id: Bytes<32>): Boolean {
+    const disclosed_user = disclose(user_id);
+    
+    // Check commitment exists
+    assert(commitments.member(disclosed_user), "No commitment found for user");
+    
+    // Get stored commitment
+    const stored_commitment = commitments.lookup(disclosed_user);
+    
+    // Get current file hash from witness
+    const file_hash = local_file_hash();
+    const computed_commitment = persistentHash<Bytes<32>>(file_hash);
+    
+    // Return whether they match
+    return disclose(computed_commitment == stored_commitment);
+}
