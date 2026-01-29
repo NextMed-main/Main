@@ -83,3 +83,12 @@ Desktop.ini
 # Misc
 *.pem
 .docker
+
+# Local dev files - DO NOT COMMIT
+.specstory/
+.vscode/
+compiler-0.27/
+pkgs/cli/debug-seed.ts
+pkgs/cli/scripts/deploy-local.ts
+pkgs/cli/scripts/check-wallet-local.ts
+pkgs/frontend/build_output.txt
